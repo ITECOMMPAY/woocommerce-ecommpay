@@ -1,0 +1,1423 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Woocommerce ECOMMPAY\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-08-18 14:34+0000\n"
+"PO-Revision-Date: 2022-08-27 19:12+0000\n"
+"Last-Translator: \n"
+"Language-Team: Русский\n"
+"Language: ru_RU\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10 >= 2 && "
+"n%10<=4 &&(n%100<10||n%100 >= 20)? 1 : 2);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.6.2; wp-6.0.1\n"
+"X-Domain: woo-ecommpay"
+
+#: views/html-meta-box.php:73 views/html-meta-box-payment-action.php:60
+#: views/html-meta-box-payment.php:137
+msgid " You are about to cancel this payment"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings.php:91
+msgid "Action failed. Please refresh the page and retry."
+msgstr ""
+
+#: views/html-meta-box.php:26 views/html-meta-box-payment.php:92
+msgid "Actions"
+msgstr "Действия"
+
+#: common/class-wc-gateway-ecommpay.php:106
+msgid "Allows you to pay in various ways through the ECOMMPAY Payment Page."
+msgstr ""
+"Позволяет осуществлять платеж различными методами через Платежную Страницу "
+"ECOMMPAY."
+
+#: common/settings/class-ecp-gateway-settings-subscriptions.php:63
+msgid ""
+"Automatically mark a renewal order as complete on successful recurring "
+"payments."
+msgstr ""
+
+#: common/includes/class-wc-gateway-ecommpay-payment.php:207
+msgid "Awaiting customer next action"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:60
+msgid "Cache Expiration"
+msgstr "Срок хранения данных в кеше"
+
+#: views/html-order-table-transaction-data.php:16
+msgid "Cached"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:51
+msgid ""
+"Caches transaction data to improve application and web-server performance."
+msgstr ""
+
+#: views/html-meta-box.php:74 views/html-meta-box-payment-action.php:61
+#: views/html-meta-box-payment.php:138
+msgid "Cancel"
+msgstr "Отменить"
+
+#: views/html-meta-box.php:55 views/html-meta-box-payment-action.php:42
+#: views/html-meta-box-payment.php:119
+msgid "Capture amount"
+msgstr "Подтвердить списание"
+
+#: views/html-meta-box.php:34 views/html-meta-box-payment-action.php:21
+#: views/html-meta-box-payment.php:98
+#, php-format
+msgid "Capture Full Amount (%s)"
+msgstr ""
+
+#: views/bulk-actions.php:5
+msgid "Capture payment and activate subscription"
+msgstr "Подтвердить платеж и активировать подписку"
+
+#: views/html-meta-box.php:65 views/html-meta-box-payment-action.php:52
+#: views/html-meta-box-payment.php:129
+msgid "Capture Specified Amount"
+msgstr "Подтвердить указанную сумму"
+
+#: views/html-meta-box-payment-info.php:60 views/html-meta-box-payment.php:65
+msgid "Code"
+msgstr "Код"
+
+#: common/settings/class-ecp-gateway-settings-subscriptions.php:59
+msgid "Complete renewal orders"
+msgstr ""
+
+#: views/html-meta-box.php:21 views/html-meta-box-payment-info.php:21
+#: views/html-meta-box-subscription.php:13 views/html-meta-box-payment.php:26
+msgid "Current payment state"
+msgstr "Состояние платежа"
+
+#: common/settings/class-ecp-gateway-settings-admin.php:143
+msgctxt "Custom variables"
+msgid "3D Secure: Account info"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:144
+msgctxt "Custom variables"
+msgid "3D Secure: Last MPI Result"
+msgstr "3D Secure: Данные успешного платежа"
+
+#: common/settings/class-ecp-gateway-settings-admin.php:145
+msgctxt "Custom variables"
+msgid "3D Secure: Shipping Details"
+msgstr "3D Secure: Данные доставки"
+
+#: common/settings/class-ecp-gateway-settings-admin.php:146
+msgctxt "Custom variables"
+msgid "Billing Details"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:151
+msgctxt "Custom variables"
+msgid "Cash Voucher Details"
+msgstr "Данные фискального чека"
+
+#: common/settings/class-ecp-gateway-settings-admin.php:142
+msgctxt "Custom variables"
+msgid "Customer: Address"
+msgstr "Покупатель: Адрес"
+
+#: common/settings/class-ecp-gateway-settings-admin.php:139
+msgctxt "Custom variables"
+msgid "Customer: Email"
+msgstr "Покупатель: Email"
+
+#: common/settings/class-ecp-gateway-settings-admin.php:141
+msgctxt "Custom variables"
+msgid "Customer: Full name"
+msgstr "Покупатель: Полное имя"
+
+#: common/settings/class-ecp-gateway-settings-admin.php:140
+msgctxt "Custom variables"
+msgid "Customer: Phone number"
+msgstr "Покупатель: Номер телефона"
+
+#: common/settings/class-ecp-gateway-settings-admin.php:147
+msgctxt "Custom variables"
+msgid "Receipt Details"
+msgstr "Данные чека"
+
+#: common/settings/class-ecp-gateway-settings-additional.php:54
+#: common/settings/class-ecp-gateway-settings-payment-page.php:74
+msgid "Customer Message"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:66
+msgid "Default: 604800 (7 days)."
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-general.php:140
+msgid "Delete orders"
+msgstr "Удалить заказы"
+
+#: common/settings/class-ecp-gateway-settings-general.php:141
+msgid "Delete orders with payment via ECOMMPAY when uninstalling plugin."
+msgstr ""
+"Удалить заказы с платежами через платежную систему ECOMMPAY при удалении "
+"плагина"
+
+#: common/settings/class-ecp-gateway-settings-additional.php:77
+#: common/settings/class-ecp-gateway-settings-payment-page.php:108
+msgid "Display mode"
+msgstr "Режим отображения"
+
+#: common/settings/class-ecp-gateway-settings-additional.php:83
+#: common/settings/class-ecp-gateway-settings-payment-page.php:114
+msgctxt "Display mode"
+msgid "iFrame"
+msgstr "На текущей странице"
+
+#: common/settings/class-ecp-gateway-settings-additional.php:82
+#: common/settings/class-ecp-gateway-settings-payment-page.php:113
+msgctxt "Display mode"
+msgid "Popup"
+msgstr "Во всплывающем окне"
+
+#: common/settings/class-ecp-gateway-settings-additional.php:81
+#: common/settings/class-ecp-gateway-settings-payment-page.php:112
+msgctxt "Display mode"
+msgid "Redirect"
+msgstr "На новой странице"
+
+#: common/class-wc-gateway-ecommpay.php:642
+#, php-format
+msgid "ECOMMERCE Payment ID updated from #%d to #%d"
+msgstr ""
+
+#. Author of the plugin
+#: common/class-wc-gateway-ecommpay.php:105
+#: common/settings/class-ecp-gateway-settings-additional.php:50
+#: common/settings/class-ecp-gateway-settings-payment-page.php:70
+msgid "ECOMMPAY"
+msgstr "ECOMMPAY"
+
+#: common/exceptions/class-wc-gateway-ecommpay-api-exception.php:87
+#, php-format
+msgid "ECOMMPAY API Exception code: %s"
+msgstr "ECOMMPAY API - код исключения: %s"
+
+#: common/exceptions/class-wc-gateway-ecommpay-api-exception.php:85
+#, php-format
+msgid "ECOMMPAY API Exception file: %s"
+msgstr "ECOMMPAY API - файл исключения: %s"
+
+#: common/exceptions/class-wc-gateway-ecommpay-api-exception.php:86
+#, php-format
+msgid "ECOMMPAY API Exception line: %s"
+msgstr "ECOMMPAY API - строка исключения: %s"
+
+#: common/exceptions/class-wc-gateway-ecommpay-api-exception.php:103
+#, php-format
+msgid "ECOMMPAY API Exception Request DATA: %s"
+msgstr "ECOMMPAY API - данные запроса исключения: %s"
+
+#: common/exceptions/class-wc-gateway-ecommpay-api-exception.php:93
+#, php-format
+msgid "ECOMMPAY API Exception Request URL: %s"
+msgstr "ECOMMPAY API - URL запроса исключения: %s"
+
+#: common/exceptions/class-wc-gateway-ecommpay-api-exception.php:113
+#, php-format
+msgid "ECOMMPAY API Exception Response DATA: %s"
+msgstr "ECOMMPAY API - данные ответа исключения: %s"
+
+#: helpers/ecp-ui-backend.php:90
+msgid "ECOMMPAY Payment"
+msgstr "Платеж ECOMMPAY"
+
+#: common/class-wc-gateway-ecommpay.php:607
+msgid "ECOMMPAY Payment ID"
+msgstr ""
+
+#: helpers/ecp-ui-backend.php:99
+msgid "ECOMMPAY Subscription"
+msgstr ""
+
+#: views/html-admin-settings-log.php:23
+msgid "Empty debug logs"
+msgstr "Очистить журнал отладки"
+
+#: views/html-admin-settings-log.php:29
+msgid "Empty transaction cache"
+msgstr "Очистить кеш платежной информации"
+
+#: common/settings/class-ecp-gateway-settings-admin.php:102
+#: common/settings/class-ecp-gateway-settings-general.php:70
+#: common/settings/class-ecp-gateway-settings-subscriptions.php:61
+msgid "Enable"
+msgstr "Включено"
+
+#: common/settings/class-ecp-gateway-settings-admin.php:49
+msgid "Enable Caching"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-general.php:72
+msgid "Enable ECOMMPAY"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-general.php:90
+msgid "Enable test mode integration"
+msgstr ""
+
+#: common/includes/class-wc-gateway-ecommpay-callbacks.php:294
+msgctxt "Error message"
+msgid "Invalid callback signature."
+msgstr ""
+
+#: common/includes/class-wc-gateway-ecommpay-payment.php:86
+#, php-format
+msgid "Error saving payment #%d"
+msgstr ""
+
+#: common/exceptions/class-wc-gateway-ecommpay-invalid-argument-exception.php:106
+#, php-format
+msgctxt "Exception message"
+msgid "Argument name: %s"
+msgstr ""
+
+#: common/exceptions/class-wc-gateway-ecommpay-key-not-found-exception.php:89
+#, php-format
+msgctxt "Exception message"
+msgid "Available keys: %s"
+msgstr ""
+
+#. %s: Duplicate key name
+#: common/exceptions/class-wc-gateway-ecommpay-duplicate-exception.php:64
+#, php-format
+msgctxt "Exception message"
+msgid "Duplicated key: %s"
+msgstr ""
+
+#: common/exceptions/class-wc-gateway-ecommpay-invalid-argument-exception.php:110
+#, php-format
+msgctxt "Exception message"
+msgid "Expected type: %s"
+msgstr ""
+
+#: common/exceptions/class-wc-gateway-ecommpay-invalid-argument-exception.php:58
+msgctxt "Exception message"
+msgid "Invalid argument type"
+msgstr ""
+
+#: common/exceptions/class-wc-gateway-ecommpay-duplicate-exception.php:34
+msgctxt "Exception message"
+msgid "Key is already exists in the current array"
+msgstr ""
+
+#: common/exceptions/class-wc-gateway-ecommpay-key-not-found-exception.php:46
+msgctxt "Exception message"
+msgid "Key not found in the current array."
+msgstr ""
+
+#: common/exceptions/class-wc-gateway-ecommpay-invalid-argument-exception.php:114
+#, php-format
+msgctxt "Exception message"
+msgid "Received type: %s"
+msgstr ""
+
+#: common/exceptions/class-wc-gateway-ecommpay-key-not-found-exception.php:84
+#, php-format
+msgctxt "Exception message"
+msgid "Searched key: %s"
+msgstr ""
+
+#: common/class-wc-gateway-ecommpay.php:700
+msgid "Failed renewal"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:100
+msgid "Fetch Payment Info"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-general.php:46
+msgid "General"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-general.php:64
+msgid "General options"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-additional.php:73
+#: common/settings/class-ecp-gateway-settings-payment-page.php:93
+msgid "Go to payment"
+msgstr "Оплатить"
+
+#: views/html-notice-settings.php:11
+#, php-format
+msgid "Go to the <a href=\"%s\">settings page</a>"
+msgstr ""
+
+#: woocommerce-gateway-ecommpay.php:33
+msgid "Go to the plugins page to activate WooCommerce"
+msgstr ""
+
+#: views/html-admin-settings-log.php:13
+msgid "Got problems? Go get help."
+msgstr ""
+
+#: common/class-wc-gateway-ecommpay.php:364
+msgid ""
+"Inappropriate order status. It should be \"processing\" or \"complete\"."
+msgstr ""
+
+#: common/exceptions/class-wc-gateway-ecommpay-api-exception.php:192
+#: common/exceptions/class-wc-gateway-ecommpay-exceptions.php:74
+msgid "inside <strong>WooCommerce -> System Status -> Logs</strong>."
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-general.php:83
+msgid "Integration"
+msgstr ""
+
+#: common/exceptions/class-wc-gateway-ecommpay-not-implemented-exception.php:80
+#, php-format
+msgid "Interface name: %s"
+msgstr ""
+
+#: views/html-notice-settings.php:15
+msgid "is mandatory."
+msgstr ""
+
+#: views/html-notice-update.php:19
+msgid ""
+"It is strongly recommended that you backup your database before proceeding. "
+"Are you sure you wish to run the updater now?"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-payment-page.php:127
+msgid "Language"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-payment-page.php:131
+msgctxt "Language"
+msgid "By Customer browser setting"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-payment-page.php:132
+msgctxt "Language"
+msgid "By WordPress"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-payment-page.php:133
+msgctxt "Language"
+msgid "English"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-payment-page.php:134
+msgctxt "Language"
+msgid "France"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-payment-page.php:136
+msgctxt "Language"
+msgid "Germany"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-payment-page.php:135
+msgctxt "Language"
+msgid "Italian"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-payment-page.php:138
+msgctxt "Language"
+msgid "Russian"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-payment-page.php:137
+msgctxt "Language"
+msgid "Spanish"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:85
+msgid "Level of save log data."
+msgstr ""
+
+#: common/log/class-wc-gateway-ecommpay-log.php:214
+#, php-format
+msgctxt "Log information"
+msgid "--------------------:: Running at %s"
+msgstr ""
+
+#: common/api/class-wc-gateway-ecommpay-api.php:367
+msgctxt "Log information"
+msgid "-=-=-=-= cURL Execution process (end) =-=-=-=-"
+msgstr ""
+
+#: common/api/class-wc-gateway-ecommpay-api.php:341
+msgctxt "Log information"
+msgid "-=-=-=-= cURL Execution process (start) =-=-=-=-"
+msgstr ""
+
+#: common/api/class-wc-gateway-ecommpay-api-payment.php:77
+msgctxt "Log information"
+msgid "<b>2. Run refund payment API process.</b>"
+msgstr ""
+
+#: common/includes/class-wc-gateway-ecommpay-callbacks.php:190
+msgctxt "Log information"
+msgid "Apply refund callback data."
+msgstr ""
+
+#: common/includes/class-wc-gateway-ecommpay-callbacks.php:151
+msgctxt "Log information"
+msgid "Apply sale callback data."
+msgstr ""
+
+#: common/includes/class-wc-gateway-ecommpay-callbacks.php:127
+msgctxt "Log information"
+msgid "Apply verify callback data."
+msgstr ""
+
+#: common/class-wc-gateway-ecommpay.php:424
+msgctxt "Log information"
+msgid "Checking the possibility of a refund through the ECOMMPAY gateway."
+msgstr ""
+
+#: common/class-wc-gateway-ecommpay.php:346
+msgctxt "Log information"
+msgid "Ecommpay gateway prepare refund creation."
+msgstr ""
+
+#. %s: CURL request data as JSON-string
+#: common/api/class-wc-gateway-ecommpay-api.php:354
+#, php-format
+msgctxt "Log information"
+msgid "Form data: %s"
+msgstr ""
+
+#: common/includes/class-wc-gateway-ecommpay-callbacks.php:64
+#, php-format
+msgctxt "Log information"
+msgid "Incoming callback data: %s"
+msgstr ""
+
+#. %s: Json parser error message
+#: common/api/class-wc-gateway-ecommpay-api.php:172
+#, php-format
+msgctxt "Log information"
+msgid "JSON parse data with error: %s"
+msgstr ""
+
+#. %s: Source JSON-string data
+#: common/api/class-wc-gateway-ecommpay-api.php:177
+#, php-format
+msgctxt "Log information"
+msgid "JSON source string data: %s"
+msgstr ""
+
+#: common/includes/class-wc-gateway-ecommpay-callbacks.php:91
+#, php-format
+msgctxt "Log information"
+msgid "Not supported operation type: %s"
+msgstr ""
+
+#: common/api/class-wc-gateway-ecommpay-api-payment.php:51
+#: common/api/class-wc-gateway-ecommpay-api-payment.php:79
+#: common/includes/class-wc-gateway-ecommpay-callbacks.php:128
+#: common/includes/class-wc-gateway-ecommpay-callbacks.php:152
+#: common/includes/class-wc-gateway-ecommpay-callbacks.php:191
+#, php-format
+msgctxt "Log information"
+msgid "Order ID: %s."
+msgstr ""
+
+#: common/includes/class-wc-gateway-ecommpay-callbacks.php:129
+#: common/includes/class-wc-gateway-ecommpay-callbacks.php:153
+#: common/includes/class-wc-gateway-ecommpay-callbacks.php:192
+#, php-format
+msgctxt "Log information"
+msgid "Payment ID: %s."
+msgstr ""
+
+#: common/api/class-wc-gateway-ecommpay-api-payment.php:53
+#, php-format
+msgctxt "Log information"
+msgid "Payment method: %s."
+msgstr ""
+
+#: common/api/class-wc-gateway-ecommpay-api-payment.php:52
+#, php-format
+msgctxt "Log information"
+msgid "Payment status: %s."
+msgstr ""
+
+#: common/api/class-wc-gateway-ecommpay-api-payment.php:78
+#, php-format
+msgctxt "Log information"
+msgid "Refund ID: %s."
+msgstr ""
+
+#: common/api/class-wc-gateway-ecommpay-api-payment.php:27
+#, php-format
+msgctxt "Log information"
+msgid "Request ID: %s."
+msgstr ""
+
+#. %s: CURL request type
+#: common/api/class-wc-gateway-ecommpay-api.php:349
+#, php-format
+msgctxt "Log information"
+msgid "Request type: %s"
+msgstr ""
+
+#. %s: CURL request URL
+#: common/api/class-wc-gateway-ecommpay-api.php:344
+#, php-format
+msgctxt "Log information"
+msgid "Request URL: %s"
+msgstr ""
+
+#. %s: CURL response code
+#: common/api/class-wc-gateway-ecommpay-api.php:359
+#, php-format
+msgctxt "Log information"
+msgid "Response code: %s"
+msgstr ""
+
+#. %s: CURL response raw data
+#: common/api/class-wc-gateway-ecommpay-api.php:364
+#, php-format
+msgctxt "Log information"
+msgid "Response raw: %s"
+msgstr ""
+
+#: common/includes/class-wc-gateway-ecommpay-callbacks.php:50
+msgctxt "Log information"
+msgid "Run callback handler."
+msgstr ""
+
+#: common/includes/class-wc-gateway-ecommpay-callbacks.php:79
+msgctxt "Log information"
+msgid "Run callback processor"
+msgstr ""
+
+#: common/api/class-wc-gateway-ecommpay-api-payment.php:26
+msgctxt "Log information"
+msgid "Run check request status API process."
+msgstr ""
+
+#: common/api/class-wc-gateway-ecommpay-api-payment.php:50
+msgctxt "Log information"
+msgid "Run check status API process."
+msgstr ""
+
+#: common/class-wc-gateway-ecommpay.php:429
+msgctxt "Log information"
+msgid "Undefined argument order. Hide refund via ECOMMPAY button."
+msgstr ""
+
+#: common/class-wc-gateway-ecommpay.php:351
+msgctxt "Log information"
+msgid "Undefined argument refund_payment. Break refund process."
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:83
+msgid "Log level"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:89
+msgctxt "Log level"
+msgid "Alert"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:88
+msgctxt "Log level"
+msgid "Critical"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:94
+msgctxt "Log level"
+msgid "Debug"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:87
+msgctxt "Log level"
+msgid "Emergency"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:90
+msgctxt "Log level"
+msgid "Error"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:93
+msgctxt "Log level"
+msgid "Info"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:92
+msgctxt "Log level"
+msgid "Notice"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:91
+msgctxt "Log level"
+msgid "Warning"
+msgstr ""
+
+#: views/html-meta-box-payment-info.php:79 views/html-meta-box-payment.php:74
+msgid "Message"
+msgstr ""
+
+#: views/html-order-table-transaction-data.php:15
+msgid ""
+"NB: The transaction data is served from cached results. Click to view the "
+"order and update the cached data."
+msgstr ""
+
+#: common/class-wc-gateway-ecommpay.php:207
+#, php-format
+msgid "No ECOMMPAY payment for order: #%s"
+msgstr ""
+
+#: common/exceptions/class-wc-gateway-ecommpay-not-implemented-exception.php:79
+#, php-format
+msgid "Object name: %s"
+msgstr "Наименование объекта: %s"
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-status.php:183
+msgctxt "Operation status"
+msgid "Awaiting 3ds result"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-status.php:182
+msgctxt "Operation status"
+msgid "Awaiting approval"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-status.php:186
+msgctxt "Operation status"
+msgid "Awaiting clarification"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-status.php:185
+msgctxt "Operation status"
+msgid "Awaiting customer action"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-status.php:192
+msgctxt "Operation status"
+msgid "Awaiting merchant auth"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-status.php:196
+msgctxt "Operation status"
+msgid "Awaiting payment"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-status.php:184
+msgctxt "Operation status"
+msgid "Awaiting redirect result"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-status.php:189
+msgctxt "Operation status"
+msgid "Decline"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-status.php:195
+msgctxt "Operation status"
+msgid "Expired"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-status.php:188
+msgctxt "Operation status"
+msgid "External error"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-status.php:187
+msgctxt "Operation status"
+msgid "External processing"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-status.php:191
+msgctxt "Operation status"
+msgid "Internal error"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-status.php:194
+msgctxt "Operation status"
+msgid "Invoice cancelled"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-status.php:193
+msgctxt "Operation status"
+msgid "Invoice sent"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-status.php:181
+msgctxt "Operation status"
+msgid "Processing"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-status.php:190
+msgctxt "Operation status"
+msgid "Success"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-status.php:197
+msgctxt "Operation status"
+msgid "Unknown"
+msgstr ""
+
+#: views/html-meta-box-payment-info.php:51 views/html-meta-box-payment.php:56
+msgid "Operation type"
+msgstr "Тип операции"
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-types.php:149
+msgctxt "Operation type"
+msgid "Account verification"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-types.php:142
+msgctxt "Operation type"
+msgid "Auth"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-types.php:144
+msgctxt "Operation type"
+msgid "Cancel"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-types.php:140
+msgctxt "Operation type"
+msgid "Cancel recurring"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-types.php:143
+msgctxt "Operation type"
+msgid "Capture"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-types.php:156
+msgctxt "Operation type"
+msgid "Capture settlement"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-types.php:151
+msgctxt "Operation type"
+msgid "Commission"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-types.php:150
+msgctxt "Operation type"
+msgid "Create cash voucher"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-types.php:154
+msgctxt "Operation type"
+msgid "Customer action"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-types.php:152
+msgctxt "Operation type"
+msgid "Incremental"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-types.php:153
+msgctxt "Operation type"
+msgid "Invoice"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-types.php:148
+msgctxt "Operation type"
+msgid "Manual change"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-types.php:155
+msgctxt "Operation type"
+msgid "Payment confirmation"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-types.php:139
+msgctxt "Operation type"
+msgid "Recurring"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-types.php:146
+msgctxt "Operation type"
+msgid "Refund"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-types.php:145
+msgctxt "Operation type"
+msgid "Reversal"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-types.php:147
+msgctxt "Operation type"
+msgid "Reverse refund"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-types.php:138
+msgctxt "Operation type"
+msgid "Sale"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-operation-types.php:141
+msgctxt "Operation type"
+msgid "Update recurring"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-additional.php:67
+#: common/settings/class-ecp-gateway-settings-payment-page.php:87
+msgid "Order button text"
+msgstr ""
+
+#: common/class-wc-gateway-ecommpay.php:358
+#, php-format
+msgid "Order ID: #%s"
+msgstr ""
+
+#: common/class-wc-gateway-ecommpay.php:398
+#, php-format
+msgid "Order ID: %s."
+msgstr ""
+
+#: common/class-wc-gateway-ecommpay.php:667
+msgid "Payment"
+msgstr ""
+
+#: common/includes/methods/class-wc-gateway-ecommpay-methods-base.php:43
+#, php-format
+msgid "Payment %s."
+msgstr ""
+
+#: common/includes/methods/class-wc-gateway-ecommpay-methods-base.php:54
+msgid "Payment failed."
+msgstr ""
+
+#: common/includes/class-wc-gateway-ecommpay-order.php:220
+msgid "Payment Fee"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-payment-page.php:102
+msgid "Payment form"
+msgstr ""
+
+#: views/html-meta-box.php:103 views/html-meta-box-payment-info.php:33
+#: views/html-meta-box-payment.php:38
+msgid "Payment ID"
+msgstr ""
+
+#: common/class-wc-gateway-ecommpay.php:399
+#, php-format
+msgid "Payment ID: %s."
+msgstr ""
+
+#: views/html-meta-box.php:113
+msgid "Payment Link"
+msgstr ""
+
+#: views/html-meta-box-payment-info.php:42 views/html-meta-box-payment.php:47
+msgid "Payment method"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-additional.php:16
+#: common/settings/class-ecp-gateway-settings-payment-page.php:41
+msgid "Payment Page"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-additional.php:79
+#: common/settings/class-ecp-gateway-settings-payment-page.php:110
+msgid "Payment page display mode"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-payment-page.php:129
+msgid "Payment page language"
+msgstr ""
+
+#: common/includes/methods/class-wc-gateway-ecommpay-methods-base.php:50
+msgid "Payment processed."
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:199
+msgctxt "Payment status"
+msgid "Awaiting 3ds result"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:197
+msgctxt "Payment status"
+msgid "Awaiting approval"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:204
+msgctxt "Payment status"
+msgid "Awaiting capture"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:203
+msgctxt "Payment status"
+msgid "Awaiting clarification"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:198
+msgctxt "Payment status"
+msgid "Awaiting clarify"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:225
+msgctxt "Payment status"
+msgid "Awaiting clearing"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:228
+msgctxt "Payment status"
+msgid "Awaiting confirmation"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:215
+msgctxt "Payment status"
+msgid "Awaiting customer"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:202
+msgctxt "Payment status"
+msgid "Awaiting customer action"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:200
+msgctxt "Payment status"
+msgid "Awaiting merchant auth"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:226
+msgctxt "Payment status"
+msgid "Awaiting partially clearing"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:220
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:230
+msgctxt "Payment status"
+msgid "Awaiting payment"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:201
+msgctxt "Payment status"
+msgid "Awaiting redirect result"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:222
+msgctxt "Payment status"
+msgid "Awaiting retry"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:210
+msgctxt "Payment status"
+msgid "Cancelled"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:227
+msgctxt "Payment status"
+msgid "Clearing processing"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:208
+msgctxt "Payment status"
+msgid "Decline"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:209
+msgctxt "Payment status"
+msgid "Error"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:221
+msgctxt "Payment status"
+msgid "Expired"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:217
+msgctxt "Payment status"
+msgid "External error"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:205
+msgctxt "Payment status"
+msgid "External processing"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:216
+msgctxt "Payment status"
+msgid "Internal error"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:219
+msgctxt "Payment status"
+msgid "Invoice cancelled"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:218
+msgctxt "Payment status"
+msgid "Invoice sent"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:223
+msgctxt "Payment status"
+msgid "Partially paid"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:224
+msgctxt "Payment status"
+msgid "Partially paid out"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:212
+msgctxt "Payment status"
+msgid "Partially refunded"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:213
+msgctxt "Payment status"
+msgid "Partially reversed"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:196
+msgctxt "Payment status"
+msgid "Processing"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:214
+msgctxt "Payment status"
+msgid "Refunded"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:211
+msgctxt "Payment status"
+msgid "Reversed"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:206
+msgctxt "Payment status"
+msgid "Scheduled recurring processing"
+msgstr ""
+
+#: common/helpers/class-wc-gateway-ecommpay-payment-status.php:207
+msgctxt "Payment status"
+msgid "Success"
+msgstr ""
+
+#. 1: old payment status 2: new payment status
+#: common/includes/class-wc-gateway-ecommpay-payment.php:146
+#, php-format
+msgid "Payment status changed from %1$s to %2$s."
+msgstr ""
+
+#. %s: new payment status
+#: common/includes/class-wc-gateway-ecommpay-payment.php:167
+#, php-format
+msgid "Payment status set to %s."
+msgstr ""
+
+#: common/includes/class-wc-gateway-ecommpay-callbacks.php:316
+msgctxt "Plugin error"
+msgid "Order not found"
+msgstr ""
+
+#. %s: Response data as JSON-string
+#: common/includes/class-wc-gateway-ecommpay-callbacks.php:328
+#, php-format
+msgctxt "Plugin error"
+msgid "Response data: %s"
+msgstr ""
+
+#. %s: Response message
+#: common/includes/class-wc-gateway-ecommpay-callbacks.php:324
+#, php-format
+msgctxt "Plugin error"
+msgid "Response error message: %s."
+msgstr ""
+
+#. %s: Order number
+#: common/includes/class-wc-gateway-ecommpay-callbacks.php:320
+#, php-format
+msgctxt "Plugin error"
+msgid "Transaction failed for #%s."
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings.php:432
+#: common/settings/class-ecp-gateway-settings-general.php:95
+msgid "Project ID"
+msgstr "ID проекта"
+
+#: common/settings/class-ecp-gateway-settings-admin.php:55
+msgid "Recommended."
+msgstr ""
+
+#: common/class-wc-gateway-ecommpay.php:223
+#, php-format
+msgid "Refund amount (%1$s) is greater than payment balance (%2$s)."
+msgstr ""
+
+#: common/class-wc-gateway-ecommpay.php:347
+#: common/class-wc-gateway-ecommpay.php:382
+#, php-format
+msgid "Refund ID: %s"
+msgstr ""
+
+#. 1: Refunded sum 2: Payment balance
+#: common/class-wc-gateway-ecommpay.php:302
+#, php-format
+msgctxt "Refund note"
+msgid "Refunded %1$s. Payment balance: %2$s"
+msgstr ""
+
+#. 1: refund ID 2: operation datetime
+#: common/class-wc-gateway-ecommpay.php:293
+#, php-format
+msgctxt "Refund note"
+msgid "Successfully processed at %1$s. Reason: %2$s"
+msgstr ""
+
+#: common/class-wc-gateway-ecommpay.php:394
+#, php-format
+msgid "Refund request ID: %s."
+msgstr ""
+
+#: common/includes/methods/traits/trait-wc-gateway-ecommpay-methods-refund.php:92
+#, php-format
+msgid "Refunded %s %s"
+msgstr ""
+
+#: views/html-meta-box.php:45 views/html-meta-box-payment-action.php:32
+#: views/html-meta-box-payment.php:109
+msgid "Remaining balance"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-subscriptions.php:53
+msgid "Renewal"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-general.php:110
+msgid "Required"
+msgstr ""
+
+#: common/api/class-wc-gateway-ecommpay-api-payment.php:109
+msgid "Response refund transaction corrupted."
+msgstr ""
+
+#: views/html-notice-update.php:14
+msgid "Run the updater"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings.php:433
+#: common/settings/class-ecp-gateway-settings-general.php:104
+msgid "Secret key"
+msgstr "Секретный ключ"
+
+#: common/settings/class-ecp-gateway-settings-general.php:106
+msgid ""
+"Secret key which is using to sign payment request. You could get it from "
+"ECOMMPAY helpdesk"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:108
+msgid "Select Information"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:119
+msgid "Select order data"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:113
+msgid ""
+"Selected options will store the specific data on your transaction inside "
+"your ECOMMPAY Dashboard."
+msgstr ""
+
+#: common/class-wc-gateway-ecommpay.php:821
+msgid "Settings"
+msgstr "Настройки"
+
+#: common/settings/class-ecp-gateway-settings-payment-page.php:120
+msgctxt "Settings"
+msgid "Close on miss click"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-payment-page.php:122
+msgctxt "Settings"
+msgid "Close popup window on mouse miss click"
+msgstr ""
+
+#: common/includes/class-wc-gateway-ecommpay-payment-page.php:430
+msgid "Shipping Method"
+msgstr "Метод доставки"
+
+#: common/settings/class-ecp-gateway-settings-admin.php:26
+msgid "Shop admin"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:77
+msgid "Shop Admin Setup"
+msgstr "Настройка управления магазином"
+
+#: common/settings/class-ecp-gateway-settings-additional.php:36
+#: common/settings/class-ecp-gateway-settings-payment-page.php:58
+msgid "Shop setup"
+msgstr "Настройка магазина"
+
+#: common/settings/class-ecp-gateway-settings-admin.php:103
+#, fuzzy
+#| msgid "Show transaction information in the order overview."
+msgid "Show payment information in the order overview."
+msgstr "Отображать информацию о платеже в окне заказа"
+
+#: common/exceptions/class-wc-gateway-ecommpay-api-exception.php:122
+#, php-format
+msgid "Stack trace: %s"
+msgstr "Стек вызова: %s"
+
+#: common/class-wc-gateway-ecommpay.php:831
+msgctxt "Status payment"
+msgid "Awaiting payment"
+msgstr ""
+
+#: common/includes/class-wc-gateway-ecommpay-payment.php:176
+#, php-format
+msgid "Status transition of payment #%d errored!"
+msgstr ""
+
+#: helpers/ecp-ui-backend.php:158
+msgid "subscription"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-subscriptions.php:36
+msgid "Subscriptions"
+msgstr ""
+
+#: views/html-order-table-payment-data.php:19
+#: views/html-order-table-transaction-data.php:9
+msgid "Test"
+msgstr "Тест"
+
+#: common/settings/class-ecp-gateway-settings-general.php:88
+msgid "Test mode"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-additional.php:69
+#: common/settings/class-ecp-gateway-settings-payment-page.php:89
+msgid "Text shown on the submit button when choosing payment method."
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings.php:155
+msgid "The changes you made will be lost if you navigate away from this page."
+msgstr ""
+
+#: common/class-wc-gateway-ecommpay.php:213
+msgid "The payment status does not allow a refund."
+msgstr ""
+
+#: views/html-notice-update.php:30
+msgid ""
+"The upgrader is now running. This might take a while. The notice will "
+"disappear once the upgrade is complete."
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-additional.php:56
+#: common/settings/class-ecp-gateway-settings-payment-page.php:76
+msgid "This controls the description which the user sees during checkout."
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-additional.php:46
+#: common/settings/class-ecp-gateway-settings-payment-page.php:66
+msgid "This controls the title which the user sees during checkout."
+msgstr ""
+
+#: views/html-order-table-payment-data.php:17
+#: views/html-order-table-transaction-data.php:8
+msgid "This order has been paid with test card data!"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:62
+msgid "Time in seconds for how long a transaction should be cached."
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-additional.php:44
+#: common/settings/class-ecp-gateway-settings-payment-page.php:64
+msgid "Title"
+msgstr "Наименование"
+
+#: views/html-notice-update.php:13
+msgid ""
+"To ensure you get the best experience at all times, we need to update your "
+"store's database to the latest version."
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-admin.php:43
+msgid "Transaction Cache"
+msgstr ""
+
+#: views/html-meta-box.php:85 views/html-meta-box-subscription.php:21
+msgid "Transaction ID"
+msgstr ""
+
+#: views/html-meta-box.php:94 views/html-meta-box-payment-info.php:92
+#: views/html-meta-box-subscription.php:30 views/html-meta-box-payment.php:83
+msgid "Transaction Order ID"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-general.php:133
+msgid "Uninstalling"
+msgstr ""
+
+#: views/html-admin-settings-log.php:17
+msgid "View debug logs"
+msgstr ""
+
+#: views/html-notice-settings.php:9
+msgid "WooCommerce ECOMMPAY"
+msgstr "WooCommerce ECOMMPAY"
+
+#. Name of the plugin
+#. Description of the plugin
+msgid "Woocommerce ECOMMPAY"
+msgstr "Woocommerce ECOMMPAY"
+
+#: views/html-notice-update.php:12
+msgid "WooCommerce ECOMMPAY - Data Update"
+msgstr ""
+
+#: woocommerce-gateway-ecommpay.php:32
+msgid "WooCommerce ECOMMPAY requires WooCommerce to be active."
+msgstr ""
+
+#: views/html-meta-box.php:32 views/html-meta-box.php:64
+#: views/html-meta-box-payment-action.php:19
+#: views/html-meta-box-payment-action.php:51 views/html-meta-box-payment.php:96
+#: views/html-meta-box-payment.php:128
+msgid "You are about to capture this payment"
+msgstr ""
+
+#: common/install/class-wc-gateway-ecommpay-install.php:157
+msgid "You are not authorized to perform this action"
+msgstr ""
+
+#: views/html-notice-settings.php:10
+msgid "You have missing or incorrect settings."
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-additional.php:60
+#: common/settings/class-ecp-gateway-settings-payment-page.php:80
+msgid ""
+"You will be redirected to ECOMMPAY payment page. All data you enter in that "
+"page are secured"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings-general.php:97
+msgid ""
+"Your project ID you could get from ECOMMPAY helpdesk. Leave it blank if test "
+"mode"
+msgstr ""
+
+#: common/settings/class-ecp-gateway-settings.php:99
+msgid "Your settings have been saved."
+msgstr ""

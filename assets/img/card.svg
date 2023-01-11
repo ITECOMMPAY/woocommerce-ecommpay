@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="56" height="43" viewBox="0 0 56 43">
+    <defs>
+        <linearGradient id="prefix__a" x1="67.422%" x2="99.603%" y1="76.018%" y2="26.372%">
+            <stop offset="0%" stop-color="#03121F"/>
+            <stop offset="100%" stop-color="#0B3E73"/>
+        </linearGradient>
+        <linearGradient id="prefix__b" x1="67.422%" x2="99.603%" y1="76.018%" y2="26.372%">
+            <stop offset="0%" stop-color="#084D89"/>
+            <stop offset="100%" stop-color="#0B3E73"/>
+        </linearGradient>
+        <linearGradient id="prefix__c" x1="35.374%" x2="98.726%" y1="84.156%" y2="18.061%">
+            <stop offset="0%" stop-color="#004681"/>
+            <stop offset="100%" stop-color="#005193"/>
+        </linearGradient>
+        <linearGradient id="prefix__d" x1="32.905%" x2="67.776%" y1="93.829%" y2="5.755%">
+            <stop offset="0%" stop-color="#005CA3"/>
+            <stop offset="100%" stop-color="#004C8A"/>
+        </linearGradient>
+    </defs>
+    <g fill="none" fill-rule="evenodd">
+        <g>
+            <path fill="url(#prefix__a)" d="M3.316 31.532C1.486 31.532 0 30.046 0 28.216v-24.9C0 1.486 1.486 0 3.316 0h36.517c1.83 0 3.316 1.486 3.316 3.316v24.9c0 1.83-1.486 3.316-3.316 3.316z" transform="rotate(-8 47.951 -46.853)"/>
+            <path fill="#E8EDF6" d="M0 6H43V10H0z" transform="rotate(-8 47.951 -46.853)"/>
+        </g>
+        <g>
+            <path fill="url(#prefix__b)" d="M43.15 3.316C43.15 1.486 41.662 0 39.832 0H3.316C1.486 0 0 1.486 0 3.316v24.9c0 1.83 1.486 3.316 3.316 3.316h36.517c1.83 0 3.316-1.486 3.316-3.316v-24.9z" transform="translate(0 10)"/>
+            <path fill="url(#prefix__c)" d="M26.976 31.532L35.719 0H3.316C1.486 0 0 1.486 0 3.316v24.9c0 1.83 1.486 3.316 3.316 3.316h23.66z" transform="translate(0 10)"/>
+            <path fill="url(#prefix__d)" d="M11.033 31.532L19.262 0H3.316C1.486 0 0 1.486 0 3.316v24.9c0 1.83 1.486 3.316 3.316 3.316h7.717z" transform="translate(0 10)"/>
+        </g>
+        <path fill="#FFF" fill-rule="nonzero" d="M19.456 25.008c1.368 0 2.124-.729 2.556-1.476l-1.098-.531c-.252.495-.792.873-1.458.873-1.044 0-1.836-.837-1.836-1.971 0-1.134.792-1.971 1.836-1.971.666 0 1.206.387 1.458.873l1.098-.54c-.423-.747-1.188-1.467-2.556-1.467-1.755 0-3.15 1.26-3.15 3.105s1.395 3.105 3.15 3.105zm4.086-.108l.378-1.035h2.682l.378 1.035h1.395l-2.313-6.003H24.46L22.138 24.9h1.404zm2.709-2.142h-1.989l.999-2.754.99 2.754zm3.96 2.142v-2.151h.936l1.179 2.151h1.467l-1.35-2.286c.648-.153 1.314-.72 1.314-1.782 0-1.116-.765-1.935-2.016-1.935h-2.808V24.9h1.278zm1.341-3.249h-1.341v-1.656h1.341c.513 0 .9.324.9.828s-.387.828-.9.828zm5.535 3.249c1.881 0 3.186-1.188 3.186-2.997s-1.305-3.006-3.186-3.006H34.72V24.9h2.367zm0-1.125h-1.089v-3.753h1.089c1.233 0 1.881.819 1.881 1.881 0 1.017-.693 1.872-1.881 1.872z"/>
+        <rect width="8" height="6" x="4" y="19" fill="#F7B600" rx="1"/>
+        <g fill="#FFF" transform="translate(4 34)">
+            <circle cx=".72" cy=".72" r="1"/>
+            <circle cx="2.88" cy=".72" r="1"/>
+            <circle cx="5.04" cy=".72" r="1"/>
+            <circle cx="7.2" cy=".72" r="1"/>
+            <circle cx="10.08" cy=".72" r="1"/>
+            <circle cx="12.24" cy=".72" r="1"/>
+            <circle cx="14.4" cy=".72" r="1"/>
+            <circle cx="16.56" cy=".72" r="1"/>
+            <circle cx="19.44" cy=".72" r="1"/>
+            <circle cx="21.6" cy=".72" r="1"/>
+            <circle cx="23.76" cy=".72" r="1"/>
+            <circle cx="25.92" cy=".72" r="1"/>
+            <circle cx="28.8" cy=".72" r="1"/>
+            <circle cx="30.96" cy=".72" r="1"/>
+            <circle cx="33.12" cy=".72" r="1"/>
+            <circle cx="35.28" cy=".72" r="1"/>
+        </g>
+    </g>
+</svg>
