@@ -33,7 +33,7 @@ class Ecp_Gateway_Install
      * @since 2.0.0
      */
     private static $updates = [
-        '2.0.3' => __DIR__ . '/migrations/upgrade_settings_to_version_2.php',
+        '3.0.0' => __DIR__ . '/migrations/upgrade_settings_to_version_3.php',
     ];
 
     // endregion
@@ -76,7 +76,7 @@ class Ecp_Gateway_Install
      */
     public function install()
     {
-        add_option(self::VERSION_NAME, Ecp_Gateway::WC_ECP_VERSION);
+        add_option(self::VERSION_NAME, Ecp_Core::WC_ECP_VERSION);
     }
 
     /**
@@ -99,7 +99,7 @@ class Ecp_Gateway_Install
             }
         }
 
-        $this->update_version(Ecp_Gateway::WC_ECP_VERSION);
+        $this->update_version(Ecp_Core::WC_ECP_VERSION);
 
         $this->disable_maintenance_mode();
     }
@@ -127,7 +127,7 @@ class Ecp_Gateway_Install
      */
     public function ajax_run_upgrade()
     {
-        $nonce = isset($_POST[self::FIELD_NONCE]) ? $_POST[self::FIELD_NONCE] : null;
+        $nonce = wc_get_post_data_by_key(self::FIELD_NONCE, null);
 
         if (
             !wp_verify_nonce($nonce, self::UPDATE_NONCE)
@@ -169,7 +169,7 @@ class Ecp_Gateway_Install
     {
         $version = $this->get_version();
 
-        return version_compare($version, Ecp_Gateway::WC_ECP_VERSION, '<');
+        return version_compare($version, Ecp_Core::WC_ECP_VERSION, '<');
     }
 
     // region Private methods.
@@ -186,7 +186,7 @@ class Ecp_Gateway_Install
         delete_option(self::VERSION_NAME);
         add_option(
             self::VERSION_NAME,
-            $version === null ? Ecp_Gateway::WC_ECP_VERSION : $version
+            $version === null ? Ecp_Core::WC_ECP_VERSION : $version
         );
     }
 

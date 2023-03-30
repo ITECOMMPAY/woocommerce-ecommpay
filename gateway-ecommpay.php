@@ -4,16 +4,16 @@
  * Plugin URI:        https://ecommpay.com
  * GitHub Plugin URI:
  * Description:       Easy payment from WooCommerce by different methods in single Payment Page.
- * Version:           2.2.0
+ * Version:           3.1.0
  * License:           GPL2
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       woo-ecommpay
  * Domain Path:       /language/
- * Copyright:         © 2017-2022 Ecommpay, London
+ * Copyright:         © 2017-2023 Ecommpay, London
  *
  * @package Ecp_Gateway
  * @author ECOMMPAY
- * @copyright © 2017-2022 ECOMMPAY, London
+ * @copyright © 2017-2023 ECOMMPAY, London
  */
 defined('ABSPATH') || exit;
 
@@ -47,23 +47,38 @@ add_action(
         // Instantiate
         ecommpay();
 
-        if (ecp_is_enabled(Ecp_Gateway_Settings_Page::OPTION_ENABLED)) {
+        if (ecp_has_available_methods()) {
             ecommpay()->hooks();
         }
 
         // Add the gateway to WooCommerce
         add_filter('woocommerce_payment_gateways', function (array $methods) {
-            $methods[] = 'Ecp_Gateway';
+            foreach (ecp_payment_classnames() as $class_name) {
+                $methods[] = $class_name;
+            }
             return $methods;
         });
 
-        // Include styles
+        // Include wp-admin styles
         add_action(
             'admin_enqueue_scripts',
             function() {
                 wp_enqueue_style(
-                    'woocommerce-ecommpay-style',
-                    ecp_css_url('woocommerce-ecommpay.css'),
+                    'woocommerce-ecommpay-admin-style',
+                    ecp_css_url('woocommerce-ecommpay-admin.css'),
+                    [],
+                    ecp_version()
+                );
+            }
+        );
+
+        // Include wp-frontend styles
+        add_action(
+            'wp_enqueue_scripts',
+            function() {
+                wp_enqueue_style(
+                    'woocommerce-ecommpay-frontend-style',
+                    ecp_css_url('woocommerce-ecommpay-frontend.css'),
                     [],
                     ecp_version()
                 );

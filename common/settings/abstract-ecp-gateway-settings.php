@@ -12,45 +12,24 @@ defined('ABSPATH') || exit;
  * @abstract
  * @internal
  */
-abstract class Ecp_Gateway_Settings_Page
+abstract class Ecp_Gateway_Settings
 {
     // region Constants
 
-    // ECOMMPAY Payment Gateway plugin options
     const OPTION_ENABLED = 'enabled';
-    const OPTION_TEST = 'ecommpay_test';
-    const OPTION_PROJECT_ID = 'ecommpay_project_id';
-    const OPTION_SECRET_KEY = 'ecommpay_salt';
-    const OPTION_DELETE_ON_UNINSTALL = 'ecp_delete_orders_on_uninstall';
-    const OPTION_CACHING_ENABLED = 'ecommpay_caching_enabled';
-    const OPTION_CACHING_EXPIRATION = 'ecommpay_caching_expiration';
     const OPTION_TITLE = 'title';
+    const OPTION_SHOW_DESCRIPTION = 'show_description';
     const OPTION_DESCRIPTION = 'description';
+    const OPTION_FORCE_CODE = 'force';
     const OPTION_CHECKOUT_BUTTON_TEXT = 'checkout_button_text';
-    const OPTION_MODE = 'ecommpay_mode';
-    const OPTION_POPUP_MISS_CLICK = 'ecommpay_close_on_miss_click';
-    const OPTION_LANGUAGE = 'ecommpay_language';
-    const OPTION_LOG_LEVEL = 'ecommpay_log_level';
-    const OPTION_TRANSACTION_INFO = 'ecommpay_orders_transaction_info';
-    const OPTION_CUSTOM_VARIABLES = 'ecommpay_custom_variables';
-    const OPTION_SUBSCRIPTION_AUTOCOMPLETE = 'subscription_autocomplete_renewal_orders';
+    const OPTION_MODE = 'pp_mode';
+    const OPTION_POPUP_MISS_CLICK = 'pp_close_on_miss_click';
+
 
     // ECOMMPAY Payment Page Display modes
     const MODE_REDIRECT = 'redirect';
     const MODE_POPUP = 'popup';
     const MODE_IFRAME = 'iframe';
-
-    // ECOMMPAY Custom variables data
-    const CUSTOM_CUSTOMER_EMAIL = 'customer_email';
-    const CUSTOM_CUSTOMER_PHONE = 'customer_phone';
-    const CUSTOM_CUSTOMER_NAME = 'customer_full_name';
-    const CUSTOM_CUSTOMER_ADDRESS = 'customer_address';
-    const CUSTOM_ACCOUNT_INFO = 'customer_account_info';
-    const CUSTOM_MPI_RESULT = 'mpi_result';
-    const CUSTOM_SHIPPING_DATA = 'shipping_data';
-    const CUSTOM_BILLING_DATA = 'billing_data';
-    const CUSTOM_RECEIPT_DATA = 'receipt_data';
-    const CUSTOM_CASH_VOUCHER = 'cash_voucher_data';
 
     // Yes and No values
     const YES = 'yes';
@@ -70,8 +49,10 @@ abstract class Ecp_Gateway_Settings_Page
     const FIELD_PLACEHOLDER = 'placeholder';
     const FIELD_ARGS = 'args';
 
-    const TYPE_START = 'title';
+    const TYPE_START = 'section_start';
     const TYPE_END = 'section_end';
+    const TYPE_TOGGLE_START = 'toggle_start';
+    const TYPE_TOGGLE_END = 'toggle_end';
     const TYPE_CHECKBOX = 'checkbox';
     const TYPE_RADIO = 'radio';
     const TYPE_NUMBER = 'number';
@@ -97,6 +78,11 @@ abstract class Ecp_Gateway_Settings_Page
      * @var string
      */
     protected $label = '';
+
+    /**
+     * @var ?string
+     */
+    protected $icon = null;
 
     /**
      * Constructor.
@@ -135,7 +121,10 @@ abstract class Ecp_Gateway_Settings_Page
      */
     public function add_settings_tab($pages)
     {
-        $pages[$this->id] = $this->label;
+        $pages[$this->id] = [
+            'label' => $this->label,
+            'icon' => $this->icon
+        ];
 
         return $pages;
     }
@@ -155,7 +144,7 @@ abstract class Ecp_Gateway_Settings_Page
      */
     public function output()
     {
-        Ecp_Gateway_Settings::get_instance()->output_fields($this->get_settings());
+        ecommpay()->settings()->output_fields($this);
     }
 
     /**
@@ -163,6 +152,14 @@ abstract class Ecp_Gateway_Settings_Page
      */
     public function save()
     {
-        Ecp_Gateway_Settings::get_instance()->save_fields($this->get_settings());
+        $nonce = wc_get_var($_REQUEST['_wpnonce']);
+
+        if ($nonce === null || !wp_verify_nonce($nonce, 'woocommerce-settings')) {
+            die(__('Action failed. Please refresh the page and retry.', 'woo-ecommpay'));
+        }
+
+        ecp_get_log()->debug('Run saving plugin settings. Section:', $this->id);
+
+        ecommpay()->settings()->save_fields($this);
     }
 }

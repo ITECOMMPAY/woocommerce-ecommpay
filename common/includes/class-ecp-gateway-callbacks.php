@@ -302,7 +302,7 @@ class Ecp_Gateway_Callbacks
     private function get_order($info)
     {
         // Fetch order number;
-        $order_number = Ecp_Gateway_Order::get_order_id_from_callback($info, Ecp_Gateway::CMS_PREFIX);
+        $order_number = Ecp_Gateway_Order::get_order_id_from_callback($info, Ecp_Core::CMS_PREFIX);
         $order = ecp_get_order($order_number);
 
         if (!$order) {

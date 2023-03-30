@@ -14,7 +14,7 @@
 <tr>
     <th scope="row" class="titledesc">
         <label for="<?php echo esc_attr($id); ?>">
-            <?php echo esc_html($title); ?><?php echo $tooltip; ?>
+            <?php echo esc_html($title); ?><?php if ($tooltip !== ''): ?><?php echo wc_help_tip($tooltip); ?><?php endif; ?>
         </label>
     </th>
     <td class="forminp">
@@ -24,6 +24,11 @@
                 aria-label="<?php esc_attr_e('Country', 'woocommerce'); ?>"
                 class="wc-enhanced-select">
             <?php WC()->countries->country_dropdown_options($country, $state); ?>
-        </select> <?php echo $description; ?>
+        </select>
+        &lrm;<?php if ($description !== ''): ?>
+            <span class="description">
+                <?php echo wp_kses_post($description); ?>
+            </span>
+        <?php endif; ?>
     </td>
 </tr>

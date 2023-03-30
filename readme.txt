@@ -1,26 +1,58 @@
 === ECOMMPAY Payments ===
 Contributors: ECOMMPAY
-Tags: gateway, woo commerce, ecommpay, gateway, integration, woocommerce, woocommerce ecommpay, payment, payment gateway, psp
+Tags: card payments, apple pay, google pay, open banking, subscriptions, paypal, sofort, ideal, klarna, giropay, payment gateway, woocommerce
 Requires at least: 4.0.0
-Tested up to: 6.0
-Stable tag: trunk
+Tested up to: 6.1
+Stable tag: 3.1.0
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Integrates your ECOMMPAY payment gateway into your WooCommerce installation.
+Accept bank transfers, cards, local payment methods and cryptocurrencies. Boost conversion with a customisable checkout form. Enjoy 24/7 expert support.
 
 == Description ==
-With ECOMMPAY Payments, you are able to integrate your ECOMMPAY gateway to your WooCommerce install.
-A wide list of API features including refunding payments directly from your WooCommerce order overview.
-This is only a part of the many features found in this plugin.
+ECOMMPAY’s WooCommerce plugin is a complete growth-focused payment solution for merchants looking to dominate local markets or expand globally, maximise profits and reduce operational costs.
+
+Accept card, bank, eWallet and crypto payments. Offer flexible subscriptions and recurring payment plans. Make payouts in any Mlocal currency and receive weekly or even more frequent settlements in EUR or GBP. Enjoy industry-leading support, low and transparent fees and advanced checkout form customisation options, including full localisation to any language.
+
+The plugin is available to every business in the EEA and the UK. The integration is quick and intuitive and usually takes 1-2 business days. Moving from another payment service provider? No worries. Our migration process is simple yet powerful enough to keep your subscriptions and recurring plans intact.
+
+== Feature highlights ==
+
+= Cards =
+Accept VISA, Mastercard, American Express or Union Pay. Maximise acceptance rates and avoid double conversion with Smart Payment Rooting and Cascading technologies on board.
+= Open Banking =
+Let your customers pay with their bank of choice, reduce processing fees and eliminate the risk of chargebacks. Works with 2000+ banks in Europe and the UK.
+= Cryptocurrencies =
+Take payments in all the popular cryptocurrencies and settle in USD, GBP or EUR without the conversion risk.
+= eWallets =
+Offer an option to pay Apple Pay and Google Pay or local eWallets your customers know and trust, like Blik, Bancontact, EPS, Giropay, iDEAL, Multibanco, Neteller and more.
+= Subscriptions and recurring payments =
+Offer your customers subscriptions or flexible recurring payment plans. Migrate from your old payment service provider without any interruption.
+= Payment links =
+Create payment links with a few clicks and let your customers pay straight from their email, messenger apps or SMS.
+= Payouts =
+Make refunds or pay your suppliers and business partners in any currency. Payouts are delivered in 30 minutes after the approval.
+= Customisation =
+Fine-tune the look and feel of your checkout form to reach the maximum conversion. Customise the design, available payment methods and languages.
+= Support =
+Enjoy industry-leading support with an average response time of 15 minutes. We are always by your side to help with technical issues and share our knowledge of local markets.
+= Settlements =
+Receive weekly or even more frequent settlements in EUR, USD or GBP.
 
 == Installation ==
 1. Upload the 'woocommerce-ecommpay' folder to /wp-content/plugins/ on your server.
 2. Log in to WordPress administration, click on the 'Plugins' tab.
 3. Find ECOMMPAY in the plugin overview and activate it.
 4. Go to WooCommerce -> Settings -> Payment Gateways -> ECOMMPAY.
-5. Fill the fields "Project ID" and "Secret key" in the "Integration" section on "General" tab and save the settings.
+5. Fill the fields "Project ID" and "Secret key" in the "General Settings" section on "General" tab and save the settings.
 6. You are good to go.
+
+== How do I start? ==
+1. Download and install our free WooCommerce plugin. It’s quick and easy. Feel free to test it any time
+2. [Create a merchant account](https://ecommpay.com/technologies/integrations/woocommerce-payment-gateway/?utm_source=plugin_description&utm_medium=link&utm_campaign=woocommerce) with ECOMMPAY and provide all the necessary documents
+3. Once approved, go live and start accepting payments in just a couple of days.
+4. Receive weekly or even more frequent settlements.
+5. Scale your business easily and expand to new markets with the same plugin.
 
 == Dependencies ==
 General:
@@ -29,6 +61,19 @@ General:
 3. If WooCommerce Subscriptions is used, the required minimum version is >= 2.0
 
 == Changelog ==
+= 3.1.0 =
+* Feature: Main payment methods added as standalone gateways to improve merchant and end users experience
+
+= 3.0.0 =
+* Feature: Main payment methods splitted into configured standalone solutions with better UX for the end users.
+
+= 2.2.1 =
+* Dev: Escaped all variables in the html view.
+* Dev: Logic of formed a tooltips is modified.
+* Dev: All incoming data are sanitized and verified.
+* Dev: Replace CURL by WordPress HTTP Api library.
+* Fix: Fatal error on trying cancel subscription.
+
 = 2.2.0 =
 * Feature: Implemented Awaiting confirmation payment state for OpenBanking.
 * Feature: Implemented Receipt data.

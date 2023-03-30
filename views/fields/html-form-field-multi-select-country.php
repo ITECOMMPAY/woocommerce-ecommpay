@@ -11,7 +11,7 @@
 <tr>
     <th scope="row" class="titledesc">
         <label for="<?php echo esc_attr($id); ?>">
-            <?php echo esc_html($title); ?><?php echo $tooltip; ?>
+            <?php echo esc_html($title); ?><?php if ($tooltip !== ''): ?><?php echo wc_help_tip($tooltip); ?><?php endif; ?>
         </label>
     </th>
     <td class="forminp">
@@ -26,7 +26,12 @@
                 <?php endforeach; ?>
             <?php endif; ?>
         </select><br/>
-        <?php echo $description; ?> <br/>
+        &lrm;<?php if ($description !== ''): ?>
+            <span class="description">
+                <?php echo wp_kses_post($description); ?>
+            </span>
+        <?php endif; ?>
+        <br/>
         <a class="select_all button"
            href="#"><?php esc_html_e('Select all', 'woocommerce'); ?></a>
         <a class="select_none button" href="#"><?php esc_html_e('Select none', 'woocommerce'); ?></a>

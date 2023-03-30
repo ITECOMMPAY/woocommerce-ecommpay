@@ -19,7 +19,6 @@ class Ecp_Gateway_Refund extends \Automattic\WooCommerce\Admin\Overrides\OrderRe
     /**
      * <h2>Creates and returns a new ECOMMPAY refund identifier.</h2>
      *
-     * @param Ecp_Gateway_Order $order <p>Refund order object.</p>
      * @return string
      * @since 2.0.0
      * @uses Ecp_Gateway_Refund::set_is_test()
@@ -29,12 +28,13 @@ class Ecp_Gateway_Refund extends \Automattic\WooCommerce\Admin\Overrides\OrderRe
      * @uses Ecp_Gateway_Order::get_refund_attempts_count()
      * @uses Ecp_Gateway_Order::increase_refund_attempts_count()
      */
-    public function create_payment_id($order)
+    public function create_payment_id()
     {
-        $test_mode = ecp_is_enabled(Ecp_Gateway_Settings_Page::OPTION_TEST);
+        $order = $this->get_order();
+        $test_mode = ecp_is_enabled(Ecp_Gateway_Settings_General::OPTION_TEST);
 
         if ($test_mode) {
-            $id = Ecp_Gateway::CMS_PREFIX . '&' . $_SERVER['SERVER_NAME'] . '&';
+            $id = Ecp_Core::CMS_PREFIX . '&' . wc_get_var($_SERVER['SERVER_NAME'], 'undefined') . '&';
             $this->set_is_test();
         } else {
             $id = '';

@@ -22,28 +22,6 @@ class WC_Gateway_Ecommpay_Module_Subscription extends Ecp_Gateway_Registry
             return;
         }
 
-        // On scheduled subscription
-        add_action(
-            'woocommerce_scheduled_subscription_payment_ecommpay',
-            [$this, 'scheduled_subscription_payment'],
-            10,
-            2
-        );
-
-        // On cancelled subscription
-        add_action(
-            'woocommerce_subscription_cancelled_ecommpay',
-            [$this, 'subscription_cancellation']
-        );
-
-        // On updated subscription
-        add_action(
-            'woocommerce_subscription_payment_method_updated_to_ecommpay',
-            [$this, 'on_subscription_payment_method_updated_to_ecommpay'],
-            10,
-            2
-        );
-
         // On renewal subscription
         add_filter(
             'wcs_renewal_order_meta_query',
@@ -61,13 +39,6 @@ class WC_Gateway_Ecommpay_Module_Subscription extends Ecp_Gateway_Registry
         add_filter(
             'woocommerce_subscription_payment_meta',
             [$this, 'woocommerce_subscription_payment_meta'],
-            10,
-            2
-        );
-
-        add_action(
-            'woocommerce_subscription_validate_payment_meta_ecommpay',
-            [$this, 'woocommerce_subscription_validate_payment_meta'],
             10,
             2
         );
@@ -163,7 +134,7 @@ class WC_Gateway_Ecommpay_Module_Subscription extends Ecp_Gateway_Registry
     /**
      * Cancels a transaction when the subscription is cancelled
      *
-     * @param WC_Order $subscription - WC_Order object
+     * @param WC_Subscription $subscription - WC_Order object
      *
      * @return void
      */
@@ -173,10 +144,11 @@ class WC_Gateway_Ecommpay_Module_Subscription extends Ecp_Gateway_Registry
             return;
         }
 
-        /** @var Ecp_Gateway_Subscription $subscription */
         if (!ecp_is_subscription($subscription)) {
             return;
         }
+
+        $subscription = new Ecp_Gateway_Subscription($subscription);
 
         if (!apply_filters(
             'woocommerce_ecommpay_allow_subscription_transaction_cancellation',
@@ -188,7 +160,7 @@ class WC_Gateway_Ecommpay_Module_Subscription extends Ecp_Gateway_Registry
         }
 
         $order = new Ecp_Gateway_Order($subscription);
-        $payment = $order->get_payment();
+//        $payment = $order->get_payment();
 // todo: check status parent_order or last order, if needed
 //        if ($payment->is_action_allowed('cancel')) {
             $api = new Ecp_Gateway_API_Subscription();
@@ -280,7 +252,7 @@ class WC_Gateway_Ecommpay_Module_Subscription extends Ecp_Gateway_Registry
             return;
         }
 
-        $transaction = new Ecp_Gateway_API_Payment();
+        $transaction = new Ecp_Gateway_API_Subscription();
         $transaction->operation_status($transaction_id);
 
         // If transaction could be found, add a note on the order for history and debugging reasons.

@@ -33,9 +33,14 @@
                class="<?php echo esc_attr($class); ?>"
                value="1"
             <?php checked($option_value, 'yes'); ?>
-            <?php echo implode(' ', $custom_attributes) ?>
-        /> <?php echo $description; ?>
-    </label> <?php echo $tooltip; ?>
+            <?php echo ecp_custom_attributes($custom_attributes); ?>
+        /> <?php if ($description !== ''): ?><?php echo wp_kses_post($description); ?><?php endif; ?>
+    </label>
+    <?php if ($tooltip !== ''): ?>
+        <p class="description">
+            <?php echo wc_sanitize_tooltip($tooltip); ?>
+        </p>
+    <?php endif; ?>
 
 <?php if (isset($checkboxgroup) && 'end' !== $checkboxgroup): ?>
     </fieldset>

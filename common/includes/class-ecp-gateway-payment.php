@@ -673,7 +673,7 @@ class Ecp_Gateway_Payment
     }
 
     /**
-     * @return int|int[]
+     * @return ?int|int[]
      * @since 2.0.0
      */
     public function get_code()
@@ -692,11 +692,11 @@ class Ecp_Gateway_Payment
             return $this->get_last_operation()->get_code();
         }
 
-        return 0;
+        return null;
     }
 
     /**
-     * @return string|string[]
+     * @return ?string|string[]
      * @since 2.0.0
      */
     public function get_message()
@@ -714,6 +714,6 @@ class Ecp_Gateway_Payment
             return $this->get_last_operation()->get_message();
         }
 
-        return __('Unknown error', 'woo-commerce');
+        return null;
     }
 }

@@ -32,8 +32,9 @@ class Ecp_Gateway_API_Subscription extends Ecp_Gateway_API
     {
         parent::hooks();
 
-        add_filter('ecp_api_recurring_form_data', [$this, 'filter_create_recurring_request_form_data'], 10, 3);
-        add_filter('ecp_api_recurring_cancel_form_data', [$this, 'filter_create_recurring_cancel_request_form_data'], 10, 2);
+        add_filter('ecp_api_recurring_form_data', [$this, 'create_recurring_request_form_data'], 10, 2);
+        add_filter('ecp_api_append_recurring_data', [$this, 'append_recurring_data'], 10, 2);
+        add_filter('ecp_api_recurring_cancel_form_data', [$this, 'create_cancel_request_form_data'], 10, 2);
     }
 
     /**
@@ -79,21 +80,13 @@ class Ecp_Gateway_API_Subscription extends Ecp_Gateway_API
         ecp_get_log()->debug(__('Payment method:', 'woo-ecommpay'), $payment_method);
 
         // Create form data
-        $data = apply_filters('ecp_api_recurring_form_data', $subscription_id, $order, $amount);
-
-        /** @var array $variables */
-        $variables = ecommpay()->get_option(Ecp_Gateway_Settings_Page::OPTION_CUSTOM_VARIABLES, []);
-
-        if (array_search(Ecp_Gateway_Settings_Page::CUSTOM_RECEIPT_DATA, $variables, true)) {
-            // Append receipt data
-            $data = apply_filters('ecp_append_receipt_data', $order, $data);
-        }
+        $data = apply_filters('ecp_api_recurring_form_data', $subscription_id, $order);
 
         // Run request
         $response = new Ecp_Gateway_Info_Response(
             $this->post(
                 sprintf('%s/%s', $payment_method, 'recurring'),
-                apply_filters('ecp_api_append_signature', $data)
+                apply_filters('ecp_append_signature', $data)
             )
         );
 
@@ -103,13 +96,38 @@ class Ecp_Gateway_API_Subscription extends Ecp_Gateway_API
     }
 
     /**
+     * <h2>Sends a request and returns the information about the transaction.</h2>
+     *
+     * @param string $request_id <p>Request identifier.</p>
+     * @since 2.0.0
+     * @return Ecp_Gateway_Info_Response <p>Transaction information data.</p>
+     */
+    public function operation_status($request_id)
+    {
+        ecp_get_log()->info(__('Run check transaction status API process.', 'woo-ecommpay'));
+        ecp_get_log()->debug(__('Request ID:', 'woo-ecommpay'), $request_id);
+
+        // Create form data
+        $data = apply_filters('ecp_create_general_data', $request_id);
+        // Run request
+        $response = new Ecp_Gateway_Info_Response(
+            $this->post(
+                'status/request',
+                apply_filters('ecp_append_signature', $data)
+            )
+        );
+
+        ecp_get_log()->info(__('Check transaction status process completed.', 'woo-ecommpay'));
+        return $response;
+    }
+
+    /**
      * <h2>Sends data and return subscription cancellation data.</h2>
      *
      * @param int $subscription_id <p>Recurring identifier.</p>
      * @param Ecp_Gateway_Order $order <p>Cancellation order.</p>
-//     * @return Ecp_Gateway_Info_Response
      * @return bool
-     *@since 2.0.0
+     * @since 2.0.0
      */
     public function cancel($subscription_id, Ecp_Gateway_Order $order)
     {
@@ -141,33 +159,27 @@ class Ecp_Gateway_API_Subscription extends Ecp_Gateway_API
      *
      * @param int $subscription_id <p>ECOMMPAY recurring identifier.</p>
      * @param Ecp_Gateway_Order $order <p>Renewal subscription order.</p>
-     * @param float $amount <p>Subscription amount.</p>
      * @since 2.0.0
-     * @return array[] <p>Basic form-data.</p>
+     * @return array[] <p>Form data for the recurring request.</p>
      */
-    final public function filter_create_recurring_request_form_data($subscription_id, Ecp_Gateway_Order $order, $amount)
+    final public function create_recurring_request_form_data($subscription_id, Ecp_Gateway_Order $order)
     {
         ecp_get_log()->info(__('Create form data for recurring request.', 'woo-ecommpay'));
-        return [
-            'general' => [
-                'project_id' => ecommpay()->get_project_id(),
-                'payment_id' => $order->create_payment_id(),
-                'merchant_callback_url' => ecp_callback_url()
-            ],
-            'payment' => [
-                'amount' => ecp_price_multiply($amount, $order->get_currency()),
-                'currency' => $order->get_currency(),
-            ],
-            'recurring' => [
-                'id' => $subscription_id
-            ],
-            'customer' => [
-                'id' => (string) $order->get_customer_id(),
-                'ip_address' => $_SERVER['REMOTE_ADDR'],
-            ],
-            'recurring_id' => $subscription_id,
-            'interface_type' => Ecp_Gateway::get_interface_type(),
+
+        $data = $this->create_general_section(
+            apply_filters(
+                'ecp_append_merchant_callback_url',
+                apply_filters('ecp_create_general_data', $order)
+            )
+        );
+        $data = apply_filters('ecp_api_append_recurring_data', $data, $subscription_id);
+        $data = apply_filters('ecp_append_payment_section', $data, $order);
+        $data['customer'] = [
+            'id' => (string) $order->get_customer_id(),
+            'ip_address' => wc_get_var($_SERVER['REMOTE_ADDR']),
         ];
+
+        return apply_filters('ecp_append_interface_type', $data);
     }
 
     /**
@@ -176,21 +188,39 @@ class Ecp_Gateway_API_Subscription extends Ecp_Gateway_API
      * @param int $subscription_id <p>ECOMMPAY recurring identifier.</p>
      * @param Ecp_Gateway_Order $order <p>Renewal subscription order.</p>
      * @since 2.0.0
-     * @return array[] <p>Basic form-data.</p>
+     * @return array <p>Form data for the cancel recurring request.</p>
      */
-    final public function filter_create_recurring_cancel_request_form_data($subscription_id, Ecp_Gateway_Order $order)
+    final public function create_cancel_request_form_data($subscription_id, Ecp_Gateway_Order $order)
     {
         ecp_get_log()->info(__('Create form data for recurring cancel request.', 'woo-ecommpay'));
-        return [
-            'general' => [
-                'project_id' => ecommpay()->get_project_id(),
-                'payment_id' => $order->create_payment_id(),
-                'merchant_callback_url' => ecp_callback_url()
-            ],
-            'recurring' => [
-                'id' => $subscription_id
-            ],
-            'interface_type' => Ecp_Gateway::get_instance()
-        ];
+
+        return apply_filters('ecp_append_interface_type',
+            $this->create_general_section(
+                apply_filters(
+                    'ecp_api_append_recurring_data',
+                    apply_filters(
+                        'ecp_append_merchant_callback_url',
+                        apply_filters('ecp_create_general_data', $order)
+                    ),
+                    $subscription_id
+                )
+            )
+        );
+    }
+
+    /**
+     * <h2>Append recurring information to the form data.</h2>
+     *
+     * @param array $data <p>Form data as array.</p>
+     * @param string $subscription_id <p>Identifier of the subscription.</p>
+     * @since 3.0.0
+     * @return array <p>Form data with recurring information.</p>
+     */
+    public function append_recurring_data($data, $subscription_id)
+    {
+        $data['recurring'] = ['id' => $subscription_id];
+        $data['recurring_id'] = $subscription_id;
+
+        return $data;
     }
 }

@@ -13,13 +13,13 @@
     <?php if (isset($status) && !empty($status)) : ?>
         <li class="wide ecp-meta-box-header">
             <p class="ecp-full-width">
-                <img class="ecp-pm-logo" src="<?php echo $logo; ?>" alt="" title=""/>
-                <mark class="order-status status-<?php echo $status; ?> subscription-status right">
+                <img class="ecp-pm-logo" src="<?php echo esc_url_raw($logo); ?>" alt="" title=""/>
+                <mark class="order-status status-<?php echo esc_attr($status); ?> subscription-status right">
                     <span>
                         <?php if ($is_test): ?>
-                            <?php echo __('Test', 'woo-ecommpay'); ?>
+                            <?php esc_html_e('Test', 'woo-ecommpay'); ?>
                         <?php endif; ?>
-                        <?php echo ecp_get_subscription_status_name($status); ?>
+                        <?php echo esc_html(ecp_get_subscription_status_name($status)); ?>
                     </span>
                 </mark>
             </p>
@@ -29,20 +29,20 @@
     <li class="wide">
         <?php if ($is_test) : ?>
             <p class="ecp-full-width is_test">
-                <strong><?php echo __('Test subscription', 'woo-ecommpay'); ?></strong>
+                <strong><?php esc_html_e('Test subscription', 'woo-ecommpay'); ?></strong>
             </p>
         <?php endif; ?>
         <p class="ecp-full-width">
             <small>
-                <strong><?php echo __('Recurring ID', 'woo-ecommpay'); ?>:</strong>
-                <?php echo $recurring_id; ?>
+                <strong><?php esc_html_e('Recurring ID', 'woo-ecommpay'); ?>:</strong>
+                <?php echo esc_html($recurring_id); ?>
             </small>
         </p>
         <?php if (isset($transaction_order_id) && !empty($transaction_order_id)) : ?>
             <p class="ecp-full-width">
                 <small>
-                    <strong><?php echo __('Transaction Order ID', 'woo-ecommpay'); ?>:</strong>
-                    <?php echo $transaction_order_id; ?>
+                    <strong><?php esc_html_e('Transaction Order ID', 'woo-ecommpay'); ?>:</strong>
+                    <?php echo esc_html($transaction_order_id); ?>
                 </small>
             </p>
         <?php endif; ?>

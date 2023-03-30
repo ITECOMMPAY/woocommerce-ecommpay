@@ -6,13 +6,16 @@
 defined('ABSPATH') || exit;
 ?>
 <div class="notice notice-error">
-    <h2><?php echo __("WooCommerce ECOMMPAY", 'woo-ecommpay'); ?></h2>
-    <p><?php echo __('You have missing or incorrect settings.', 'woo-ecommpay'); ?>
-        <?php echo sprintf(__('Go to the <a href="%s">settings page</a>', 'woo-ecommpay'), ecp_settings_page_url()); ?>
+    <h2><?php esc_html_e("ECOMMPAY Payments", 'woo-ecommpay'); ?></h2>
+    <p><?php esc_html_e('You have missing or incorrect settings.', 'woo-ecommpay'); ?>
+        <?php esc_html_e('Go to the ', 'woo-ecommpay'); ?>
+        <a href="<?php echo esc_url_raw(ecp_settings_page_url()) ?>">
+            <?php esc_html_e('settings page', 'woo-ecommpay'); ?>
+        </a>
     </p>
     <ul>
     <?php foreach ($errors as $error): ?>
-        <li><strong><?php echo $error; ?></strong> <?php echo __('is mandatory.', 'woo-ecommpay'); ?></li>
+        <li><strong><?php echo esc_html($error); ?></strong> <?php esc_html_e('is mandatory.', 'woo-ecommpay'); ?></li>
     <?php endforeach; ?>
     </ul>
 </div>

@@ -4,7 +4,7 @@ jQuery(document).ready(function () {
     var loader = jQuery('#ecommpay-loader');
 
     function isEcommpayPayment() {
-        return jQuery("input[name='payment_method']:checked").val() === 'ecommpay';
+        return jQuery("input[name='payment_method']:checked").val().slice(0, 8) === 'ecommpay';
     }
 
     function submit_error(error_message) {
@@ -60,18 +60,16 @@ jQuery(document).ready(function () {
         switch (result.result) {
             case 'success':
                 ECP.order_id = result.order_id;
-                switch (ECP.mode) {
+                switch (result.redirect.frame_mode) {
                     case 'iframe':
                         showIFrame(result.redirect);
                         break;
                     case 'popup':
                         showPopup(result.redirect);
                         break;
-                    case 'redirect':
+                    default:
                         redirect(result.redirect);
                         break;
-                    default:
-                        show_error(result, 'Unknown mode');
                 }
                 break;
             case 'failure':

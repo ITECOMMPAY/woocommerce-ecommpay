@@ -18,7 +18,7 @@ class Ecp_Gateway_Payment_Methods
     private static $payment_methods = [
         'card' => 'card',
         'applepay' => 'etoken',
-        'googlepay' => 'google-etoken',
+        'googlepay' => 'etoken-google',
     ];
 
     /**

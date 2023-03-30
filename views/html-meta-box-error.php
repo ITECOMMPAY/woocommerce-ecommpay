@@ -7,10 +7,10 @@
 <ul class="order_actions">
     <li class="wide">
         <p class="ecp-full-width">
-            <?php echo __('An error occurred. For more information check out the', 'woo-ecommpay'); ?>
-            <strong><?php echo ecp_get_log()->get_domain(); ?></strong>
-            <?php echo __('logs inside'); ?>
-            <strong><?php echo __('WooCommerce -> System Status -> Logs'); ?></strong>.
+            <?php esc_html_e('An error occurred. For more information check out the', 'woo-ecommpay'); ?>
+            <strong><?php echo esc_url_raw(ecp_get_log()->get_domain()); ?></strong>
+            <?php esc_html_e('logs inside'); ?>
+            <strong><?php esc_html_e('WooCommerce -> System Status -> Logs'); ?></strong>.
         </p>
     </li>
     <li class="wide">

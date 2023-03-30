@@ -66,10 +66,10 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
      */
     public function create_payment_id()
     {
-        $test_mode = ecp_is_enabled(Ecp_Gateway_Settings_Page::OPTION_TEST);
+        $test_mode = ecp_is_enabled(Ecp_Gateway_Settings_General::OPTION_TEST);
 
         if ($test_mode) {
-            $id = Ecp_Gateway::CMS_PREFIX . '&' . $_SERVER['SERVER_NAME'] . '&';
+            $id = Ecp_Core::CMS_PREFIX . '&' . wc_get_var($_SERVER['SERVER_NAME'], 'undefined') . '&';
             $this->set_is_test();
         } else {
             $id = '';
@@ -93,7 +93,7 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
     private static function remove_order_prefix($orderId, $prefix)
     {
         return (int)preg_replace(
-            '/^' . $prefix . '&' . preg_quote($_SERVER['SERVER_NAME']) . '&/',
+            '/^' . $prefix . '&' . preg_quote(wc_get_var($_SERVER['SERVER_NAME'], 'undefined')) . '&/',
             '',
             $orderId
         );

@@ -171,6 +171,14 @@ trait ECP_Gateway_Order_Extension
      */
     public function is_ecp()
     {
-        return get_post_meta($this->get_id(), '_payment_method', true) === 'ecommpay';
+        $pm = get_post_meta($this->get_id(), '_payment_method', true);
+
+        foreach (ecp_payment_methods() as $method) {
+            if ($pm === $method->id) {
+                return true;
+            }
+        }
+
+        return $pm === 'ecommpay';
     }
 }

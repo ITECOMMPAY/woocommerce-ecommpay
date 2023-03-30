@@ -9,9 +9,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 ?>
 <div id="woocommerce-upgrade-notice" class="updated woocommerce-message wc-connect">
-    <h3><strong><?php _e( 'WooCommerce ECOMMPAY - Data Update', 'woo-ecommpay' ); ?></strong></h3>
-    <p><?php _e( 'To ensure you get the best experience at all times, we need to update your store\'s database to the latest version.', 'woo-ecommpay' ); ?></p>
-    <p class="submit"><a href="#" class="woocommerce-ecommpay-update-now button-primary"><?php _e( 'Run the updater', 'woo-ecommpay' ); ?></a></p>
+    <h3><strong><?php esc_html_e( 'ECOMMPAY Payments - Data Update', 'woo-ecommpay'); ?></strong></h3>
+    <p><?php esc_html_e( 'To ensure you get the best experience at all times, we need to update your store\'s database to the latest version.', 'woo-ecommpay'); ?></p>
+    <p class="submit"><a href="#" class="woocommerce-ecommpay-update-now button-primary"><?php esc_html_e( 'Run the updater', 'woo-ecommpay' ); ?></a></p>
 </div>
 <script type="text/javascript">
     (function ($) {
@@ -23,11 +23,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
                 message.find('p').fadeOut();
 
-                $.post('<?php echo admin_url('admin-ajax.php'); ?>', {
+                $.post('<?php echo esc_url_raw(admin_url('admin-ajax.php')); ?>', {
                     action: 'ecommpay_run_data_upgrader',
-                    nonce: '<?php echo Ecp_Gateway_Install::get_instance()->create_run_upgrade_nonce(); ?>'
+                    nonce: '<?php echo esc_js(Ecp_Gateway_Install::get_instance()->create_run_upgrade_nonce()); ?>'
                 }, function () {
-                    message.append($('<p></p>').text("<?php _e('The upgrader is now running. This might take a while. The notice will disappear once the upgrade is complete.', 'woo-ecommpay'); ?>"));
+                    message.append($('<p></p>').text("<?php esc_html_e('The upgrader is now running. This might take a while. The notice will disappear once the upgrade is complete.', 'woo-ecommpay'); ?>"));
                 });
             }
         });

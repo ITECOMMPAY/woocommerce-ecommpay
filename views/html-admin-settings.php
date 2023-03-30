@@ -21,14 +21,16 @@ if (!$tab_exists) {
     wp_safe_redirect(ecp_settings_page_url());
     exit;
 }
+
 ?>
 <div class="wrap ecp">
     <nav class="nav-tab-wrapper wpm-nav-tab-wrapper ecp-relative">
-        <?php foreach ($tabs as $slug => $label): ?>
-            <a href="<?php echo esc_html(ecp_settings_page_url($slug)); ?>"
-               class="nav-tab <?php echo $current_tab === $slug ? 'nav-tab-active' : ''; ?>"><?=esc_html($label); ?></a>
+        <?php foreach ($tabs as $slug => $data): ?>
+            <a href="<?php echo esc_url_raw(ecp_settings_page_url($slug)); ?>"
+               class="nav-tab <?php echo $current_tab === $slug ? 'nav-tab-active' : ''; ?>">
+            <?php echo esc_html($data['label']); ?></a>
         <?php endforeach; ?>
-        <span id="ecp-version">Version: <?php echo Ecp_Gateway::WC_ECP_VERSION; ?></span>
+        <span id="ecp-version">Version: <?php echo esc_html(Ecp_Core::WC_ECP_VERSION); ?></span>
     </nav>
     <h2 class="screen-reader-text"><?php echo esc_html($current_tab_label); ?></h2>
     <?php

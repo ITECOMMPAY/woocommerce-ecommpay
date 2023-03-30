@@ -260,12 +260,6 @@ class Ecp_Gateway_Module_Refund extends Ecp_Gateway_Registry
             return false;
         }
 
-        //ToDo: Temporary fix - available refund only for card. Need removing in next release.
-        if (!in_array($order->get_payment_system(), Ecp_Gateway_Payment_Methods::get_method_names())) {
-            ecp_get_log()->notice(__('Refund available only for card payment group', 'woo-ecommpay'));
-            return false;
-        }
-
         return $order->get_total() > 0 && $order->is_action_allowed('refund');
     }
 

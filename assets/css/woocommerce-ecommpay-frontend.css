@@ -1,0 +1,8 @@
+/* Hide enabled Apple Pay method before check availability */
+.wc_payment_method.payment_method_ecommpay-apple-pay {
+    display: none;
+}
+
+.ecp-visible {
+    display: block !important;
+}

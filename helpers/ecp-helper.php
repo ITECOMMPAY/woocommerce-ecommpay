@@ -3,11 +3,11 @@
 /**
  * Make the object available for later use
  *
- * @return Ecp_Gateway
+ * @return Ecp_Core
  */
 function ecommpay()
 {
-    return Ecp_Gateway::get_instance();
+    return Ecp_Core::get_instance();
 }
 
 /**
@@ -17,7 +17,7 @@ function ecommpay()
  */
 function ecp_version()
 {
-    return 'wc_ecp-' . Ecp_Gateway::WC_ECP_VERSION;
+    return 'wc_ecp-' . Ecp_Core::WC_ECP_VERSION;
 }
 
 if (!function_exists('wp_version')) {
@@ -92,9 +92,15 @@ function ecp_img_url($file_name)
  *
  * @return string
  */
-function ecp_settings_page_url($sub = 'general')
+function ecp_settings_page_url($sub = Ecp_Gateway_Settings_General::ID)
 {
-    return admin_url('admin.php?page=wc-settings&tab=checkout&section=ecommpay&sub=' . esc_attr($sub));
+    if ($sub !== Ecp_Gateway_Settings_General::ID) {
+        return admin_url('admin.php?page=wc-settings&tab=checkout&section=' . esc_attr($sub));
+    }
+
+    foreach (ecp_payment_methods() as $method) {
+        return admin_url('admin.php?page=wc-settings&tab=checkout&section=' . $method->id . '&sub=general');
+    }
 }
 
 /**
@@ -102,7 +108,18 @@ function ecp_settings_page_url($sub = 'general')
  */
 function ecp_doc_link()
 {
-    return 'https://developers.ecommpay.com/en/en_PP_Parameters.html';
+    return 'https://developers.ecommpay.com/en/en_CMS__wordpress.html';
+}
+
+/**
+ * Returns a link to the manual contains description by error code.
+ * @param string $code Error code
+ * @return string
+ *
+ */
+function ecp_error_code_link($code)
+{
+    return 'https://developers.ecommpay.com/en/en_Gate__Unified_Codes.html?hl= ' . $code;
 }
 
 /**
@@ -154,13 +171,51 @@ function ecp_load_i18n()
 /**
  * Checks if a setting options is enabled by checking on yes/no data.
  *
- * @param string $value
+ * @param string $key
  *
  * @return bool
  */
-function ecp_is_enabled($value)
+function ecp_is_enabled($key, $payment_method = Ecp_Gateway_Settings_General::ID)
 {
-    return ecommpay()->get_option($value, Ecp_Gateway_Settings_Page::NO) === Ecp_Gateway_Settings_Page::YES;
+    return ecommpay()
+        ->get_pm_option(
+            $payment_method,
+            $key,
+            Ecp_Gateway_Settings::NO
+        ) === Ecp_Gateway_Settings::YES;
+}
+
+/**
+ * @return Ecp_Gateway[]
+ * @since 3.0.0
+ */
+function ecp_payment_methods()
+{
+    return ecommpay()->get_payment_methods();
+}
+
+/**
+ * @return string[]
+ * @since 3.0.0
+ */
+function ecp_payment_classnames()
+{
+    return ecommpay()->get_payment_classnames();
+}
+
+/**
+ * @return bool
+ * @since 3.0.0
+ */
+function ecp_has_available_methods()
+{
+    foreach (ecp_payment_methods() as $method) {
+        if ($method->enabled) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -290,4 +345,22 @@ function ecp_region_code($country, $region)
 {
     $regions = WC()->countries->get_states($country);
     return array_search($region, $regions);
+}
+
+/**
+ * Display a description.
+ *
+ * @param  array $attributes custom HTML attributes as key => value pairs.
+ * @return string
+ * @since  2.2.2
+ *
+ */
+function ecp_custom_attributes($attributes) {
+    $result = '';
+
+    foreach ($attributes as $attribute => $attribute_value) {
+        $result .= sprintf(' %s="%s"', esc_attr($attribute), esc_attr($attribute_value));
+    }
+
+    return $result;
 }

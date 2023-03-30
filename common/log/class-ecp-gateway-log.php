@@ -73,7 +73,7 @@ class Ecp_Gateway_Log extends Ecp_Gateway_Registry
         'expiry_year' => '****',
         'phone' => '***',
         'token' => '** TOKEN **',
-        Ecp_Gateway_Settings_Page::OPTION_SECRET_KEY => '*SECRET*',
+        Ecp_Gateway_Settings_General::OPTION_SECRET_KEY => '*SECRET*',
     ];
 
     /**
@@ -83,8 +83,8 @@ class Ecp_Gateway_Log extends Ecp_Gateway_Registry
      */
     protected function init()
     {
-        $this->init_threshold();
         $this->logger = new WC_Logger();
+        $this->init_threshold();
         $this->start();
     }
 
@@ -306,7 +306,7 @@ class Ecp_Gateway_Log extends Ecp_Gateway_Registry
         $this->debug(
             sprintf(
                 _x('<--------------------------------------<< Running %s', 'Log information', 'woo-ecommpay'),
-                $_SERVER['REQUEST_URI']
+                esc_url_raw(wc_get_var($_SERVER['REQUEST_URI'], ''))
             )
         );
     }
@@ -322,7 +322,7 @@ class Ecp_Gateway_Log extends Ecp_Gateway_Registry
         $this->debug(
             sprintf(
                 _x('>>--------------------------------------> Ended %s', 'Log information', 'woo-ecommpay'),
-                $_SERVER['REQUEST_URI']
+                esc_url_raw(wc_get_var($_SERVER['REQUEST_URI'], ''))
             )
         );
     }
@@ -348,7 +348,7 @@ class Ecp_Gateway_Log extends Ecp_Gateway_Registry
      */
     private function init_threshold()
     {
-        $level = ecommpay()->get_option(Ecp_Gateway_Settings_Page::OPTION_LOG_LEVEL, WC_Log_Levels::ERROR);
+        $level = ecommpay()->get_general_option(Ecp_Gateway_Settings_General::OPTION_LOG_LEVEL, WC_Log_Levels::DEBUG);
 
         $this->threshold = WC_Log_Levels::is_valid_level($level)
             ? WC_Log_Levels::get_level_severity($level)

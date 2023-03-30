@@ -6,12 +6,12 @@ defined('ABSPATH') || exit;
  * Ecp_Gateway_Settings class
  *
  * @class    Ecp_Gateway_Settings
- * @version  2.0.0
+ * @version  3.0.0
  * @package  Ecp_Gateway/Settings
  * @category Class
  * @internal
  */
-class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
+class Ecp_Form extends Ecp_Gateway_Registry
 {
     /**
      * Setting fields
@@ -22,7 +22,7 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
     /**
      * Setting pages.
      *
-     * @var Ecp_Gateway_Settings_Page[]
+     * @var Ecp_Gateway_Settings[]
      */
     private $tabs = [];
 
@@ -33,8 +33,10 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
     {
         add_filter('ecp_field_normalisation', [$this, 'normalize_field'], 10, 1);
 
-        add_action('ecp_html_render_field_title', [$this, 'render_fieldset_start'], 10, 1);
+        add_action('ecp_html_render_field_section_start', [$this, 'render_fieldset_start'], 10, 1);
         add_action('ecp_html_render_field_section_end', [$this, 'render_fieldset_end'], 10, 1);
+        add_action('ecp_html_render_field_toggle_start', [$this, 'render_toggle_start'], 10, 1);
+        add_action('ecp_html_render_field_toggle_end', [$this, 'render_toggle_end'], 10, 1);
         add_action('ecp_html_render_field_text', [$this, 'render_field_input'], 10, 1);
         add_action('ecp_html_render_field_password', [$this, 'render_field_input'], 10, 1);
         add_action('ecp_html_render_field_datetime', [$this, 'render_field_input'], 10, 1);
@@ -58,23 +60,22 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
         add_action('ecp_html_render_field_multi_select_country', [$this, 'render_field_multi_select_country'], 10, 1);
         add_action('ecp_html_render_field_relative_date_selector', [$this, 'render_field_relative_date_selector'], 10, 1);
         add_action('admin_notices', [$this, 'admin_notice_settings']);
-        add_action('woocommerce_update_options_payment_gateways_ecommpay', [$this, 'save']);
 
         if (empty($this->tabs)) {
-            $tabs = [];
-
-            $tabs[] = new Ecp_Gateway_Settings_General();
-            $tabs[] = new Ecp_Gateway_Settings_Payment_Page();
-            $tabs[] = new Ecp_Gateway_Settings_Admin();
-            /*
-            ToDo: Must be implements in next versions.
-            $tabs[] = new Ecp_Gateway_Settings_Products();
-            $tabs[] = new Ecp_Gateway_Settings_Refund();
-
-            if (ecp_subscription_is_active()) {
-                $tabs[] = new Ecp_Gateway_Settings_Subscriptions();
-            }
-             */
+            $tabs = [
+                new Ecp_Gateway_Settings_General(),
+                new Ecp_Gateway_Settings_Card(),
+                new Ecp_Gateway_Settings_PayPal(),
+                new Ecp_Gateway_Settings_Klarna(),
+                new Ecp_Gateway_Settings_Giropay(),
+                new Ecp_Gateway_Settings_Sofort(),
+                new Ecp_Gateway_Settings_Blik(),
+                new Ecp_Gateway_Settings_Ideal(),
+                new Ecp_Gateway_Settings_Banks(),
+                new Ecp_Gateway_Settings_Googlepay(),
+                new Ecp_Gateway_Settings_Applepay(),
+                new Ecp_Gateway_Settings_More(),
+            ];
 
             $this->tabs = apply_filters('ecp_get_settings_pages', $tabs);
         }
@@ -85,12 +86,7 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
      */
     public function save()
     {
-        $current_tab = !empty($_REQUEST['sub']) ? sanitize_title($_REQUEST['sub']) : Ecp_Gateway_Settings_General::ID;
-
-        if (empty($_REQUEST['_wpnonce']) || !wp_verify_nonce($_REQUEST['_wpnonce'], 'woocommerce-settings')) {
-            die(__('Action failed. Please refresh the page and retry.', 'woo-ecommpay'));
-        }
-
+        $current_tab = $this->get_section();
         ecp_get_log()->debug('Run saving plugin settings. Section:', $current_tab);
 
         // Trigger actions
@@ -103,20 +99,29 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
         ecp_get_log()->info('Plugin settings successfully saved. Section:', $current_tab);
     }
 
+    private function get_section()
+    {
+        $current_tab = $_REQUEST['section'];
+        if (wc_get_var($_REQUEST['sub']) === Ecp_Gateway_Settings_General::ID) {
+            $current_tab = Ecp_Gateway_Settings_General::ID;
+        }
+
+        return $current_tab;
+    }
+
     /**
      * Display settings page.
      */
-    public function output()
+    public function output($tab = null)
     {
-        $current_tab = !empty($_REQUEST['sub']) ? sanitize_title($_REQUEST['sub']) : Ecp_Gateway_Settings_General::ID;
-
-        $suffix = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '' : '.min';
+        $current_tab = $this->get_section();
+        $suffix = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '' : ''; //'.min';
 
         do_action('ecp_settings_start');
 
         wp_enqueue_script(
             'ecp_settings',
-            ecp_js_path('settings' . $suffix . '.js'),
+            ecp_js_url('settings' . $suffix . '.js'),
             ['jquery'],
             ecp_version(),
             true
@@ -147,17 +152,20 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
      *
      * Loops though the WooCommerce ECOMMPAY options array and outputs each field.
      *
-     * @param array[] $options Opens array to output.
+     * @param Ecp_Gateway_Settings $options Opens array to output.
      */
     public function output_fields($options)
     {
-        foreach ($options as $value) {
+        foreach ($options->get_settings() as $value) {
             if (!isset($value['type'])) {
                 continue;
             }
 
             $value = apply_filters('ecp_field_normalisation', $value);
-            do_action('ecp_html_render_field_' . $value['type'], $value);
+            do_action(
+                'ecp_html_render_field_' . $value['type'],
+                $this->get_general_rendering_options($value, $options->get_id())
+            );
         }
     }
 
@@ -166,11 +174,11 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
      *
      * Loops though the woocommerce options array and outputs each field.
      *
-     * @param array $options Options array to output.
+     * @param Ecp_Gateway_Settings $options Options array to output.
      * @param array $data Optional. Data to use for saving. Defaults to $_POST.
      * @return bool
      */
-    public function save_fields($options, $data = null)
+    public function save_fields(Ecp_Gateway_Settings $options, $data = null)
     {
         if (is_null($data)) {
             $data = $_POST;
@@ -185,37 +193,37 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
         $autoload_options = [];
 
         // Loop options and get values to save.
-        foreach ($options as $option) {
+        foreach ($options->get_settings() as $option) {
             if (
-                !isset($option[Ecp_Gateway_Settings_Page::FIELD_ID])
-                || !isset($option[Ecp_Gateway_Settings_Page::FIELD_TYPE])
+                !isset($option[Ecp_Gateway_Settings::FIELD_ID])
+                || !isset($option[Ecp_Gateway_Settings::FIELD_TYPE])
             ) {
                 continue;
             }
 
             // Get posted value.
-            if (strstr($option[Ecp_Gateway_Settings_Page::FIELD_ID], '[')) {
-                parse_str($option[Ecp_Gateway_Settings_Page::FIELD_ID], $option_name_array);
+            if (strstr($option[Ecp_Gateway_Settings::FIELD_ID], '[')) {
+                parse_str($option[Ecp_Gateway_Settings::FIELD_ID], $option_name_array);
                 $option_name = current(array_keys($option_name_array));
                 $setting_name = key($option_name_array[$option_name]);
                 $raw_value = isset($data[$option_name][$setting_name]) ? wp_unslash($data[$option_name][$setting_name]) : null;
             } else {
-                $option_name = $option[Ecp_Gateway_Settings_Page::FIELD_ID];
+                $option_name = $option[Ecp_Gateway_Settings::FIELD_ID];
                 $setting_name = '';
-                $raw_value = isset($data[$option[Ecp_Gateway_Settings_Page::FIELD_ID]])
-                    ? wp_unslash($data[$option[Ecp_Gateway_Settings_Page::FIELD_ID]])
+                $raw_value = isset($data[$option[Ecp_Gateway_Settings::FIELD_ID]])
+                    ? wp_unslash($data[$option[Ecp_Gateway_Settings::FIELD_ID]])
                     : null;
             }
 
             // Format the value based on option type.
-            switch ($option[Ecp_Gateway_Settings_Page::FIELD_TYPE]) {
-                case Ecp_Gateway_Settings_Page::TYPE_CHECKBOX:
+            switch ($option[Ecp_Gateway_Settings::FIELD_TYPE]) {
+                case Ecp_Gateway_Settings::TYPE_CHECKBOX:
                     $value = '1' === $raw_value || 'yes' === $raw_value ? 'yes' : 'no';
                     break;
-                case Ecp_Gateway_Settings_Page::TYPE_AREA:
+                case Ecp_Gateway_Settings::TYPE_AREA:
                     $value = wp_kses_post(trim($raw_value));
                     break;
-                case Ecp_Gateway_Settings_Page::TYPE_MULTI_SELECT:
+                case Ecp_Gateway_Settings::TYPE_MULTI_SELECT:
                 case 'multi_select_countries':
                     $value = array_filter(array_map('wc_clean', (array)$raw_value));
                     break;
@@ -231,17 +239,17 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
                         $value['crop'] = $option['default']['crop'];
                     }
                     break;
-                case Ecp_Gateway_Settings_Page::TYPE_DROPDOWN:
-                    $allowed_values = empty($option[Ecp_Gateway_Settings_Page::FIELD_OPTIONS])
+                case Ecp_Gateway_Settings::TYPE_DROPDOWN:
+                    $allowed_values = empty($option[Ecp_Gateway_Settings::FIELD_OPTIONS])
                         ? []
-                        : array_map('strval', array_keys($option[Ecp_Gateway_Settings_Page::FIELD_OPTIONS]));
-                    if (empty($option[Ecp_Gateway_Settings_Page::FIELD_DEFAULT]) && empty($allowed_values)) {
+                        : array_map('strval', array_keys($option[Ecp_Gateway_Settings::FIELD_OPTIONS]));
+                    if (empty($option[Ecp_Gateway_Settings::FIELD_DEFAULT]) && empty($allowed_values)) {
                         $value = null;
                         break;
                     }
-                    $default = (empty($option[Ecp_Gateway_Settings_Page::FIELD_DEFAULT])
+                    $default = (empty($option[Ecp_Gateway_Settings::FIELD_DEFAULT])
                         ? $allowed_values[0]
-                        : $option[Ecp_Gateway_Settings_Page::FIELD_DEFAULT]);
+                        : $option[Ecp_Gateway_Settings::FIELD_DEFAULT]);
                     $value = in_array($raw_value, $allowed_values, true)
                         ? $raw_value
                         : $default;
@@ -274,11 +282,11 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
             $autoload_options[$option_name] = !isset($option['autoload']) || $option['autoload'];
         }
 
+        ecp_get_log()->debug('Options data', $update_options);
         $this->init_settings();
-        ecp_get_log()->debug('New settings package:', $update_options);
 
         foreach ($update_options as $key => $value) {
-            $this->settings[$key] = $value;
+            $this->settings[$options->get_id()][$key] = $value;
         }
 
         // Save all options in our array.
@@ -288,7 +296,7 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
             array_key_exists(Ecp_Gateway_Install::SETTINGS_NAME, $autoload_options) ? 'yes' : 'no'
         );
 
-
+        ecp_get_log()->debug('Updated settings', $this->settings);
         return true;
     }
 
@@ -297,21 +305,33 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
      *
      * Gets an option from the settings API, using defaults if necessary to prevent undefined notices.
      *
-     * @param string $key Option key.
-     * @param mixed $empty_value Value when empty.
+     * @param array $value Option
+     * @param string $method Payment method
      * @return string|array The value specified for the option or a default value for the option.
      */
-    private function get_option($key, $empty_value = null)
+    private function get_option($value, $method)
     {
+        if (!array_key_exists(Ecp_Gateway_Settings::FIELD_ID, $value)) {
+            return '';
+        }
+
+        $key = $value[Ecp_Gateway_Settings::FIELD_ID];
+        $default = $value[Ecp_Gateway_Settings::FIELD_DEFAULT];
+
         if (empty($this->settings)) {
             $this->init_settings();
         }
 
-        if (!is_null($empty_value) && '' === $this->settings[$key]) {
-            $this->settings[$key] = $empty_value;
+        if (!array_key_exists($method, $this->settings)) {
+
+            $this->settings[$method] = [];
         }
 
-        return $this->settings[$key];
+        if (!is_null($default) && (!array_key_exists($key, $this->settings[$method]) || '' === $this->settings[$method][$key])) {
+            $this->settings[$method][$key] = $default;
+        }
+
+        return $this->settings[$method][$key];
     }
 
     /**
@@ -361,10 +381,7 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
                 }
             }
 
-            $data = array_merge(
-                $data,
-                $part
-            );
+            $data[$tab->get_id()] = $part;
         }
 
         return $data;
@@ -398,9 +415,12 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
      *
      * @return array of options
      */
-    public function get_form_fields()
+    public function get_form_fields($current_tab = null)
     {
-        $current_tab = !empty($_REQUEST['sub']) ? sanitize_title($_REQUEST['sub']) : 'general';
+        if ($current_tab === null) {
+            $current_tab = wc_get_var($_REQUEST['section']);
+            $current_tab = $current_tab !== null ? sanitize_title($current_tab) : Ecp_Gateway_Settings_General::ID;
+        }
 
         return apply_filters(
             'woocommerce_settings_api_form_fields_' . $current_tab,
@@ -416,8 +436,8 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
      */
     public function set_defaults($field)
     {
-        if (!isset($field[Ecp_Gateway_Settings_Page::FIELD_DEFAULT])) {
-            $field[Ecp_Gateway_Settings_Page::FIELD_DEFAULT] = '';
+        if (!isset($field[Ecp_Gateway_Settings::FIELD_DEFAULT])) {
+            $field[Ecp_Gateway_Settings::FIELD_DEFAULT] = '';
         }
 
         return $field;
@@ -431,9 +451,9 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
      */
     public function get_field_default($field)
     {
-        return empty($field[Ecp_Gateway_Settings_Page::FIELD_DEFAULT])
+        return empty($field[Ecp_Gateway_Settings::FIELD_DEFAULT])
             ? ''
-            : $field[Ecp_Gateway_Settings_Page::FIELD_DEFAULT];
+            : $field[Ecp_Gateway_Settings::FIELD_DEFAULT];
     }
 
     /**
@@ -445,25 +465,28 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
     {
         $this->init_settings();
 
-        if (!ecp_is_enabled(Ecp_Gateway_Settings_Page::OPTION_ENABLED)) {
-            // Exit if plugin disabled.
-            return;
-        }
+//        if (!ecp_is_enabled('enabled')) {
+//            // Exit if plugin disabled.
+//            return;
+//        }
 
         $error_fields = [];
 
         $mandatory_fields = [
-            Ecp_Gateway_Settings_Page::OPTION_PROJECT_ID => __('Project ID', 'woo-ecommpay'),
-            Ecp_Gateway_Settings_Page::OPTION_SECRET_KEY => __('Secret key', 'woo-ecommpay')
+            Ecp_Gateway_Settings_General::OPTION_PROJECT_ID => __('Project ID', 'woo-ecommpay'),
+            Ecp_Gateway_Settings_General::OPTION_SECRET_KEY => __('Secret key', 'woo-ecommpay')
         ];
 
-        if (!ecp_is_enabled(Ecp_Gateway_Settings_Page::OPTION_TEST)) {
+        if (!ecp_is_enabled(Ecp_Gateway_Settings_General::OPTION_TEST)) {
             // Check mandatory parameters
             foreach ($mandatory_fields as $mandatory_field_setting => $mandatory_field_label) {
                 $post_key = 'woocommerce_ecommpay_' . $mandatory_field_setting;
-                $setting_key = $this->get_option($mandatory_field_setting);
+                $setting_key = $this->get_option(
+                    ['id' => $mandatory_field_setting],
+                    Ecp_Gateway_Settings_General::ID
+                );
 
-                if (empty($_POST[$post_key]) && empty($setting_key)) {
+                if (wc_get_post_data_by_key($post_key, null) === null && empty($setting_key)) {
                     $error_fields[] = $mandatory_field_label;
                 }
             }
@@ -477,82 +500,55 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
     // Section Titles.
     public function render_fieldset_start($value)
     {
-        ecp_get_view(
-            'fields/html-form-fieldset-start.php',
-            [
-                'id' => $value['id'],
-                'title' => $value['title'],
-                'description' => $this->get_description($value)
-            ]
-        );
+        ecp_get_view('fields/html-form-fieldset-start.php', $value);
     }
 
     // Section Ends.
     public function render_fieldset_end($value)
     {
-        ecp_get_view(
-            'fields/html-form-fieldset-end.php',
-            [
-                'id' => $value['id'],
-            ]
-        );
+        ecp_get_view('fields/html-form-fieldset-end.php', $value);
+    }
+
+    // Toggle block start.
+    public function render_toggle_start($value)
+    {
+        ecp_get_view('fields/html-form-toggle-start.php', $value);
+    }
+
+    // Toggle block end.
+    public function render_toggle_end($value)
+    {
+        ecp_get_view('fields/html-form-toggle-end.php', $value);
     }
 
     // Standard text inputs and subtypes like 'number'.
     public function render_field_input($value)
     {
-        ecp_get_view(
-            'fields/html-form-field-input.php',
-            [
-                'id' => $value['id'],
-                'type' => $value['type'],
-                'title' => $value['title'],
-                'tooltip' => $this->get_tooltip($value),
-                'css' => $value['css'],
-                'option_value' => $this->get_option($value['id'], $value['default']),
-                'class' => $value['class'],
-                'placeholder' => $value['placeholder'],
-                'custom_attributes' => $this->get_custom_attributes($value),
-                'suffix' => $value['suffix'],
-                'description' => $this->get_description($value),
-            ]
-        );
+        ecp_get_view('fields/html-form-field-input.php', $value);
     }
 
     // Color picker.
     public function render_field_color($value)
     {
-        ecp_get_view(
-            'fields/html-form-field-color.php',
-            $this->get_general_rendering_options($value)
-        );
+        ecp_get_view('fields/html-form-field-color.php', $value);
     }
 
     // Textarea.
     public function render_field_text($value)
     {
-        ecp_get_view(
-            'fields/html-form-field-text.php',
-            $this->get_general_rendering_options($value)
-        );
+        ecp_get_view('fields/html-form-field-text.php', $value);
     }
 
     // Select boxes.
     public function render_field_select($value)
     {
-        ecp_get_view(
-            'fields/html-form-field-select.php',
-            $this->get_general_rendering_options($value)
-        );
+        ecp_get_view('fields/html-form-field-select.php', $value);
     }
 
     // Radio inputs.
     public function render_field_radio($value)
     {
-        ecp_get_view(
-            'fields/html-form-field-radio.php',
-            $this->get_general_rendering_options($value)
-        );
+        ecp_get_view('fields/html-form-field-radio.php', $value);
     }
 
     // Checkbox input.
@@ -576,156 +572,63 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
             $visibility_class[] = 'show_options_if_checked';
         }
 
-        ecp_get_view(
-            'fields/html-form-field-checkbox.php',
-            [
-                'id' => $value[Ecp_Gateway_Settings_Page::FIELD_ID],
-                'type' => $value[Ecp_Gateway_Settings_Page::FIELD_TYPE],
-                'title' => $value[Ecp_Gateway_Settings_Page::FIELD_TITLE],
-                'tooltip' => $this->get_tooltip($value),
-                'option_value' => $this->get_option(
-                    $value[Ecp_Gateway_Settings_Page::FIELD_ID],
-                    $value[Ecp_Gateway_Settings_Page::FIELD_DEFAULT]
-                ),
-                'class' => $value[Ecp_Gateway_Settings_Page::FIELD_CLASS],
-                'custom_attributes' => $this->get_custom_attributes($value),
-                'description' => $this->get_description($value),
-                'checkboxgroup' => $value['checkboxgroup'],
-                'visibility_class' => $visibility_class
-            ]
-        );
+        $value['visibility_class'] = $visibility_class;
+
+        ecp_get_view('fields/html-form-field-checkbox.php', $value);
     }
 
     // Single page selects.
     public function render_field_single_select_page($value)
     {
         $args = [
-            'name' => $value[Ecp_Gateway_Settings_Page::FIELD_ID],
-            'id' => $value[Ecp_Gateway_Settings_Page::FIELD_ID],
+            'name' => $value[Ecp_Gateway_Settings::FIELD_ID],
+            'id' => $value[Ecp_Gateway_Settings::FIELD_ID],
             'sort_column' => 'menu_order',
             'sort_order' => 'ASC',
             'show_option_none' => ' ',
-            'class' => $value[Ecp_Gateway_Settings_Page::FIELD_CLASS],
+            'class' => $value[Ecp_Gateway_Settings::FIELD_CLASS],
             'echo' => false,
-            'selected' => absint(
-                $this->get_option(
-                    $value[Ecp_Gateway_Settings_Page::FIELD_ID],
-                    $value[Ecp_Gateway_Settings_Page::FIELD_DEFAULT]
-                )
-            ),
+            'selected' => absint($value['option_value']),
             'post_status' => 'publish,private,draft',
         ];
 
-        if (isset($value[Ecp_Gateway_Settings_Page::FIELD_ARGS])) {
-            $args = wp_parse_args($value[Ecp_Gateway_Settings_Page::FIELD_ARGS], $args);
+        if (isset($value[Ecp_Gateway_Settings::FIELD_ARGS])) {
+            $value['args'] = wp_parse_args($value[Ecp_Gateway_Settings::FIELD_ARGS], $args);
         }
 
-        ecp_get_view(
-            'fields/html-form-field-single_select_page.php',
-            [
-                'title' => $value[Ecp_Gateway_Settings_Page::FIELD_TITLE],
-                'tooltip' => $this->get_tooltip($value),
-                'css' => $value[Ecp_Gateway_Settings_Page::FIELD_STYLE],
-                'class' => $value[Ecp_Gateway_Settings_Page::FIELD_CLASS],
-                'description' => $this->get_description($value),
-                'args' => $args
-            ]
-        );
+        ecp_get_view('fields/html-form-field-single_select_page.php', $value);
     }
 
     // Single country selects.
     public function render_field_single_select_country($value)
     {
-        $country_setting = (string)$this->get_option($value['id'], $value['default']);
+        $country_setting = $value['option_value'];
 
         if (strstr($country_setting, ':')) {
             $country_setting = explode(':', $country_setting);
-            $country = current($country_setting);
-            $state = end($country_setting);
+            $value['country'] = current($country_setting);
+            $value['state'] = end($country_setting);
         } else {
-            $country = $country_setting;
-            $state = '*';
+            $value['country'] = $country_setting;
+            $value['state'] = '*';
         }
 
-        ecp_get_view(
-            'fields/html-form-field-single-select-country.php',
-            [
-                'id' => $value[Ecp_Gateway_Settings_Page::FIELD_ID],
-                'title' => $value[Ecp_Gateway_Settings_Page::FIELD_TITLE],
-                'tooltip' => $this->get_tooltip($value),
-                'css' => $value[Ecp_Gateway_Settings_Page::FIELD_STYLE],
-                'description' => $this->get_description($value),
-                'country' => $country,
-                'state' => $state
-            ]
-        );
-    }
-
-    // Country multi selects.
-    public function render_field_multi_select_country($value)
-    {
-        /** @noinspection PhpUndefinedFieldInspection */
-        $countries = !empty($value['options']) ? $value['options'] : WC()->countries->countries;
-        asort($countries);
-
-        ecp_get_view(
-            'fields/html-form-field-multi-select-country.php',
-            [
-                'id' => $value[Ecp_Gateway_Settings_Page::FIELD_ID],
-                'title' => $value[Ecp_Gateway_Settings_Page::FIELD_TITLE],
-                'tooltip' => $this->get_tooltip($value),
-                'description' => $this->get_description($value),
-                'countries' => $countries,
-                'selections' => (array)$this->get_option(
-                    $value[Ecp_Gateway_Settings_Page::FIELD_ID],
-                    $value[Ecp_Gateway_Settings_Page::FIELD_DEFAULT]
-                )
-            ]
-        );
-    }
-
-    // Days/months/years selector.
-    public function render_field_relative_date_selector($value)
-    {
-        ecp_get_view(
-            'fields/html-form-field-relative-date-selector.php',
-            [
-                'id' => $value[Ecp_Gateway_Settings_Page::FIELD_ID],
-                'title' => $value[Ecp_Gateway_Settings_Page::FIELD_TITLE],
-                'tooltip' => $this->get_tooltip($value),
-                'option_value' => wc_parse_relative_date_option(
-                    $this->get_option(
-                        $value[Ecp_Gateway_Settings_Page::FIELD_ID],
-                        $value[Ecp_Gateway_Settings_Page::FIELD_DEFAULT]
-                    )
-                ),
-                'class' => $value[Ecp_Gateway_Settings_Page::FIELD_CLASS],
-                'placeholder' => $value[Ecp_Gateway_Settings_Page::FIELD_PLACEHOLDER],
-                'custom_attributes' => $this->get_custom_attributes($value),
-                'description' => $this->get_description($value),
-                'periods' => [
-                    'days' => __('Day(s)', 'woocommerce'),
-                    'weeks' => __('Week(s)', 'woocommerce'),
-                    'months' => __('Month(s)', 'woocommerce'),
-                    'years' => __('Year(s)', 'woocommerce'),
-                ]
-            ]
-        );
+        ecp_get_view('fields/html-form-field-single-select-country.php', $value);
     }
 
     public function normalize_field($value)
     {
         $property = [
-            Ecp_Gateway_Settings_Page::FIELD_ID => '',
-            Ecp_Gateway_Settings_Page::FIELD_TITLE => '',
-            Ecp_Gateway_Settings_Page::FIELD_CLASS => '',
-            Ecp_Gateway_Settings_Page::FIELD_STYLE => '',
-            Ecp_Gateway_Settings_Page::FIELD_DEFAULT => '',
-            Ecp_Gateway_Settings_Page::FIELD_DESC => '',
-            Ecp_Gateway_Settings_Page::FIELD_TIP => false,
-            Ecp_Gateway_Settings_Page::FIELD_PLACEHOLDER => '',
-            Ecp_Gateway_Settings_Page::FIELD_SUFFIX => '',
-            Ecp_Gateway_Settings_Page::FIELD_OPTIONS => null,
+            Ecp_Gateway_Settings::FIELD_ID => '',
+            Ecp_Gateway_Settings::FIELD_TITLE => '',
+            Ecp_Gateway_Settings::FIELD_CLASS => '',
+            Ecp_Gateway_Settings::FIELD_STYLE => '',
+            Ecp_Gateway_Settings::FIELD_DEFAULT => '',
+            Ecp_Gateway_Settings::FIELD_DESC => '',
+            Ecp_Gateway_Settings::FIELD_TIP => false,
+            Ecp_Gateway_Settings::FIELD_PLACEHOLDER => '',
+            Ecp_Gateway_Settings::FIELD_SUFFIX => '',
+            Ecp_Gateway_Settings::FIELD_OPTIONS => null,
             'checkboxgroup' => null,
         ];
 
@@ -744,11 +647,11 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
         $custom_attributes = array();
 
         if (
-            !empty($value[Ecp_Gateway_Settings_Page::FIELD_CUSTOM])
-            && is_array($value[Ecp_Gateway_Settings_Page::FIELD_CUSTOM])
+            !empty($value[Ecp_Gateway_Settings::FIELD_CUSTOM])
+            && is_array($value[Ecp_Gateway_Settings::FIELD_CUSTOM])
         ) {
-            foreach ($value[Ecp_Gateway_Settings_Page::FIELD_CUSTOM] as $attribute => $attribute_value) {
-                $custom_attributes[] = esc_attr($attribute) . '="' . esc_attr($attribute_value) . '"';
+            foreach ($value[Ecp_Gateway_Settings::FIELD_CUSTOM] as $attribute => $attribute_value) {
+                $custom_attributes[$attribute] = $attribute_value;
             }
         }
 
@@ -764,39 +667,14 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
      */
     private function get_description($value)
     {
-        $description = '';
-
         if (
-            true !== $value[Ecp_Gateway_Settings_Page::FIELD_TIP]
-            && !empty($value[Ecp_Gateway_Settings_Page::FIELD_DESC])
+            true !== $value[Ecp_Gateway_Settings::FIELD_TIP]
+            && !empty($value[Ecp_Gateway_Settings::FIELD_DESC])
         ) {
-            $description = $value[Ecp_Gateway_Settings_Page::FIELD_DESC];
+            return $value[Ecp_Gateway_Settings::FIELD_DESC];
         }
 
-        $upper = [
-            Ecp_Gateway_Settings_Page::TYPE_AREA,
-            Ecp_Gateway_Settings_Page::TYPE_RADIO
-        ];
-
-        if (
-            $description
-            && in_array($value[Ecp_Gateway_Settings_Page::FIELD_TYPE], $upper, true)
-        ) {
-            return '<p style="margin-top:0">' . wp_kses_post($description) . '</p>';
-        }
-
-        if (
-            $description
-            && $value[Ecp_Gateway_Settings_Page::FIELD_TYPE] === Ecp_Gateway_Settings_Page::TYPE_CHECKBOX
-        ) {
-            return wp_kses_post($description);
-        }
-
-        if ($description) {
-            return '<span class="description">' . wp_kses_post($description) . '</span>';
-        }
-
-        return $description;
+        return '';
     }
 
     /**
@@ -808,23 +686,15 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
      */
     private function get_tooltip($value)
     {
-        $tooltip_html = '';
-
-        if (true === $value[Ecp_Gateway_Settings_Page::FIELD_TIP]) {
-            $tooltip_html = $value[Ecp_Gateway_Settings_Page::FIELD_DESC];
-        } elseif (!empty($value[Ecp_Gateway_Settings_Page::FIELD_TIP])) {
-            $tooltip_html = $value[Ecp_Gateway_Settings_Page::FIELD_TIP];
+        if (true === $value[Ecp_Gateway_Settings::FIELD_TIP]) {
+            return $value[Ecp_Gateway_Settings::FIELD_DESC];
         }
 
-        if ($tooltip_html && $value[Ecp_Gateway_Settings_Page::FIELD_TYPE] === Ecp_Gateway_Settings_Page::TYPE_CHECKBOX) {
-            return '<p class="description">' . $tooltip_html . '</p>';
+        if (!empty($value[Ecp_Gateway_Settings::FIELD_TIP])) {
+            return $value[Ecp_Gateway_Settings::FIELD_TIP];
         }
 
-        if ($tooltip_html) {
-            return wc_help_tip($tooltip_html);
-        }
-
-        return $tooltip_html;
+        return '';
     }
 
     /**
@@ -833,23 +703,22 @@ class Ecp_Gateway_Settings extends Ecp_Gateway_Registry
      * @param array $value Setting options
      * @return array Form field as array
      */
-    private function get_general_rendering_options($value)
+    private function get_general_rendering_options($value, $gateway)
     {
         return [
-            'id' => $value[Ecp_Gateway_Settings_Page::FIELD_ID],
-            'type' => $value[Ecp_Gateway_Settings_Page::FIELD_TYPE],
-            'title' => $value[Ecp_Gateway_Settings_Page::FIELD_TITLE],
+            'id' => $value[Ecp_Gateway_Settings::FIELD_ID],
+            'type' => $value[Ecp_Gateway_Settings::FIELD_TYPE],
+            'title' => $value[Ecp_Gateway_Settings::FIELD_TITLE],
             'tooltip' => $this->get_tooltip($value),
-            'css' => $value[Ecp_Gateway_Settings_Page::FIELD_STYLE],
-            'option_value' => $this->get_option(
-                $value[Ecp_Gateway_Settings_Page::FIELD_ID],
-                $value[Ecp_Gateway_Settings_Page::FIELD_DEFAULT]
-            ),
-            'options' => $value[Ecp_Gateway_Settings_Page::FIELD_OPTIONS],
-            'class' => $value[Ecp_Gateway_Settings_Page::FIELD_CLASS],
+            'css' => $value[Ecp_Gateway_Settings::FIELD_STYLE],
+            'option_value' => $this->get_option($value, $gateway),
+            'options' => $value[Ecp_Gateway_Settings::FIELD_OPTIONS],
+            'class' => $value[Ecp_Gateway_Settings::FIELD_CLASS],
             'custom_attributes' => $this->get_custom_attributes($value),
             'description' => $this->get_description($value),
-            'placeholder' => $value[Ecp_Gateway_Settings_Page::FIELD_PLACEHOLDER],
+            'placeholder' => $value[Ecp_Gateway_Settings::FIELD_PLACEHOLDER],
+            'suffix' => $value[Ecp_Gateway_Settings::FIELD_SUFFIX],
+            'checkboxgroup' => $value['checkboxgroup'],
         ];
     }
 }

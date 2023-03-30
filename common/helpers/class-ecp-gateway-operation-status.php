@@ -34,9 +34,14 @@ class Ecp_Gateway_Operation_Status
     const AWAITING_REDIRECT = 'awaiting redirect result';
 
     /**
-     * Awaiting customer actions, if the customer may perform additional attempts to make a payment
+     * Awaiting customer, if the customer may perform additional attempts to make a payment
      */
-    const AWAITING_CUSTOMER = 'awaiting customer action';
+    const AWAITING_CUSTOMER = 'awaiting customer';
+
+    /**
+     * Awaiting customer actions, the user performs the necessary actions on the side of the payment system
+     */
+    const AWAITING_CUSTOMER_ACTION = 'awaiting customer action';
 
     /**
      * Awaiting additional parameters from customer.
@@ -154,6 +159,7 @@ class Ecp_Gateway_Operation_Status
                 self::AWAITING_3DS,
                 self::AWAITING_REDIRECT,
                 self::AWAITING_CUSTOMER,
+                self::AWAITING_CUSTOMER_ACTION,
                 self::AWAITING_CLARIFICATION,
                 self::EXTERNAL_PROCESSING,
                 self::AWAITING_MERCHANT_AUTH,
@@ -189,7 +195,8 @@ class Ecp_Gateway_Operation_Status
             self::AWAITING_APPROVAL => _x('Awaiting approval', 'Operation status', 'woo-ecommpay'),
             self::AWAITING_3DS => _x('Awaiting 3ds result', 'Operation status', 'woo-ecommpay'),
             self::AWAITING_REDIRECT => _x('Awaiting redirect result', 'Operation status', 'woo-ecommpay'),
-            self::AWAITING_CUSTOMER => _x('Awaiting customer action', 'Operation status', 'woo-ecommpay'),
+            self::AWAITING_CUSTOMER => _x('Awaiting customer', 'Operation status', 'woo-ecommpay'),
+            self::AWAITING_CUSTOMER_ACTION => _x('Awaiting customer action', 'Operation status', 'woo-ecommpay'),
             self::AWAITING_CLARIFICATION => _x('Awaiting clarification', 'Operation status', 'woo-ecommpay'),
             self::EXTERNAL_PROCESSING => _x('External processing', 'Operation status', 'woo-ecommpay'),
             self::EXTERNAL_ERROR => _x('External error', 'Operation status', 'woo-ecommpay'),

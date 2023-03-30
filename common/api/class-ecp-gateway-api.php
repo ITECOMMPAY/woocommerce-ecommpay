@@ -43,14 +43,6 @@ class Ecp_Gateway_API
     // region Properties
 
     /**
-     * <h2>cURL instance.</h2>
-     *
-     * @var ?resource
-     * @since 2.0.0
-     */
-    private $curl;
-
-    /**
      * <h2>The API url.</h2>
      *
      * @var string
@@ -65,14 +57,6 @@ class Ecp_Gateway_API
      * @since 2.0.0
      */
     private $headers;
-
-    /**
-     * <h2>cURL options.</h2>
-     *
-     * @var array
-     * @since 2.0.0
-     */
-    private $options = [];
 
     // endregion
 
@@ -93,9 +77,11 @@ class Ecp_Gateway_API
         );
 
         $this->headers = [
-            'X-ECOMMPAY_PLUGIN' => Ecp_Gateway::WC_ECP_VERSION,
+            'X-ECOMMPAY_PLUGIN' => Ecp_Core::WC_ECP_VERSION,
             'X-WORDPRESS' => wp_version(),
             'X-WOOCOMMERCE' => wc_version(),
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json',
         ];
 
         $this->hooks();
@@ -109,8 +95,6 @@ class Ecp_Gateway_API
      */
     protected function hooks()
     {
-        add_filter('ecp_api_append_interface_type', [$this, 'filter_append_interface_type'], 10, 1);
-        add_filter('ecp_api_append_signature', [$this, 'filter_append_signature'], 10, 1);
     }
 
     /**
@@ -141,88 +125,42 @@ class Ecp_Gateway_API
     }
 
     /**
-     * <h2>Performs an API PUT request.</h2>
+     * <h2>Returns form data with general section.</h2>
      *
-     * @param string $path <p>API request string.</p>
-     * @param array $form [optional] <p>Form data for send. Default: blank array.</p>
-     * @since 2.0.0
-     * @return array <p>Response data as array.</p>
+     * @param array $data <p>Order object or request identifier.</p>
+     * @since 3.0.0
+     * @return array
      */
-    final public function put($path, $form = [])
+    protected function create_general_section($data)
     {
-        // Start the request and return the response
-        return $this->execute('PUT', $path, $form);
+        return [
+            Ecp_Gateway_Signer::GENERAL => $data
+        ];
     }
 
-    /**
-     * <h2>Performs an API PATCH request.</h2>
-     *
-     * @param string $path <p>API request string.</p>
-     * @param array $form [optional] <p>Form data for send. Default: blank array.</p>
-     * @since 2.0.0
-     * @return array <p>Response data as array.</p>
-     */
-    final public function patch($path, $form = [])
+    protected function get_general_data($order)
     {
-        // Start the request and return the response
-        return $this->execute('PATCH', $path, $form);
-    }
-
-    /**
-     * <h2>Form data filter to add interface type parameter.</h2>
-     *
-     * @param array $data <p>Incoming form data.</p>
-     * @since 2.0.0
-     * @return array <p>Filtered form data.</p>
-     */
-    final public function filter_append_interface_type(array $data)
-    {
-        $data['interface_type'] = Ecp_Gateway::get_interface_type();
-
-        return $data;
-    }
-
-    /**
-     * <h2>Form data filter to add signature parameter.</h2>
-     *
-     * @param array $data <p>Incoming form data.</p>
-     * @since 2.0.0
-     * @return array <p>Filtered form data.</p>
-     * @throws Ecp_Gateway_Signature_Exception <p>
-     * When the key or value of one of the parameters contains the character
-     * {@see Ecp_Gateway_Signer::VALUE_SEPARATOR} symbol.
-     * </p>
-     */
-    final public function filter_append_signature(array $data)
-    {
-        $signature = ecp_get_signer()->get_signature($data);
-
-        switch (true) {
-            case array_key_exists(Ecp_Gateway_Signer::GENERAL, $data):
-                ecp_get_log()->debug(__('Append signature to general data', 'woo-ecommpay'));
-                $data[Ecp_Gateway_Signer::GENERAL][Ecp_Gateway_Signer::NAME] = $signature;
-                break;
-            default:
-                ecp_get_log()->debug(__('Append signature to body data', 'woo-ecommpay'));
-                $data[Ecp_Gateway_Signer::NAME] = $signature;
-        }
-
-        return $data;
-    }
-
-    /**
-     * <h2>Takes an API request string and appends it to the API url.</h2>
-     *
-     * @param string $params <p>API request string.</p>
-     * @since 2.0.0
-     * @return static <p>Current object.</p>
-     */
-    public function set_url($params)
-    {
-        return $this->setOption(CURLOPT_URL, $this->api_url . '/' . trim($params, '/'));
+        return [
+            Ecp_Gateway_Signer::GENERAL => apply_filters(
+                'ecp_append_merchant_callback_url',
+                apply_filters('ecp_create_general_data', $order)
+            )
+        ];
     }
 
     // region Private methods
+
+    /**
+     * <h2>Returns the API request string and appends it to the API url.</h2>
+     *
+     * @param string $params <p>API request string.</p>
+     * @since 2.0.0
+     * @return string <p>Current object.</p>
+     */
+    private function get_url($params)
+    {
+        return $this->api_url . '/' . trim($params, '/');
+    }
 
     /**
      * <h2>Executes the API request.</h2>
@@ -235,24 +173,25 @@ class Ecp_Gateway_API
      */
     private function execute($request_type, $path, $form = [])
     {
-        // Instantiate a new instance
-        $this->init();
-        $this->set_url($path)                   // Set the request params
-            ->setRequestMethod($request_type)   // Set the HTTP request type
-            ->setPostData($form)                // Set request POST data
-            ->setHeaders();                     // Set additional headers
+        switch ($request_type) {
+            case 'GET':
+                $response = wp_remote_get($this->get_url($path), $this->get_args($form));
+                break;
+            case 'HEAD':
+                $response = wp_remote_head($this->get_url($path), $this->get_args($form));
+                break;
+            default:
+                $response = wp_remote_post($this->get_url($path), $this->get_args($form));
+                break;
+        }
 
-        // Set CURL request options
-        curl_setopt_array($this->curl, $this->options);
+        $data = wp_remote_retrieve_body($response);
+        $status = intval(wp_remote_retrieve_response_code($response));
 
-        // Execute the request
-        $data = curl_exec($this->curl);
+        // Log request
+        $this->log($request_type, $form, $data, $status, $path);
 
-        // Log and close request
-        $this->log($request_type, $form, $data);
-        curl_close($this->curl);
-
-        $result = (int) curl_getinfo($this->curl, CURLINFO_HTTP_CODE) === 200
+        $result = $status === 200
             // Parse and return response
             ? json_decode($data, true)
             // Error response
@@ -276,24 +215,6 @@ class Ecp_Gateway_API
         );
 
         return [];
-    }
-
-    /**
-     * <h2>Create a cURL instance if none exists already.</h2>
-     *
-     * @since 2.0.0
-     * @return void
-     */
-    private function init()
-    {
-        $this->curl = curl_init();
-
-        $this->setOption(CURLOPT_RETURNTRANSFER, true)
-            ->setOption(CURLOPT_SSL_VERIFYPEER, false)
-            ->setOption(CURLOPT_HTTPAUTH, CURLAUTH_BASIC)
-            ->setOption(CURLINFO_HEADER_OUT, true);
-
-        $this->headers['Accept'] = 'application/json';
     }
 
     /**
@@ -336,90 +257,31 @@ class Ecp_Gateway_API
     }
 
     /**
-     * <h2>Sets request type into cURL option.</h2>
+     * <h2>Returns the request properties.</h2>
      *
-     * @param string $method <p>Request type.</p>
-     * @since 2.0.0
-     * @return static <p>Current object.</p>
+     * @since 2.2.1
+     * @return array <p>Request properties.</b>
      */
-    private function setRequestMethod($method)
+    private function get_args(array $body = [])
     {
-        switch (strtolower($method)) {
-            case 'get':
-                $this->setOption(CURLOPT_HTTPGET, true);
-                break;
-            case 'post':
-                $this->setOption(CURLOPT_POST, true);
-                break;
-            case 'put':
-                $this->setOption(CURLOPT_PUT, true);
-                break;
-            case 'head':
-                $this->setOption(CURLOPT_NOBODY, true);
-                break;
+        $args = [
+            'timeout'     => '5',
+            'httpversion' => '1.0',
+            'blocking'    => true,
+            'headers'     => $this->headers,
+        ];
 
-            default:
-                $this->setOption(CURLOPT_CUSTOMREQUEST, $method);
+        if (count($body) > 0) {
+            $body = json_encode($body);
+
+            if ($body !== false) {
+                $args['body'] = $body;
+            } else {
+                ecp_get_log()->alert(json_last_error_msg());
+            }
         }
 
-        return $this;
-    }
-
-    /**
-     * <h2>Sets headers into cURL options.</h2>
-     *
-     * @since 2.0.0
-     * @return static <p>Current object.</p>
-     * @noinspection PhpReturnValueOfMethodIsNeverUsedInspection
-     */
-    private function setHeaders()
-    {
-        if (count($this->headers) <= 0) {
-            return $this;
-        }
-
-        $options = [];
-
-        foreach ($this->headers as $key => $value) {
-            $options[] = sprintf('%s%s %s', $key, ':', $value);
-        }
-
-        $this->setOption(CURLOPT_HTTPHEADER, $options);
-
-        return $this;
-    }
-
-    /**
-     * <h2>Sets POST-data into cURL option.</h2>
-     *
-     * @param array $data <p>Post data as key->value pairs.</p>
-     * @since 2.0.0
-     * @return static <p>Current object.</p>
-     */
-    private function setPostData($data)
-    {
-        // If additional data is delivered, we will send it along with the API request
-        if (is_array($data) && !empty($data)) {
-            // Prepare to post the data string
-            $this->setOption(CURLOPT_POSTFIELDS, json_encode($data));
-        }
-
-        return $this;
-    }
-
-    /**
-     * <h2>Adds new cURL option.</h2>
-     *
-     * @param string $key <p>Option key.</p>
-     * @param mixed $value <p>Option value.</p>
-     * @since 2.0.0
-     * @return static <p>Current object.</p>
-     */
-    private function setOption($key, $value)
-    {
-        $this->options[$key] = $value;
-
-        return $this;
+        return $args;
     }
 
     /**
@@ -431,15 +293,15 @@ class Ecp_Gateway_API
      * @since 2.0.0
      * @return void
      */
-    private function log($request_type, $request_data, $response_data)
+    private function log($request_type, $request_data, $response_data, $response_code, $path)
     {
-        ecp_get_log()->debug(__('~ START => [cURL Execution process]', 'woo-ecommpay'));
-        ecp_get_log()->debug(__('Request URL:', 'woo-ecommpay'), curl_getinfo($this->curl, CURLINFO_EFFECTIVE_URL));
+        ecp_get_log()->debug(__('~ START => [API Execution process]', 'woo-ecommpay'));
+        ecp_get_log()->debug(__('Request URL:', 'woo-ecommpay'), $this->get_url($path));
         ecp_get_log()->debug(__('Request type:', 'woo-ecommpay'), $request_type);
         ecp_get_log()->debug(__('Form data:', 'woo-ecommpay'), json_encode($request_data));
-        ecp_get_log()->debug(__('Response code:', 'woo-ecommpay'), curl_getinfo($this->curl, CURLINFO_HTTP_CODE));
+        ecp_get_log()->debug(__('Response code:', 'woo-ecommpay'), $response_code);
         ecp_get_log()->debug(__('Response raw:', 'woo-ecommpay'), $response_data);
-        ecp_get_log()->debug(__('[cURL Execution process] => END ~', 'woo-ecommpay'));
+        ecp_get_log()->debug(__('[API Execution process] => END ~', 'woo-ecommpay'));
     }
 
     // endregion

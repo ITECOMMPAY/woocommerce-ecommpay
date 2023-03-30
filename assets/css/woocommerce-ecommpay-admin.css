@@ -333,3 +333,18 @@ li.ecp-meta-box-header .ecp-full-width {
 .woocommerce table.form-table fieldset:first-child {
 	position: relative;
 }
+
+.nav-tab img {
+	height: 1em;
+}
+
+.ecp-toggle-switcher {
+	text-decoration: underline;
+	color: #0000cc;
+	cursor: pointer;
+}
+
+.ecp-toggle {
+	margin: 1em;
+}
+

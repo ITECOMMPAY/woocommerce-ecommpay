@@ -31,7 +31,7 @@ class Ecp_Gateway_Module_Admin_UI extends Ecp_Gateway_Registry
         add_action('wp_ajax_ecommpay_flush_cache', [$this, 'ajax_flush_payment_cache']);
 
         // Add filters only if setting parameter "ecommpay_orders_transaction_info" is on
-        if (ecp_is_enabled(Ecp_Gateway_Settings_Page::OPTION_TRANSACTION_INFO)) {
+        if (ecp_is_enabled(Ecp_Gateway_Settings_General::OPTION_TRANSACTION_INFO)) {
             add_filter('manage_edit-shop_order_columns', [$this, 'filter_shop_order_posts_columns'], 10, 1);
             add_filter('manage_shop_order_posts_custom_column', [$this, 'apply_custom_order_data']);
             add_filter('manage_shop_subscription_posts_custom_column', [$this, 'apply_custom_order_data']);
@@ -155,7 +155,7 @@ class Ecp_Gateway_Module_Admin_UI extends Ecp_Gateway_Registry
 
         try {
             $payment = $order->get_payment();
-            $ps = $order->get_payment_system();
+            $ps = Ecp_Gateway_Payment_Methods::get_code($order->get_payment_system()) ?? $order->get_payment_system();
             /** @var ?Ecp_Gateway_Info_Sum $sum */
             $amount = $payment->get_info()->try_get_sum($sum)
                 ? $sum->get_formatted()
@@ -282,12 +282,12 @@ class Ecp_Gateway_Module_Admin_UI extends Ecp_Gateway_Registry
      */
     public function ajax_manual_request_actions()
     {
-        if (!isset($_REQUEST['ecommpay_action']) || !isset($_REQUEST['post'])) {
+        $param_action = wc_get_var($_REQUEST['ecommpay_action']);
+        $param_post = wc_get_var($_REQUEST['post']);
+
+        if ($param_action === null || $param_post === null) {
             return;
         }
-
-        $param_action = $_REQUEST['ecommpay_action'];
-        $param_post = $_REQUEST['post'];
 
         if (!woocommerce_ecommpay_can_user_manage_payments($param_action)) {
             printf('Your user is not capable of %s payments.', $param_action);
@@ -333,12 +333,7 @@ class Ecp_Gateway_Module_Admin_UI extends Ecp_Gateway_Registry
     {
         global $wpdb;
         if (woocommerce_ecommpay_can_user_flush_cache()) {
-            $query = <<<SQL
-DELETE
-FROM $wpdb->options
-WHERE option_name LIKE '_transient_wcqp_transaction_%'
-   OR option_name LIKE '_transient_timeout_wcqp_transaction_%'
-SQL;
+            $query = 'DELETE FROM ' . $wpdb->options . ' WHERE option_name LIKE \'_transient_wcqp_transaction_%\' OR option_name LIKE \'_transient_timeout_wcqp_transaction_%\';';
 
             $wpdb->query($query);
             echo json_encode([
@@ -403,10 +398,12 @@ SQL;
                 );
             }
 
+            $payment_amount = wc_get_var($_REQUEST['$payment_amount']);
+
             // Fetch amount if sent.
-            $amount = isset($_REQUEST['$payment_amount'])
+            $amount = $payment_amount !== null
                 ? ecp_price_custom_to_multiplied(
-                    $_REQUEST['$payment_amount'],
+                    $payment_amount,
                     $transaction_info->get_currency()
                 )
                 : $transaction_info->get_remaining_balance();

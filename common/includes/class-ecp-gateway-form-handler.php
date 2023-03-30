@@ -17,7 +17,10 @@ class Ecp_Gateway_Form_Handler extends WC_Form_Handler
      */
     public static function checkout_action()
     {
-        if (isset($_POST['woocommerce_checkout_place_order']) || isset($_POST['woocommerce_checkout_update_totals'])) {
+        if (
+            wc_get_post_data_by_key('woocommerce_checkout_place_order') !== ''
+            || wc_get_post_data_by_key('woocommerce_checkout_update_totals') !== ''
+        ) {
             wc_nocache_headers();
 
             if (WC()->cart->is_empty()) {
@@ -36,7 +39,7 @@ class Ecp_Gateway_Form_Handler extends WC_Form_Handler
      */
     public static function pay_action()
     {
-        if (!isset($_POST['woocommerce_pay'])) {
+        if (wc_get_post_data_by_key('woocommerce_pay') === '') {
             return;
         }
 
@@ -51,9 +54,8 @@ class Ecp_Gateway_Form_Handler extends WC_Form_Handler
         ob_start();
 
         // Pay for existing order
-        $order_key = $_GET['key'];
-//            $order_id = absint($wp->query_vars['order-pay']);
-        $order_id = (int) $_POST['order_id'];
+        $order_key = wc_get_var($_GET['key'], '');
+        $order_id = (int) wc_get_post_data_by_key('order_id', -1);
         $order = wc_get_order($order_id);
 
         if ($order_id !== $order->get_id() || !hash_equals($order->get_order_key(), $order_key) || !$order->needs_payment()) {
@@ -71,7 +73,7 @@ class Ecp_Gateway_Form_Handler extends WC_Form_Handler
         WC()->customer->save();
 
         // Terms
-        if (!empty($_POST['terms-field']) && empty($_POST['terms'])) {
+        if (wc_get_post_data_by_key('terms-field') !== '' && wc_get_post_data_by_key('terms' === '')) {
             wc_add_notice(__('Please read and accept the terms and conditions to proceed with your order.', 'woocommerce'), 'error');
             return;
         }
@@ -84,7 +86,8 @@ class Ecp_Gateway_Form_Handler extends WC_Form_Handler
             exit;
         }
 
-        $payment_method = isset($_POST['payment_method']) ? wc_clean($_POST['payment_method']) : false;
+        $payment_method_value =  wc_get_post_data_by_key('payment_method', null);
+        $payment_method = $payment_method_value ? wc_clean($payment_method_value) : false;
         $available_gateways = WC()->payment_gateways->get_available_payment_gateways();
 
         if (!$payment_method) {
@@ -127,20 +130,23 @@ class Ecp_Gateway_Form_Handler extends WC_Form_Handler
      */
     public static function cancel_order()
     {
+        $order_key = wc_get_var($_GET['order'], '');
+        $order_id = absint(wc_get_var($_GET['order_id'], 0));
+        $wpnonce = wc_get_var($_GET['_wpnonce'], '');
+        $cancel_order = (bool) wc_get_var($_GET['cancel_order'], false);
+
         if (
-            isset($_GET['cancel_order']) &&
-            isset($_GET['order']) &&
-            isset($_GET['order_id']) &&
-            (isset($_GET['_wpnonce']) && wp_verify_nonce($_GET['_wpnonce'], 'woocommerce-cancel_order'))
+            $cancel_order &&
+            $order_id > 0 &&
+            $order_key !== '' &&
+            ($wpnonce !== '' && wp_verify_nonce($wpnonce, 'woocommerce-cancel_order'))
         ) {
             wc_nocache_headers();
 
-            $order_key = $_GET['order'];
-            $order_id = absint($_GET['order_id']);
             $order = wc_get_order($order_id);
             $user_can_cancel = current_user_can('cancel_order', $order_id);
             $order_can_cancel = $order->has_status(apply_filters('woocommerce_valid_order_statuses_for_cancel', array('pending', 'failed')));
-            $redirect = $_GET['redirect'];
+            $redirect = wc_get_var($_GET['redirect'], '');
 
             switch (true) {
                 case $order->has_status('cancelled'):

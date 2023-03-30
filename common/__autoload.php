@@ -81,21 +81,39 @@ require_once __DIR__ . '/models/class-ecp-gateway-info-status.php';             
 require_once __DIR__ . '/models/class-ecp-gateway-info-sum.php';                    // Amount data
 
 // Import settings
-require_once __DIR__ . '/settings/abstract-ecp-gateway-settings-page.php';          // Abstract settings
+require_once __DIR__ . '/settings/abstract-ecp-gateway-settings.php';               // Abstract settings
 require_once __DIR__ . '/settings/class-ecp-gateway-settings-general.php';          // General settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-payment-page.php';     // Payment page settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-admin.php';            // Administration settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-products.php';         // Product settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-refund.php';           // Refund settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings.php';                  // Settings main page
+require_once __DIR__ . '/settings/class-ecp-gateway-settings-card.php';             // Card settings
+require_once __DIR__ . '/settings/class-ecp-gateway-settings-paypal.php';           // PayPal settings
+require_once __DIR__ . '/settings/class-ecp-gateway-settings-klarna.php';           // Klarna settings
+require_once __DIR__ . '/settings/class-ecp-gateway-settings-giropay.php';          // Giropay settings
+require_once __DIR__ . '/settings/class-ecp-gateway-settings-sofort.php';           // Sofort settings
+require_once __DIR__ . '/settings/class-ecp-gateway-settings-blik.php';             // Blik settings
+require_once __DIR__ . '/settings/class-ecp-gateway-settings-ideal.php';            // iDEAL settings
+require_once __DIR__ . '/settings/class-ecp-gateway-settings-banks.php';            // Banks settings
+require_once __DIR__ . '/settings/class-ecp-gateway-settings-applepay.php';         // Apple Pay settings
+require_once __DIR__ . '/settings/class-ecp-gateway-settings-more.php';             // More payments settings
+require_once __DIR__ . '/settings/class-ecp-gateway-settings-googlepay.php';        // GooglePay settings
+require_once __DIR__ . '/settings/class-ecp-form.php';                              // Settings main page
 
 if (ecp_subscription_is_active()) {
     require_once __DIR__ . '/api/class-ecp-gateway-api-subscription.php';               // Subscription API
     require_once __DIR__ . '/includes/class-ecp-gateway-subscription.php';              // Subscription wrapper
     require_once __DIR__ . '/modules/class-ecp-gateway-module-subscription.php';        // Subscription controller
     require_once __DIR__ . '/models/class-ecp-gateway-info-recurring.php';              // Recurring data
-    require_once __DIR__ . '/settings/class-ecp-gateway-settings-subscriptions.php';    // Subscription settings
 }
 
 // Import main class
-require_once __DIR__ . '/class-ecp-gateway.php';                                    // Gateway core
+require_once __DIR__ . '/class-ecp-core.php';                                            // Core
+require_once __DIR__ . '/gateways/abstract-ecp-gateway.php';                             // Abstract Gateway
+require_once __DIR__ . '/gateways/class-ecp-gateway-card.php';                           // Card Gateway
+require_once __DIR__ . '/gateways/class-ecp-gateway-paypal.php';                         // PayPal Gateway
+require_once __DIR__ . '/gateways/class-ecp-gateway-klarna.php';                         // Klarna Gateway
+require_once __DIR__ . '/gateways/class-ecp-gateway-giropay.php';                        // Giropay Gateway
+require_once __DIR__ . '/gateways/class-ecp-gateway-sofort.php';                         // Sofort Gateway
+require_once __DIR__ . '/gateways/class-ecp-gateway-blik.php';                           // Blik Gateway
+require_once __DIR__ . '/gateways/class-ecp-gateway-ideal.php';                          // iDEAL Gateway
+require_once __DIR__ . '/gateways/class-ecp-gateway-banks.php';                          // Banks Gateway
+require_once __DIR__ . '/gateways/class-ecp-gateway-googlepay.php';                      // Banks Gateway
+require_once __DIR__ . '/gateways/class-ecp-gateway-applepay.php';                       // Apple Pay Gateway
+require_once __DIR__ . '/gateways/class-ecp-gateway-more.php';                           // More PM Gateway

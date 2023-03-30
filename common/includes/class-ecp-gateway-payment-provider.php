@@ -73,8 +73,8 @@ class Ecp_Gateway_Payment_Provider extends Ecp_Gateway_Registry
         }
 
         try {
-            $expiration = (int) ecommpay()->get_option(
-                Ecp_Gateway_Settings_Page::OPTION_CACHING_EXPIRATION,
+            $expiration = (int) ecommpay()->get_general_option(
+                Ecp_Gateway_Settings_General::OPTION_CACHING_EXPIRATION,
                 7 * DAY_IN_SECONDS
             );
 
@@ -126,7 +126,7 @@ class Ecp_Gateway_Payment_Provider extends Ecp_Gateway_Registry
     {
         return apply_filters(
             'ecp_transaction_cache_enabled',
-            ecp_is_enabled(Ecp_Gateway_Settings_Page::OPTION_CACHING_ENABLED)
+            ecp_is_enabled(Ecp_Gateway_Settings_General::OPTION_CACHING_ENABLED)
         );
     }
 

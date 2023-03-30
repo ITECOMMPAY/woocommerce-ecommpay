@@ -103,9 +103,9 @@ final class Ecp_Gateway_Signer extends Ecp_Gateway_Registry
      */
     protected function init()
     {
-        $this->secret_key = ecp_is_enabled(Ecp_Gateway_Settings_Page::OPTION_TEST)
-            ? Ecp_Gateway::TEST_PROJECT_KEY
-            : ecommpay()->get_option(Ecp_Gateway_Settings_Page::OPTION_SECRET_KEY);
+        $this->secret_key = ecp_is_enabled(Ecp_Gateway_Settings_General::OPTION_TEST)
+            ? Ecp_Core::TEST_PROJECT_KEY
+            : ecommpay()->get_general_option(Ecp_Gateway_Settings_General::OPTION_SECRET_KEY);
     }
 
     /**
@@ -250,13 +250,13 @@ final class Ecp_Gateway_Signer extends Ecp_Gateway_Registry
      *
      * @param array &$data <p>Data for signature.</p>
      * @since 2.0.0
-     * @return void
+     * @return array
      * @throws Ecp_Gateway_Signature_Exception <p>
      * When the key or value of one of the parameters contains the character
      * {@see Ecp_Gateway_Signer::VALUE_SEPARATOR} symbol.
      * </p>
      */
-    public function sign(&$data)
+    public function sign($data)
     {
         $signature = $this->get_signature($data);
 
@@ -269,5 +269,7 @@ final class Ecp_Gateway_Signer extends Ecp_Gateway_Registry
                 ecp_get_log()->debug(__('Append signature to body data', 'woo-ecommpay'));
                 $data[self::NAME] = $signature;
         }
+
+        return $data;
     }
 }
