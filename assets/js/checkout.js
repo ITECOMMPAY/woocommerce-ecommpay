@@ -1,10 +1,57 @@
+var WidgetInstance;
 jQuery(document).ready(function () {
 
+    // update embedded iframe when updating cart (taxes, delivery, etc)
+    jQuery(document.body).on('updated_checkout', function(){
+        resetEmbeddedIframe();
+        loadEmbeddedIframe();
+    });
+    var isEmbeddedMode = false;
     var targetForm;
     var loader = jQuery('#ecommpay-loader');
+    var isPaymentRunning = false;
+    var paramsForEmbeddedPP = false;
+    var clarificationRunning = false;
+
+
+    function resetEmbeddedIframe() {
+        paramsForEmbeddedPP = false;
+        jQuery("#ecommpay-iframe-embedded").hide().empty();
+        jQuery('#ecommpay-loader-embedded').show();
+        getParamsForCreateEmbeddedPP();
+    }
+    function loadEmbeddedIframe() {
+        var embeddedIframeDivOld = null;
+        var intervalId = setInterval(function(){
+            var embeddedIframeDiv = jQuery("#ecommpay-iframe-embedded");
+            if(embeddedIframeDiv.length === 1 && embeddedIframeDiv.is(embeddedIframeDivOld) && paramsForEmbeddedPP) {
+                isEmbeddedMode = true;
+                loader = jQuery('#ecommpay-loader-embedded');
+                showIFrame(paramsForEmbeddedPP);
+                clearInterval(intervalId);
+                jQuery('input[name="payment_method"]').change(function(){
+                    if (isEcommpayCardPayment()) {
+                        jQuery(window).trigger('resize');
+                    }
+                });
+            }
+            embeddedIframeDivOld = embeddedIframeDiv;
+        }, 200);
+    }
+
+    if (window.location.href.includes('pay_for_order=true')) {
+        loadEmbeddedIframe();
+    }
+
+    getParamsForCreateEmbeddedPP();
+    window.addEventListener("message", onIFrameValidation, false);
 
     function isEcommpayPayment() {
         return jQuery("input[name='payment_method']:checked").val().slice(0, 8) === 'ecommpay';
+    }
+
+    function isEcommpayCardPayment() {
+        return jQuery("input[name='payment_method']:checked").val() === 'ecommpay-card';
     }
 
     function submit_error(error_message) {
@@ -14,6 +61,10 @@ jQuery(document).ready(function () {
         targetForm.find('.input-text, select, input:checkbox').trigger('validate').blur();
         scroll_to_notices();
         jQuery(document.body).trigger('checkout_error');
+    }
+
+    function clear_error() {
+        jQuery('.woocommerce-NoticeGroup-checkout, .woocommerce-error, .woocommerce-message').remove();
     }
 
     function scroll_to_notices() {
@@ -60,6 +111,10 @@ jQuery(document).ready(function () {
         switch (result.result) {
             case 'success':
                 ECP.order_id = result.order_id;
+                if (isEmbeddedMode && isEcommpayCardPayment()) {
+                    processOrderWithEmbeddedIframe(result)
+                    break;
+                }
                 switch (result.redirect.frame_mode) {
                     case 'iframe':
                         showIFrame(result.redirect);
@@ -85,9 +140,12 @@ jQuery(document).ready(function () {
         if (!isEcommpayPayment()) {
             return;
         }
-
-        e.preventDefault();
         targetForm = jQuery(e.target.form)
+        e.preventDefault();
+        if (isEmbeddedMode && isEcommpayCardPayment()) {
+            startEmbeddedIframeFlow();
+            return;
+        }
 
         var href = window.location.href.split('?');
         var data = targetForm.serializeArray();
@@ -131,7 +189,9 @@ jQuery(document).ready(function () {
 
         // EPayWidget.registerPostListener = frameLoaded;
         loader.show();
-        jQuery('#woocommerce_ecommpay_checkout_page').hide();
+        if(!isEmbeddedMode) {
+            jQuery('#woocommerce_ecommpay_checkout_page').hide();
+        }
         scroll_to_notices();
         show(url);
     }
@@ -142,11 +202,15 @@ jQuery(document).ready(function () {
         // if (event.origin !== ECP.origin_url)
         //     return;
 
-        var data = JSON.parse(event.data);
+        var data = parseMessage(event.data);
 
         if (data.message === 'epframe.loaded') {
             loader.hide();
-            jQuery('#ecommpay-iframe').show();
+            if(isEmbeddedMode) {
+                jQuery('#ecommpay-iframe-embedded').show();
+            } else {
+                jQuery('#ecommpay-iframe').show();
+            }
         }
 
         if (data.message === 'epframe.exit' || data.message === 'epframe.destroy') {
@@ -161,7 +225,7 @@ jQuery(document).ready(function () {
         // if (event.origin !== ECP.origin_url)
         //     return;
 
-        var d = JSON.parse(event.data);
+        var d = parseMessage(event.data);
 
         if (d.message === 'epframe.exit' || d.message === 'epframe.destroy') {
             event.preventDefault();
@@ -218,5 +282,210 @@ jQuery(document).ready(function () {
         });
 
         jQuery(form).appendTo('body').submit();
+    }
+
+    /* Embedded iFrame flow */
+    // Step1 . On page load - init payment form with minimum params
+    function getParamsForCreateEmbeddedPP() {
+        var href = window.location.href.split('?');
+        var data = [{
+            'name': 'action',
+            'value': 'get_data_for_payment_form'
+        }];
+        var query_string = href[1] === undefined ? '' : href[1];
+
+        if (ECP.order_id > 0) {
+            data.push({
+                'name': 'order_id',
+                'value': ECP.order_id
+            });
+        }
+
+        jQuery.ajax({
+            type: 'POST',
+            url: ECP.ajax_url + '?' + query_string,
+            data: data,
+            dataType: 'json',
+            success: function (result) {
+                paramsForEmbeddedPP = result;
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                submit_error('<div class="woocommerce-error">' + errorThrown + '</div>');
+            }
+        });
+    }
+
+    // Step 2. Button "Place order" - onclick, send message to iframe, call form validation
+    function startEmbeddedIframeFlow() {
+        isPaymentRunning = true;
+        window.addEventListener("message", function(e) {
+            var d = parseMessage(e.data);
+            if (d.message === 'epframe.exit' || d.message === 'epframe.destroy') {
+                e.preventDefault();
+                back();
+            }
+        }, false);
+        window.postMessage("{\"message\":\"epframe.embedded_mode.check_validation\",\"from_another_domain\":true}");
+    }
+
+    // Step3. Listen Answer from Iframe about form validation
+    function onIFrameValidation(event) {
+        var data = parseMessage(event.data);
+        if (data.message === "epframe.embedded_mode.check_validation_response" && isPaymentRunning) {
+            if (!!data.data  && Object.keys(data.data).length > 0) {
+                var errors = [];
+                var errorText = '';
+                jQuery.each(data.data, function( key, value ) {
+                    errors.push(value);
+                });
+                var errorsUnique = [... new Set(errors)]; //remove duplicated
+                jQuery.each(errorsUnique, function( key, value ) {
+                    errorText+= value + '<br>';
+                });
+                submit_error('<div class="woocommerce-error">' + errorText + '</div>');
+                isPaymentRunning = false;
+            } else {
+                clear_error();
+                if(clarificationRunning) {
+                    submitClarification();
+                } else {
+                    createWoocommerceOrder();
+                }
+            }
+        }
+    }
+
+    // Step 4. Create Wocommerce Order
+    function createWoocommerceOrder () {
+        var href = window.location.href.split('?');
+        var data = targetForm.serializeArray();
+        var query_string = href[1] === undefined ? '' : href[1];
+        data.push({
+            'name': 'action',
+            'value': 'ecommpay_process'
+        });
+        if (ECP.order_id > 0) {
+            data.push({
+                'name': 'order_id',
+                'value': ECP.order_id
+            });
+        }
+        data.push({
+            'name': 'payment_id',
+            'value': paramsForEmbeddedPP.payment_id
+        });
+        jQuery.ajax({
+            type: 'POST',
+            url: ECP.ajax_url + '?' + query_string,
+            data: data,
+            dataType: 'json',
+            success: success,
+            error: function (jqXHR, textStatus, errorThrown) {
+                submit_error('<div class="woocommerce-error">' + errorThrown + '</div>');
+            }
+        });
+    }
+
+    // Step 5 send payment request via post message
+    function processOrderWithEmbeddedIframe(result) {
+        var redirect = result.redirect;
+        redirect.frame_mode = 'iframe';
+        redirect.payment_id = paramsForEmbeddedPP.payment_id;
+        window.addEventListener("message", function (e){
+            e.preventDefault();
+            var d = parseMessage(e.data);
+            switch (d.message) {
+                case 'epframe.payment.success':
+                case 'epframe.card.verify.success':
+                    if (redirect.redirect_success_enabled) {
+                        hideOverlayLoader();
+                        window.location.replace(redirect.redirect_success_url);
+                    }
+                    break;
+                case 'epframe.payment.fail':
+                case 'epframe.card.verify.fail':
+                    if (redirect.redirect_fail_enabled) {
+                        hideOverlayLoader();
+                        window.location.replace(redirect.redirect_fail_url);
+                    }
+                    break;
+                case 'epframe.embedded_mode.redirect_3ds_parent_page':
+                    redirect3DS(d.data);
+                    break;
+                case 'epframe.payment.sent':
+                    showOverlayLoader();
+                    break;
+                case 'epframe.show_clarification_page':
+                    startClarification();
+                    break;
+            }
+        }, false);
+        var billingFields = [
+            "billing_address","billing_city", "billing_country", "billing_postal", "customer_first_name",
+            "customer_last_name", "customer_phone", "customer_zip", "customer_address", "customer_city",
+            "customer_country", "customer_email"
+        ];
+        var fieldsObject = {};
+        Object.keys(redirect).forEach(key => {
+            var name = key;
+            if (billingFields.includes(key)) {
+                name = "BillingInfo[" + name + "]";
+            }
+            fieldsObject[name] = redirect[key];
+            if (key === 'billing_country') {
+                fieldsObject["BillingInfo[country]"] = redirect[key];
+            }
+        });
+
+        var message = {"message":"epframe.embedded_mode.submit"};
+        message.fields = fieldsObject;
+        message.from_another_domain = true;
+        window.postMessage(JSON.stringify(message));
+    }
+
+    function redirect3DS(data) {
+        var form = document.createElement('form');
+        form.setAttribute('method', data.method);
+        form.setAttribute('action', data.url);
+        form.setAttribute('style', 'display:none;');
+        form.setAttribute('name', '3dsForm');
+        for (let k in data.body) {
+            const input = document.createElement('input');
+            input.name = k;
+            input.value = data.body[k];
+            form.appendChild(input);
+        }
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    function showOverlayLoader() {
+        jQuery('#ecommpay-overlay-loader').show();
+    }
+
+    function hideOverlayLoader() {
+        jQuery('#ecommpay-overlay-loader').hide();
+    }
+
+    function parseMessage(message) {
+        try {
+            var parsed = JSON.parse(message);
+            if (!!parsed.message && !!parsed.data) {
+                return parsed;
+            }
+        } catch (e) {}
+        return false;
+    }
+
+    function startClarification() {
+        clarificationRunning = true;
+        hideOverlayLoader();
+    }
+
+    function submitClarification() {
+        var message = {"message":"epframe.embedded_mode.submit"};
+        message.fields = {};
+        message.from_another_domain = true;
+        window.postMessage(JSON.stringify(message));
     }
 });

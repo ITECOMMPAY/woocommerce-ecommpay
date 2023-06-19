@@ -2,8 +2,8 @@
 Contributors: ECOMMPAY
 Tags: card payments, apple pay, google pay, open banking, subscriptions, paypal, sofort, ideal, klarna, giropay, payment gateway, woocommerce
 Requires at least: 4.0.0
-Tested up to: 6.1
-Stable tag: 3.1.0
+Tested up to: 6.2
+Stable tag: 3.2.0
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -61,6 +61,10 @@ General:
 3. If WooCommerce Subscriptions is used, the required minimum version is >= 2.0
 
 == Changelog ==
+= 3.2.0 =
+* Feature: Updated Payment Page Display: We have replaced the previous iFrame payment page display mode with the new "Embedded" mode. This change allows for a smoother payment flow by seamlessly integrating the payment page within the checkout page. Users no longer need to be redirected to a separate page to complete their payments.
+* Feature: Simplified Plugin Settings: We have streamlined the plugin's settings to make it more user-friendly and easier to configure.
+
 = 3.1.0 =
 * Feature: Main payment methods added as standalone gateways to improve merchant and end users experience
 

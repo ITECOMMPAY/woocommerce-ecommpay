@@ -30,6 +30,7 @@ abstract class Ecp_Gateway_Settings
     const MODE_REDIRECT = 'redirect';
     const MODE_POPUP = 'popup';
     const MODE_IFRAME = 'iframe';
+    const MODE_EMBEDDED = 'embedded';
 
     // Yes and No values
     const YES = 'yes';

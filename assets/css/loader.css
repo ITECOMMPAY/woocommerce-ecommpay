@@ -31,9 +31,34 @@
     display: none;
 }
 
+#ecommpay-loader-embedded {
+    max-width: 100%;
+    text-align: center;
+}
+
 #ecommpay-iframe {
     max-width: 100%;
     display: none;
+}
+
+#ecommpay-iframe-embedded {
+    max-width: 100%;
+    display: none;
+}
+
+.ecommpay-loader-overlay {
+    z-index: 1000;
+    border: medium none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: rgb(255, 255, 255) none repeat scroll 0 0;
+    opacity: 0.6;
+    cursor: wait;
+    position: fixed;
 }
 
 @keyframes lds-ecommpay {

@@ -83,6 +83,9 @@ class Ecp_Gateway_Card extends Ecp_Gateway
         if ($this->is_enabled(Ecp_Gateway_Settings::OPTION_SHOW_DESCRIPTION)) {
             $this->description = $this->get_option(Ecp_Gateway_Settings::OPTION_DESCRIPTION);
         }
+        if ($this->get_option(Ecp_Gateway_Settings::OPTION_MODE) == Ecp_Gateway_Settings::MODE_EMBEDDED) {
+            $this->description = '<div id="ecommpay-loader-embedded"><div class="lds-ecommpay"><div></div><div></div><div></div></div></div><div id="ecommpay-iframe-embedded"></div>';
+        }
 
         parent::__construct();
 
@@ -260,4 +263,15 @@ class Ecp_Gateway_Card extends Ecp_Gateway
 
         return apply_filters('woocommerce_gateway_icon', $icon_str , $this->id);
     }
+
+//    public function payment_fields() {
+//        if (!empty($this->get_description())) {
+//            echo '<p>' . wp_kses_post($this->get_description()) . '</p>';
+//        }
+//        $display_mode = $this->get_option(Ecp_Gateway_Settings::OPTION_MODE);
+//        if ($display_mode === Ecp_Gateway_Settings::MODE_EMBEDDED) {
+//            echo '<div id="ecommpay-loader-embedded"><div class="lds-ecommpay"><div></div><div></div><div></div></div></div>';
+//            echo '<div id="ecommpay-iframe-embedded"></div>';
+//        }
+//    }
 }

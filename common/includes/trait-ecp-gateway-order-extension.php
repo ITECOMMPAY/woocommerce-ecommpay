@@ -20,7 +20,13 @@ trait ECP_Gateway_Order_Extension
      */
     public function set_payment_id($value)
     {
-        update_post_meta($this->get_id(), '_payment_id', $value);
+        $current_payment_id = $this->get_payment_id();
+        if ($value != $current_payment_id){
+            if (is_a($this, "Ecp_Gateway_Order")){
+                $this->add_order_note(__('New payment id is ' . $value, 'woocommerce'));
+            }
+            update_post_meta($this->get_id(), '_payment_id', $value);
+        }
     }
 
     /**

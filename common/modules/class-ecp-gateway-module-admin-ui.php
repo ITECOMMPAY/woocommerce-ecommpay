@@ -155,7 +155,8 @@ class Ecp_Gateway_Module_Admin_UI extends Ecp_Gateway_Registry
 
         try {
             $payment = $order->get_payment();
-            $ps = Ecp_Gateway_Payment_Methods::get_code($order->get_payment_system()) ?? $order->get_payment_system();
+            $codeByMapping = Ecp_Gateway_Payment_Methods::get_code($order->get_payment_system());
+            $ps = empty($codeByMapping) ? $order->get_payment_system() : $codeByMapping;
             /** @var ?Ecp_Gateway_Info_Sum $sum */
             $amount = $payment->get_info()->try_get_sum($sum)
                 ? $sum->get_formatted()

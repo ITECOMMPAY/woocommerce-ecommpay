@@ -123,9 +123,10 @@ class Ecp_Gateway_Settings_Card extends Ecp_Gateway_Settings
                 self::FIELD_OPTIONS => [
                     self::MODE_REDIRECT => _x('Redirect', 'Display mode', 'woo-ecommpay'),
                     self::MODE_POPUP => _x('Popup', 'Display mode', 'woo-ecommpay'),
-                    self::MODE_IFRAME => _x('iFrame', 'Display mode', 'woo-ecommpay'),
+//                    self::MODE_IFRAME => _x('iFrame', 'Display mode', 'woo-ecommpay'),
+                    self::MODE_EMBEDDED => _x('Embedded', 'Display mode', 'woo-ecommpay'),
                 ],
-                self::FIELD_DEFAULT => self::MODE_POPUP,
+                self::FIELD_DEFAULT => self::MODE_EMBEDDED,
             ],
             [
                 self::FIELD_ID => self::OPTION_POPUP_MISS_CLICK,

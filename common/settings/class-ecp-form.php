@@ -65,16 +65,16 @@ class Ecp_Form extends Ecp_Gateway_Registry
             $tabs = [
                 new Ecp_Gateway_Settings_General(),
                 new Ecp_Gateway_Settings_Card(),
-                new Ecp_Gateway_Settings_PayPal(),
-                new Ecp_Gateway_Settings_Klarna(),
-                new Ecp_Gateway_Settings_Giropay(),
-                new Ecp_Gateway_Settings_Sofort(),
-                new Ecp_Gateway_Settings_Blik(),
-                new Ecp_Gateway_Settings_Ideal(),
-                new Ecp_Gateway_Settings_Banks(),
-                new Ecp_Gateway_Settings_Googlepay(),
                 new Ecp_Gateway_Settings_Applepay(),
-                new Ecp_Gateway_Settings_More(),
+                new Ecp_Gateway_Settings_Googlepay(),
+                new Ecp_Gateway_Settings_Banks(),
+                new Ecp_Gateway_Settings_PayPal(),
+                new Ecp_Gateway_Settings_Sofort(),
+                new Ecp_Gateway_Settings_Ideal(),
+                new Ecp_Gateway_Settings_Klarna(),
+                new Ecp_Gateway_Settings_Blik(),
+                new Ecp_Gateway_Settings_Giropay(),
+//                new Ecp_Gateway_Settings_More(),
             ];
 
             $this->tabs = apply_filters('ecp_get_settings_pages', $tabs);

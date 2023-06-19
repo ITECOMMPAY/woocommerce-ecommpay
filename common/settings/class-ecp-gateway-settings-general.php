@@ -25,16 +25,7 @@ class Ecp_Gateway_Settings_General extends Ecp_Gateway_Settings
     const OPTION_CUSTOM_VARIABLES = 'custom_variables';
 
     // ECOMMPAY Custom variables data
-    const CUSTOM_CUSTOMER_EMAIL = 'customer_email';
-    const CUSTOM_CUSTOMER_PHONE = 'customer_phone';
-    const CUSTOM_CUSTOMER_NAME = 'customer_full_name';
-    const CUSTOM_CUSTOMER_ADDRESS = 'customer_address';
-    const CUSTOM_ACCOUNT_INFO = 'customer_account_info';
-    const CUSTOM_MPI_RESULT = 'mpi_result';
-    const CUSTOM_SHIPPING_DATA = 'shipping_data';
-    const CUSTOM_BILLING_DATA = 'billing_data';
     const CUSTOM_RECEIPT_DATA = 'receipt_data';
-    const CUSTOM_CASH_VOUCHER = 'cash_voucher_data';
 
     // ECOMMPAY available language modes
     const LANG_BY_CUSTOMER = 'by_customer_browser';
@@ -99,14 +90,19 @@ class Ecp_Gateway_Settings_General extends Ecp_Gateway_Settings
 
             [
                 self::FIELD_ID => self::OPTION_TEST,
-                self::FIELD_TITLE => _x('Test mode', 'Settings integration', 'woo-ecommpay'),
+                self::FIELD_TITLE => _x('Demo mode', 'Settings integration', 'woo-ecommpay'),
                 self::FIELD_TYPE => self::TYPE_CHECKBOX,
                 self::FIELD_DESC => _x(
-                    'Enable test mode integration',
+                    'Enable Demo mode',
                     'Settings integration',
                     'woo-ecommpay'
                 ),
                 self::FIELD_DEFAULT => self::NO,
+                self::FIELD_TIP => _x(
+                    'By enabling this mode, you can proceed with the payment process without utilizing your own project ID. Once you obtain your production and stage project IDs, kindly uncheck this box.',
+                    'Settings integration',
+                    'woo-ecommpay'
+                ),
             ],
             [
                 self::FIELD_ID => self::OPTION_PROJECT_ID,
@@ -242,23 +238,6 @@ class Ecp_Gateway_Settings_General extends Ecp_Gateway_Settings
                 self::FIELD_DEFAULT => self::YES,
             ],
             [
-                self::FIELD_ID => self::OPTION_CUSTOM_VARIABLES,
-                self::FIELD_TITLE => _x('Additional Information', 'Settings shop admin setup', 'woo-ecommpay'),
-                self::FIELD_TYPE => self::TYPE_MULTI_SELECT,
-                self::FIELD_CLASS => 'wc-enhanced-select',
-                self::FIELD_STYLE => 'width: 450px;',
-                self::FIELD_DEFAULT => '',
-                self::FIELD_TIP => _x(
-                    'Selected options will store the specific data on your payment inside your ECOMMPAY Dashboard.',
-                    'Settings shop admin setup',
-                    'woo-ecommpay'
-                ),
-                self::FIELD_OPTIONS => $this->custom_variable_options(),
-                self::FIELD_CUSTOM => [
-                    'data-placeholder' => _x('Select order data', 'Settings shop admin setup', 'woo-ecommpay')
-                ]
-            ],
-            [
                 self::FIELD_ID => self::ADMIN_OPTIONS,
                 self::FIELD_TYPE => self::TYPE_END,
             ],
@@ -332,39 +311,6 @@ class Ecp_Gateway_Settings_General extends Ecp_Gateway_Settings
             self::LANG_RUSSIAN => _x('Russian', 'Language', 'woo-ecommpay'),
         ];
     }
-
-
-    /**
-     * Provides a list of custom variable options used in the settings
-     *
-     * @return array
-     */
-    private function custom_variable_options()
-    {
-        $options = [
-            self::CUSTOM_CUSTOMER_EMAIL => _x('Customer: Email', 'Custom variables', 'woo-ecommpay'),
-            self::CUSTOM_CUSTOMER_PHONE => _x('Customer: Phone number', 'Custom variables', 'woo-ecommpay'),
-            self::CUSTOM_CUSTOMER_NAME => _x('Customer: Full name', 'Custom variables', 'woo-ecommpay'),
-            self::CUSTOM_CUSTOMER_ADDRESS => _x('Customer: Address', 'Custom variables', 'woo-ecommpay'),
-            //ToDo: Check and release in next version.
-            // self::CUSTOM_ACCOUNT_INFO => _x('3D Secure: Account info', 'Custom variables', 'woo-ecommpay'),
-            // self::CUSTOM_MPI_RESULT => _x('3D Secure: Last MPI Result', 'Custom variables', 'woo-ecommpay'),
-            // self::CUSTOM_SHIPPING_DATA => _x('3D Secure: Shipping Details', 'Custom variables', 'woo-ecommpay'),
-            self::CUSTOM_BILLING_DATA => _x('Billing Details', 'Custom variables', 'woo-ecommpay'),
-            self::CUSTOM_RECEIPT_DATA => _x('Receipt Details', 'Custom variables', 'woo-ecommpay'),
-        ];
-
-        //ToDo: Need to be developed in the next versions.
-        // Maybe only for Russia and additional settings.
-        // if ((new WC_Countries())->get_base_country() === 'RU') {
-        //     $options[self::CUSTOM_CASH_VOUCHER] = _x('Cash Voucher Details', 'Custom variables', 'woo-ecommpay');
-        // }
-
-        asort($options);
-
-        return $options;
-    }
-
 
     /**
      * @inheritDoc

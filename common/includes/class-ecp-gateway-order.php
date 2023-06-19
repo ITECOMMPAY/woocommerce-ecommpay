@@ -48,17 +48,9 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
      */
     public static function get_order_id_from_callback($info, $prefix)
     {
-        // Check for the post ID reference on the response object.
-        // This should be available on all new orders.
-        if (!empty($info->get_payment()) && !empty($info->get_payment()->get_id())) {
-            return self::remove_order_prefix($info->get_payment()->get_id(), $prefix);
-        } else if (isset($_GET['payment_id'])) {
-            return self::remove_order_prefix(trim($_GET['payment_id']), $prefix);
-        }
-
-        // Fallback
-        preg_match('/\d{4,}/', $info->get_payment()->get_id(), $order_number);
-        return (int)end($order_number);
+        global $wpdb;
+        $payment_id = $info->get_payment()->get_id() ?? $_GET['payment_id'];
+        return $wpdb->get_var( $wpdb->prepare( "SELECT DISTINCT ID FROM $wpdb->posts as posts LEFT JOIN $wpdb->postmeta as meta ON posts.ID = meta.post_id WHERE meta.meta_value = %s AND meta.meta_key = %s", $payment_id, '_payment_id' ) );
     }
 
     /**
@@ -75,7 +67,14 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
             $id = '';
         }
 
-        $id .= $this->get_id() . '_' . ($this->get_failed_ecommpay_payment_count() + 1);
+        $_payment_id = get_post_meta($this->get_id(), '_payment_id', true);
+        if ($_payment_id!='' & ($_REQUEST['action']!='ecommpay_process')){
+            $id .= $_payment_id;
+        } else if (!empty($_REQUEST['payment_id'])) {
+            $id .= $_REQUEST['payment_id'];
+        } else {
+            $id .= $this->get_id() . '_' . ($this->get_failed_ecommpay_payment_count() + 1);
+        }
 
         $this->set_payment_id($id);
         $this->set_ecp_status(Ecp_Gateway_Payment_Status::INITIAL);

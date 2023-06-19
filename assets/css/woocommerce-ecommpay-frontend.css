@@ -6,3 +6,5 @@
 .ecp-visible {
     display: block !important;
 }
+
+.payment_method_ecommpay-card {padding-left: 0 !important;}
