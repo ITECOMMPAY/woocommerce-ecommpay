@@ -74,7 +74,8 @@ class Ecp_Form extends Ecp_Gateway_Registry
                 new Ecp_Gateway_Settings_Klarna(),
                 new Ecp_Gateway_Settings_Blik(),
                 new Ecp_Gateway_Settings_Giropay(),
-//                new Ecp_Gateway_Settings_More(),
+                new Ecp_Gateway_Settings_Brazil_Online_Banks(),
+                new Ecp_Gateway_Settings_More(),
             ];
 
             $this->tabs = apply_filters('ecp_get_settings_pages', $tabs);

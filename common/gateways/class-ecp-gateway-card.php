@@ -84,7 +84,7 @@ class Ecp_Gateway_Card extends Ecp_Gateway
             $this->description = $this->get_option(Ecp_Gateway_Settings::OPTION_DESCRIPTION);
         }
         if ($this->get_option(Ecp_Gateway_Settings::OPTION_MODE) == Ecp_Gateway_Settings::MODE_EMBEDDED) {
-            $this->description = '<div id="ecommpay-loader-embedded"><div class="lds-ecommpay"><div></div><div></div><div></div></div></div><div id="ecommpay-iframe-embedded"></div>';
+            $this->description = '<div id="ecommpay-loader-embedded"></div><div id="ecommpay-iframe-embedded"></div>';
         }
 
         parent::__construct();

@@ -72,6 +72,8 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
         add_action('wp_ajax_nopriv_get_data_for_payment_form', [$this, 'ajax_process']); // Non-authorised user: Guest access
         add_action('wp_ajax_get_payment_status', [$this, 'ajax_process']); // Authorised user
         add_action('wp_ajax_nopriv_get_payment_status', [$this, 'ajax_process']); // Non-authorised user: Guest access
+        add_action('wp_ajax_check_cart_amount', [$this, 'ajax_process']); // Authorised user
+        add_action('wp_ajax_nopriv_check_cart_amount', [$this, 'ajax_process']); // Non-authorised user: Guest access
 
         // register hooks for display payment form on checkout page
         add_action('woocommerce_before_checkout_form', [$this, 'include_frontend_scripts']);
@@ -140,7 +142,9 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
                 break;
             case 'get_payment_status':
                 $this->get_payment_status();
-
+                break;
+            case 'check_cart_amount':
+                $this->check_cart_amount(wc_get_var($_REQUEST['amount'], '0'));
                 return;
         }
     }
@@ -511,4 +515,10 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
         wp_send_json($data);
     }
 
+    private function check_cart_amount($query_amount)
+    {
+        $query_amount = (int)$query_amount;
+        $cart_amount = ecp_price_multiply(WC()->cart->total, get_woocommerce_currency());
+        wp_send_json(['amount_is_equal' => ($query_amount === $cart_amount)]);
+    }
 }

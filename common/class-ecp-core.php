@@ -42,7 +42,7 @@ final class Ecp_Core extends WC_Settings_API
      * @var string
      * @since 2.0.0
      */
-    const WC_ECP_VERSION = '3.2.1';
+    const WC_ECP_VERSION = '3.3.0';
     // endregion
 
     /**
@@ -76,7 +76,8 @@ final class Ecp_Core extends WC_Settings_API
         Ecp_Gateway_Klarna::class,
         Ecp_Gateway_Blik::class,
         Ecp_Gateway_Giropay::class,
-//        Ecp_Gateway_More::class,
+        Ecp_Gateway_Brazil_Online_Banks::class,
+        Ecp_Gateway_More::class,
     ];
 
     // region Static methods
@@ -139,9 +140,10 @@ final class Ecp_Core extends WC_Settings_API
             Ecp_Gateway_Settings_Ideal::ID => Ecp_Gateway_Ideal::get_instance(),
             Ecp_Gateway_Settings_Banks::ID => Ecp_Gateway_Banks::get_instance(),
             Ecp_Gateway_Settings_Giropay::ID => Ecp_Gateway_Giropay::get_instance(),
+            Ecp_Gateway_Settings_Brazil_Online_Banks::ID => Ecp_Gateway_Brazil_Online_Banks::get_instance(),
             Ecp_Gateway_Settings_Googlepay::ID => Ecp_Gateway_Googlepay::get_instance(),
             Ecp_Gateway_Settings_Applepay::ID => Ecp_Gateway_Applepay::get_instance(),
-//            Ecp_Gateway_Settings_More::ID => Ecp_Gateway_More::get_instance(),
+            Ecp_Gateway_Settings_More::ID => Ecp_Gateway_More::get_instance(),
         ];
 
         if (ecp_subscription_is_active()) {

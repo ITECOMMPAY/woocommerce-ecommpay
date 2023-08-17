@@ -59,21 +59,19 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
     public function create_payment_id()
     {
         $test_mode = ecp_is_enabled(Ecp_Gateway_Settings_General::OPTION_TEST);
-
-        if ($test_mode) {
-            $id = Ecp_Core::CMS_PREFIX . '&' . wc_get_var($_SERVER['SERVER_NAME'], 'undefined') . '&';
-            $this->set_is_test();
-        } else {
-            $id = '';
-        }
-
+        
         $_payment_id = get_post_meta($this->get_id(), '_payment_id', true);
         if ($_payment_id!='' & ($_REQUEST['action']!='ecommpay_process')){
-            $id .= $_payment_id;
+            $id = $_payment_id;
         } else if (!empty($_REQUEST['payment_id'])) {
-            $id .= $_REQUEST['payment_id'];
+            $id = $_REQUEST['payment_id'];
         } else {
-            $id .= $this->get_id() . '_' . ($this->get_failed_ecommpay_payment_count() + 1);
+            $id = $this->get_id() . '_' . ($this->get_failed_ecommpay_payment_count() + 1);
+        }
+        $prefix = Ecp_Core::CMS_PREFIX . '&' . wc_get_var($_SERVER['SERVER_NAME'], 'undefined') . '&';
+        if ($test_mode & (substr($id, 0, strlen($prefix)) !== $prefix)) {
+            $id = $prefix . $id;
+            $this->set_is_test();
         }
 
         $this->set_payment_id($id);

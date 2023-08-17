@@ -2,8 +2,8 @@
 Contributors: ECOMMPAY
 Tags: card payments, apple pay, google pay, open banking, subscriptions, paypal, sofort, ideal, klarna, giropay, payment gateway, woocommerce
 Requires at least: 4.0.0
-Tested up to: 6.2
-Stable tag: 3.2.1
+Tested up to: 6.3
+Stable tag: 3.3.0
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,7 +12,7 @@ Accept bank transfers, cards, local payment methods and cryptocurrencies. Boost 
 == Description ==
 ECOMMPAY’s WooCommerce plugin is a complete growth-focused payment solution for merchants looking to dominate local markets or expand globally, maximise profits and reduce operational costs.
 
-Accept card, bank, eWallet and crypto payments. Offer flexible subscriptions and recurring payment plans. Make payouts in any Mlocal currency and receive weekly or even more frequent settlements in EUR or GBP. Enjoy industry-leading support, low and transparent fees and advanced checkout form customisation options, including full localisation to any language.
+Accept card, bank, eWallet and crypto payments. Offer flexible subscriptions and recurring payment plans. Make payouts in any local currency and receive weekly or even more frequent settlements in EUR or GBP. Enjoy industry-leading support, low and transparent fees and advanced checkout form customisation options, including full localisation to any language.
 
 The plugin is available to every business in the EEA and the UK. The integration is quick and intuitive and usually takes 1-2 business days. Moving from another payment service provider? No worries. Our migration process is simple yet powerful enough to keep your subscriptions and recurring plans intact.
 
@@ -61,6 +61,10 @@ General:
 3. If WooCommerce Subscriptions is used, the required minimum version is >= 2.0
 
 == Changelog ==
+= 3.3.0 =
+* Feature: Integration of Brazil Online Banks as a payment method
+* Fix: Implemented a preventive mechanism to restrict cart amount changes after opening the payment page in embedded mode
+
 = 3.2.0 =
 * Feature: Updated Payment Page Display: We have replaced the previous iFrame payment page display mode with the new "Embedded" mode. This change allows for a smoother payment flow by seamlessly integrating the payment page within the checkout page. Users no longer need to be redirected to a separate page to complete their payments.
 * Feature: Simplified Plugin Settings: We have streamlined the plugin's settings to make it more user-friendly and easier to configure.

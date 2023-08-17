@@ -72,7 +72,7 @@ class Ecp_Gateway_Module_Refund extends Ecp_Gateway_Registry
                 );
             }
 
-            $refund->create_payment_id($order);
+            $refund->create_payment_id();
             ecp_get_log()->info(
                 __('Refund preparation complete. Refund payment ID:', 'woo-ecommerce'),
                 $refund->get_payment_id()

@@ -6,6 +6,7 @@ jQuery(document).ready(function () {
         resetEmbeddedIframe();
         loadEmbeddedIframe();
     });
+    jQuery(document.body).append('<div id="ecommpay-overlay-loader" class="blockUI blockOverlay ecommpay-loader-overlay" style="display: none;"></div>');
     var isEmbeddedMode = false;
     var targetForm;
     var loader = jQuery('#ecommpay-loader');
@@ -199,10 +200,6 @@ jQuery(document).ready(function () {
 
     // Called sometime after postMessage from iFrame is called
     function processorIFrame(event) {
-        // Do we trust the sender of this message?
-        // if (event.origin !== ECP.origin_url)
-        //     return;
-
         var data = parseMessage(event.data);
 
         if (data.message === 'epframe.loaded') {
@@ -222,10 +219,6 @@ jQuery(document).ready(function () {
 
     // Called sometime after postMessage from iFrame is called
     function processorPopup(event) {
-        // Do we trust the sender of this message?
-        // if (event.origin !== ECP.origin_url)
-        //     return;
-
         var d = parseMessage(event.data);
 
         if (d.message === 'epframe.exit' || d.message === 'epframe.destroy') {
@@ -327,7 +320,25 @@ jQuery(document).ready(function () {
                 back();
             }
         }, false);
-        window.postMessage("{\"message\":\"epframe.embedded_mode.check_validation\",\"from_another_domain\":true}");
+
+        const data = [
+            {'name': 'action', 'value': 'check_cart_amount'},
+            {'name': 'amount', 'value': paramsForEmbeddedPP.payment_amount}
+        ]
+        jQuery.ajax({
+            type: 'POST',
+            url: ECP.ajax_url,
+            data: data,
+            dataType: 'json',
+            success: function (result) {
+                if (result.amount_is_equal) {
+                    window.postMessage("{\"message\":\"epframe.embedded_mode.check_validation\",\"from_another_domain\":true}");
+                } else {
+                    window.location.reload();
+                }
+            },
+            error: (jqXHR, textStatus, errorThrown) => {alert(textStatus);}
+        });
     }
 
     // Step3. Listen Answer from Iframe about form validation

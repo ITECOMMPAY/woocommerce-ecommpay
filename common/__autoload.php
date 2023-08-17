@@ -94,6 +94,7 @@ require_once __DIR__ . '/settings/class-ecp-gateway-settings-banks.php';        
 require_once __DIR__ . '/settings/class-ecp-gateway-settings-applepay.php';         // Apple Pay settings
 require_once __DIR__ . '/settings/class-ecp-gateway-settings-more.php';             // More payments settings
 require_once __DIR__ . '/settings/class-ecp-gateway-settings-googlepay.php';        // GooglePay settings
+require_once __DIR__ . '/settings/class-ecp-gateway-settings-brazil.php';           // Brazil online banks settings
 require_once __DIR__ . '/settings/class-ecp-form.php';                              // Settings main page
 
 if (ecp_subscription_is_active()) {
@@ -117,3 +118,4 @@ require_once __DIR__ . '/gateways/class-ecp-gateway-banks.php';                 
 require_once __DIR__ . '/gateways/class-ecp-gateway-googlepay.php';                      // Banks Gateway
 require_once __DIR__ . '/gateways/class-ecp-gateway-applepay.php';                       // Apple Pay Gateway
 require_once __DIR__ . '/gateways/class-ecp-gateway-more.php';                           // More PM Gateway
+require_once __DIR__ . '/gateways/class-ecp-gateway-brazil.php';                       // Brazil online banks Gateway

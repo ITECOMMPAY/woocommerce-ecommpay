@@ -169,7 +169,7 @@ class Ecp_Gateway_Install
     {
         $version = $this->get_version();
 
-        return version_compare($version, Ecp_Core::WC_ECP_VERSION, '<');
+        return version_compare($version, '3.0.0', '<');
     }
 
     // region Private methods.
