@@ -34,6 +34,7 @@ class Ecp_Gateway_Install
      */
     private static $updates = [
         '3.0.0' => __DIR__ . '/migrations/upgrade_settings_to_version_3.php',
+        '3.3.1' => __DIR__ . '/migrations/upgrade_orders_to_version_3.3.1.php'
     ];
 
     // endregion
@@ -92,10 +93,10 @@ class Ecp_Gateway_Install
 
         $this->enable_maintenance_mode();
 
-        foreach (self::$updates as $version => $updater) {
-            if ($this->is_update_required()) {
+        foreach (self::$updates as $new_version => $updater) {
+            if (version_compare($this->get_version(), $new_version, '<')) {
                 include($updater);
-                $this->update_version($version);
+//                $this->update_version($new_version);
             }
         }
 
@@ -168,8 +169,13 @@ class Ecp_Gateway_Install
     public function is_update_required()
     {
         $version = $this->get_version();
-
-        return version_compare($version, '3.0.0', '<');
+        foreach (self::$updates as $new_version => $updater) {
+            ecp_get_log()->emergency($version . ' ' . $new_version . ' ' . (string)(version_compare($version, $new_version, '<')));
+            if (version_compare($version, $new_version, '<')) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // region Private methods.

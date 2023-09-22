@@ -38,7 +38,7 @@ jQuery(document).ready(function () {
                 });
             }
             embeddedIframeDivOld = embeddedIframeDiv;
-        }, 200);
+            }, 200);
     }
 
     if (window.location.href.includes('pay_for_order=true')) {
@@ -46,7 +46,6 @@ jQuery(document).ready(function () {
     }
 
     getParamsForCreateEmbeddedPP();
-    window.addEventListener("message", onIFrameValidation, false);
 
     function isEcommpayPayment() {
         return jQuery("input[name='payment_method']:checked").val().slice(0, 8) === 'ecommpay';
@@ -124,16 +123,16 @@ jQuery(document).ready(function () {
                     case 'popup':
                         showPopup(result.redirect);
                         break;
-                    default:
-                        redirect(result.redirect);
-                        break;
+                        default:
+                            redirect(result.redirect);
+                            break;
                 }
                 break;
             case 'failure':
                 show_error(result, 'Result failure');
                 break;
-            default:
-                show_error(result, 'Invalid response');
+                default:
+                    show_error(result, 'Invalid response');
         }
     }
 
@@ -178,6 +177,13 @@ jQuery(document).ready(function () {
     });
 
     function show(url) {
+        if (isEmbeddedMode) {
+            url.onEnterKeyPressed = onEnterKeyPressed;
+            url.onPaymentSent = onPaymentSent;
+            url.onShowClarificationPage = onShowClarificationPage;
+            url.onEmbeddedModeRedirect3dsParentPage = onEmbeddedModeRedirect3dsParentPage;
+            url.onEmbeddedModeCheckValidationResponse = onEmbeddedModeCheckValidationResponse;
+        }
         EPayWidget.run(url, 'post');
     }
 
@@ -342,28 +348,28 @@ jQuery(document).ready(function () {
     }
 
     // Step3. Listen Answer from Iframe about form validation
-    function onIFrameValidation(event) {
-        var data = parseMessage(event.data);
-        if (data.message === "epframe.embedded_mode.check_validation_response" && isPaymentRunning) {
-            if (!!data.data && Object.keys(data.data).length > 0) {
-                var errors = [];
-                var errorText = '';
-                jQuery.each(data.data, function (key, value) {
-                    errors.push(value);
-                });
-                var errorsUnique = [...new Set(errors)]; //remove duplicated
-                jQuery.each(errorsUnique, function (key, value) {
-                    errorText += value + '<br>';
-                });
-                submit_error('<div class="woocommerce-error">' + errorText + '</div>');
-                isPaymentRunning = false;
+    function onEmbeddedModeCheckValidationResponse(data) {
+        if (!isPaymentRunning) {
+            return;
+        }
+        if (!!data && Object.keys(data).length > 0) {
+            var errors = [];
+            var errorText = '';
+            jQuery.each(data, function (key, value) {
+                errors.push(value);
+            });
+            var errorsUnique = [...new Set(errors)]; //remove duplicated
+            jQuery.each(errorsUnique, function (key, value) {
+                errorText += value + '<br>';
+            });
+            submit_error('<div class="woocommerce-error">' + errorText + '</div>');
+            isPaymentRunning = false;
+        } else {
+            clear_error();
+            if (clarificationRunning) {
+                submitClarification();
             } else {
-                clear_error();
-                if (clarificationRunning) {
-                    submitClarification();
-                } else {
-                    createWoocommerceOrder();
-                }
+                createWoocommerceOrder();
             }
         }
     }
@@ -422,15 +428,6 @@ jQuery(document).ready(function () {
                         window.location.replace(redirect.redirect_fail_url);
                     }
                     break;
-                case 'epframe.embedded_mode.redirect_3ds_parent_page':
-                    redirect3DS(d.data);
-                    break;
-                case 'epframe.payment.sent':
-                    showOverlayLoader();
-                    break;
-                case 'epframe.show_clarification_page':
-                    startClarification();
-                    break;
             }
         }, false);
         var billingFields = [
@@ -456,7 +453,11 @@ jQuery(document).ready(function () {
         window.postMessage(JSON.stringify(message));
     }
 
-    function redirect3DS(data) {
+    function onEnterKeyPressed() {
+        jQuery('#place_order').click();
+    }
+
+    function onEmbeddedModeRedirect3dsParentPage(data) {
         var form = document.createElement('form');
         form.setAttribute('method', data.method);
         form.setAttribute('action', data.url);
@@ -472,7 +473,7 @@ jQuery(document).ready(function () {
         form.submit();
     }
 
-    function showOverlayLoader() {
+    function onPaymentSent() {
         jQuery('#ecommpay-overlay-loader').show();
     }
 
@@ -491,7 +492,7 @@ jQuery(document).ready(function () {
         return false;
     }
 
-    function startClarification() {
+    function onShowClarificationPage() {
         clarificationRunning = true;
         hideOverlayLoader();
     }

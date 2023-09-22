@@ -483,7 +483,7 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
             } else if ((jQuery('.blockUI').length < 1) && (document.getElementsByTagName('body').length > 0)) {
                 document.getElementsByTagName('body')[0].innerHTML += '<div class="blockUI blockOverlay ecommpay-loader-overlay"></div>';
             }
-            setTimeout(get_status, 200);
+            setTimeout(get_status, 400);
         }
 
         get_status();
