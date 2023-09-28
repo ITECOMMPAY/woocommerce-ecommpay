@@ -174,9 +174,11 @@ class Ecp_Gateway_API_Subscription extends Ecp_Gateway_API
         );
         $data = apply_filters('ecp_api_append_recurring_data', $data, $subscription_id);
         $data = apply_filters('ecp_append_payment_section', $data, $order);
+
+        $ip_address = get_post_meta($order->get_id(), '_customer_ip_address', true);
         $data['customer'] = [
             'id' => (string) $order->get_customer_id(),
-            'ip_address' => wc_get_var($_SERVER['REMOTE_ADDR']),
+            "ip_address" => $ip_address ? : wc_get_var($_SERVER['REMOTE_ADDR'])
         ];
 
         return apply_filters('ecp_append_interface_type', $data);

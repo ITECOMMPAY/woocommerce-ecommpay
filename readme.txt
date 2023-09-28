@@ -3,7 +3,7 @@ Contributors: ECOMMPAY
 Tags: card payments, apple pay, google pay, open banking, subscriptions, paypal, sofort, ideal, klarna, giropay, payment gateway, woocommerce
 Requires at least: 4.0.0
 Tested up to: 6.3
-Stable tag: 3.3.2
+Stable tag: 3.3.3
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -61,6 +61,10 @@ General:
 3. If WooCommerce Subscriptions is used, the required minimum version is >= 2.0
 
 == Changelog ==
+= 3.3.3 =
+* Dev: Changed customer ip address for recurring payments
+* Dev: Optimized checkout script for embedded mode
+
 = 3.3.2 =
 * Feature: Pressing the enter key starts the place ordering process in the embedded mode
 
