@@ -4,7 +4,6 @@ jQuery(document).ready(function () {
     // update embedded iframe when updating cart (taxes, delivery, etc)
     jQuery(document.body).on('updated_checkout', function () {
         resetEmbeddedIframe();
-        loadEmbeddedIframe();
     });
     jQuery(document.body).append('<div id="ecommpay-overlay-loader" class="blockUI blockOverlay ecommpay-loader-overlay" style="display: none;"></div>');
     var isEmbeddedMode = false;
@@ -26,7 +25,8 @@ jQuery(document).ready(function () {
 
     function loadEmbeddedIframe() {
         var embeddedIframeDiv = jQuery("#ecommpay-iframe-embedded");
-        if (embeddedIframeDiv.length===1 && embeddedIframeDiv.children().length===0 && paramsForEmbeddedPP) {
+        if (embeddedIframeDiv.length===1 && paramsForEmbeddedPP) {
+            jQuery("#ecommpay-iframe-embedded").empty();
             isEmbeddedMode = true;
             loader = jQuery('#ecommpay-loader-embedded');
             showIFrame(paramsForEmbeddedPP);
@@ -269,6 +269,7 @@ jQuery(document).ready(function () {
         }
 
         const requestTime = Date.now();
+        lastEmbeddedRequestTime = requestTime;
 
         jQuery.ajax({
             type: 'POST',
@@ -276,9 +277,8 @@ jQuery(document).ready(function () {
             data: data,
             dataType: 'json',
             success: function (result) {
-                if (requestTime > lastEmbeddedRequestTime) {
+                if (requestTime === lastEmbeddedRequestTime) {
                     paramsForEmbeddedPP = result;
-                    lastEmbeddedRequestTime = requestTime;
                     loadEmbeddedIframe();
                 }
             },
