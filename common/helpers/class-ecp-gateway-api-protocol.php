@@ -190,7 +190,10 @@ class Ecp_Gateway_API_Protocol extends Ecp_Gateway_Registry
      */
     public function append_customer_id($values, $order)
     {
-        $this->append_argument('customer_id', $order->get_customer_id(),$values);
+        $customer_id = $order->get_customer_id();
+        if ($customer_id) {
+            $this->append_argument('customer_id', $customer_id, $values);
+        }
 
         return $values;
     }

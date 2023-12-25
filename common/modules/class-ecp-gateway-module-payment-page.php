@@ -343,13 +343,16 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
             'merchant_callback_url' => ecp_callback_url(),
             'interface_type' => '{"id":18}',
             'payment_methods_options' => "{\"additional_data\":{\"embedded_mode\":true}}",
-            'customer_id' => WC()->cart->get_customer()->id,
         ];
         $data = $this->append_recurring_total_form_cart($data);
         if (isset($order)){
             $data = apply_filters('ecp_append_receipt_data', $data, $order, true);
+            $data = apply_filters('ecp_append_customer_id', $data, $order);
         } else {
             $data = $this->append_receipt_data_from_cart($data);
+            if (WC()->cart->get_customer()->id) {
+                $data['customer_id'] = WC()->cart->get_customer()->id;
+            }
         }
 
         $data = apply_filters('ecp_append_language_code', $data);
