@@ -13,7 +13,7 @@ class Ecp_Gateway_Error_Exception extends Ecp_Gateway_Exception
 {
     private $severity;
 
-     public function __construct(
+    public function __construct(
         $message = '',
         $code = 0,
         $severity = E_ERROR,
@@ -21,11 +21,11 @@ class Ecp_Gateway_Error_Exception extends Ecp_Gateway_Exception
         $line = null,
         Exception $previous = null
     ) {
-         parent::__construct($message, $code, $previous);
-         $this->severity = $severity;
-         $this->file = $filename;
-         $this->line = $line;
-     }
+        parent::__construct($message, $code, $previous);
+        $this->severity = $severity;
+        $this->file = $filename;
+        $this->line = $line;
+    }
 
     final public function getSeverity()
     {

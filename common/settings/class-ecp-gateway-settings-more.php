@@ -90,7 +90,7 @@ class Ecp_Gateway_Settings_More extends Ecp_Gateway_Settings
             ],
             [
                 self::FIELD_ID => self::OPTION_DESCRIPTION,
-                self::FIELD_TITLE => _x('Description', 'Settings more payments','woo-ecommpay'),
+                self::FIELD_TITLE => _x('Description', 'Settings more payments', 'woo-ecommpay'),
                 self::FIELD_TYPE => self::TYPE_AREA,
                 self::FIELD_TIP => _x(
                     'This controls the description which the user sees during checkout.',
@@ -119,7 +119,7 @@ class Ecp_Gateway_Settings_More extends Ecp_Gateway_Settings
                 self::FIELD_TITLE => _x('Payment method code', 'Settings more payments', 'woo-ecommpay'),
                 self::FIELD_TYPE => self::TYPE_TEXT,
                 self::FIELD_DESC => sprintf(
-                '%s <a href="%s">%s</a>.',
+                    '%s <a href="%s">%s</a>.',
                     _x(
                         'The ID of the payment method that is opened to customers without an option to select another one. The list of codes is provided in ',
                         'Settings more payments',

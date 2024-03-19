@@ -196,9 +196,11 @@ class Ecp_Gateway_API
             ? json_decode($data, true)
             // Error response
             : [
-                Ecp_Gateway_Info_Status::FIELD_ERRORS => [[
-                    Ecp_Gateway_Info_Error::FIELD_MESSAGE => 'Communication error',
-                ]]
+                Ecp_Gateway_Info_Status::FIELD_ERRORS => [
+                    [
+                        Ecp_Gateway_Info_Error::FIELD_MESSAGE => 'Communication error',
+                    ]
+                ]
             ];
 
         if ($result !== null && !is_bool($result)) {
@@ -265,10 +267,10 @@ class Ecp_Gateway_API
     private function get_args(array $body = [])
     {
         $args = [
-            'timeout'     => '5',
+            'timeout' => '5',
             'httpversion' => '1.0',
-            'blocking'    => true,
-            'headers'     => $this->headers,
+            'blocking' => true,
+            'headers' => $this->headers,
         ];
 
         if (count($body) > 0) {

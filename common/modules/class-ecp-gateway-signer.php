@@ -125,8 +125,8 @@ final class Ecp_Gateway_Signer extends Ecp_Gateway_Registry
     private function get_params_to_sign(
         array $params,
         array $ignore_param_keys = [],
-              $current_level = 1,
-              $prefix = self::BLANK
+        $current_level = 1,
+        $prefix = self::BLANK
     ) {
         $params_to_sign = [];
 

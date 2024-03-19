@@ -30,7 +30,7 @@ class Ecp_Gateway_Refund extends \Automattic\WooCommerce\Admin\Overrides\OrderRe
      */
     public function create_payment_id()
     {
-        $order = $this->get_order();
+        $order = ecp_get_order($this->get_parent_id());
         $test_mode = ecp_is_enabled(Ecp_Gateway_Settings_General::OPTION_TEST);
 
         if ($test_mode) {
@@ -42,11 +42,11 @@ class Ecp_Gateway_Refund extends \Automattic\WooCommerce\Admin\Overrides\OrderRe
 
         $id .= $this->get_id() . '_' . ($order->get_refund_attempts_count() + 1);
         $order->increase_refund_attempts_count();
+        $order->save();
 
         $this->set_payment_id($id);
         $this->set_ecp_status('initial');
         $this->save();
-        $order->save();
 
         ecp_get_log()->debug(__('New refund payment identifier created:', 'woo-ecommpay'), $id);
         return $id;
@@ -107,7 +107,7 @@ class Ecp_Gateway_Refund extends \Automattic\WooCommerce\Admin\Overrides\OrderRe
      */
     public function get_ecp_status($context = 'view')
     {
-        return get_post_meta($this->get_id(), '_refund_status', true);
+        return $this->get_ecp_meta('_refund_status', true, $context);
     }
 
     /**
@@ -139,7 +139,7 @@ class Ecp_Gateway_Refund extends \Automattic\WooCommerce\Admin\Overrides\OrderRe
             $old = 'initial';
         }
 
-        update_post_meta($this->get_id(), '_refund_status', $status);
+        $this->set_ecp_meta('_refund_status', $status);
         $transition = ['from' => $old, 'to' => $status];
 
         if ($note !== '') {
@@ -174,7 +174,7 @@ class Ecp_Gateway_Refund extends \Automattic\WooCommerce\Admin\Overrides\OrderRe
         ecp_get_log()->debug(__('Comment:', 'woo-ecommpay'), $comment);
         $reason = $this->get_reason();
 
-        if (empty($reason)) {
+        if (empty ($reason)) {
             $reason = $comment;
         } else {
             $reason .= ' | ' . $comment;
@@ -183,14 +183,12 @@ class Ecp_Gateway_Refund extends \Automattic\WooCommerce\Admin\Overrides\OrderRe
         try {
             $this->set_reason($reason);
 
-            $refund_request_comment_id = get_post_meta($this->get_id(), '_refund_request_comment_id', true);
+            $refund_request_comment_id = $this->get_ecp_meta('_refund_request_comment_id');
 
             if ($refund_request_comment_id) {
                 $this->get_order()->append_order_comment($comment, $refund_request_comment_id);
             }
 
-            $external_id = get_post_meta($this->get_parent_id(), Ecp_Gateway_Order::META_GATEWAY_OPERATION_ID);
-            update_post_meta($external_id, Ecp_Gateway_Order::META_GATEWAY_OPERATION_ID, '+' . $this->get_id());
             ecp_get_log()->info(__('Comment added to refund', 'woo-ecommpay'));
         } catch (Exception $e) {
             ecp_get_log()->error(__('', 'woo-ecommpay'));

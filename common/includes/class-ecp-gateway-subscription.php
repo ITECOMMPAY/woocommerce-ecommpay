@@ -18,7 +18,7 @@ class Ecp_Gateway_Subscription extends WC_Subscription
 
     public function set_recurring_id($recurring_id)
     {
-        update_post_meta($this->get_id(), '_ecommpay_recurring_id', $recurring_id);
+        $this->set_ecp_meta('_ecommpay_recurring_id', $recurring_id);
     }
 
     /**
@@ -28,7 +28,7 @@ class Ecp_Gateway_Subscription extends WC_Subscription
      */
     public function get_recurring_id()
     {
-        return (int) get_post_meta($this->get_id(), '_ecommpay_recurring_id', true);
+        return (int) $this->get_ecp_meta('_ecommpay_recurring_id');
     }
 
     /**

@@ -95,7 +95,7 @@ class Ecp_Gateway_Install
 
         foreach (self::$updates as $new_version => $updater) {
             if (version_compare($this->get_version(), $new_version, '<')) {
-                include($updater);
+                include ($updater);
             }
         }
 

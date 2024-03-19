@@ -145,7 +145,7 @@ class Ecp_Gateway_Info_Recurring extends Ecp_Gateway_Json
     protected function unpackRules()
     {
         return [
-            self::FIELD_VALID_THRU => function($value) {
+            self::FIELD_VALID_THRU => function ($value) {
                 return DateTime::createFromFormat(DateTime::RFC3339, $value);
             }
         ];

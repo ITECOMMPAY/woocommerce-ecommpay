@@ -57,7 +57,7 @@ abstract class Ecp_Gateway_Registry
      */
     final public static function get_by_class($className)
     {
-        if (!isset(self::$instances[$className])) {
+        if (!isset (self::$instances[$className])) {
             self::$instances[$className] = new $className();
         }
 

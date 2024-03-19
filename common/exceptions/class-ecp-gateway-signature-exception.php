@@ -31,8 +31,8 @@ class Ecp_Gateway_Signature_Exception extends Ecp_Gateway_Exception
         $message,
         $parameter,
         $code = Ecp_Gateway_Error::UNKNOWN_ERROR,
-        Exception $previous = null)
-    {
+        Exception $previous = null
+    ) {
         $this->parameter = $parameter;
         parent::__construct($message, $code, $previous);
     }

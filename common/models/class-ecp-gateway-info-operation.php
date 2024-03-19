@@ -242,10 +242,10 @@ class Ecp_Gateway_Info_Operation extends Ecp_Gateway_Json
     protected function unpackRules()
     {
         return [
-            self::FIELD_DATE => function($value) {
+            self::FIELD_DATE => function ($value) {
                 return DateTime::createFromFormat(DateTime::RFC3339, $value);
             },
-            self::FIELD_CREATED_DATE => function($value) {
+            self::FIELD_CREATED_DATE => function ($value) {
                 return DateTime::createFromFormat(DateTime::RFC3339, $value);
             }
         ];

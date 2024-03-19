@@ -102,7 +102,7 @@ class Ecp_Gateway_Callbacks
         do_action('ecp_accepted_callback_after_processing_' . $callback->get_operation()->get_type(), $order, $callback);
 
         http_response_code(200);
-        die($message);
+        die ($message);
     }
 
     /**
@@ -180,7 +180,7 @@ class Ecp_Gateway_Callbacks
     {
         ecp_get_log()->debug(__('Order ID:', 'woo-ecommpay'), $order->get_id());
         ecp_get_log()->debug(__('Payment ID:', 'woo-ecommpay'), $order->get_payment_id());
-        ecp_get_log()->debug(__('Transaction ID:', 'woo-ecommpay'), $order->get_transaction_id());
+        ecp_get_log()->debug(__('Transaction ID:', 'woo-ecommpay'), $order->get_ecp_transaction_id());
     }
 
     /**
@@ -248,9 +248,20 @@ class Ecp_Gateway_Callbacks
      */
     private function complete_order(Ecp_Gateway_Info_Callback $callback, Ecp_Gateway_Order $order)
     {
-        ecp_get_log()->debug(__('Run success process.', 'woo-ecommpay'), $order->get_id());
-        $order->payment_complete($callback->get_operation()->get_request_id());
-        ecp_get_log()->debug(__('Success process completed.', 'woo-ecommpay'), $order->get_id());
+        $is_amount_equal = (string) $callback['payment']['sum']['amount'] === (string) str_replace('.', '', $order->get_total());
+        $is_currency_equal = $callback['payment']['sum']['currency'] === $order->get_currency();
+
+        if ($is_amount_equal && $is_currency_equal) {
+            ecp_get_log()->debug(__('Run success process.', 'woo-ecommpay'), $order->get_id());
+            $order->payment_complete($callback->get_operation()->get_request_id());
+            ecp_get_log()->debug(__('Success process completed.', 'woo-ecommpay'), $order->get_id());
+        } else {
+            $order->add_order_note(
+                __('The payment amount does not match the order amount. The order is on hold.', 'woo-ecommpay')
+            );
+            $this->hold_order($callback, $order);
+            return;
+        }
     }
 
     /**
@@ -281,14 +292,14 @@ class Ecp_Gateway_Callbacks
                 ecp_get_log()->error($message);
 
                 http_response_code(400);
-                die($message);
+                die ($message);
             }
 
             ecp_get_log()->debug(__('Signature verified.', 'woo-ecommpay'));
         } catch (Ecp_Gateway_Signature_Exception $e) {
             $e->write_to_logs();
             http_response_code(500);
-            die($e->getMessage());
+            die ($e->getMessage());
         }
     }
 
@@ -321,7 +332,7 @@ class Ecp_Gateway_Callbacks
             ecp_get_log()->add(__('Response data: %s', 'woo-ecommpay'), json_encode($info));
 
             http_response_code(404);
-            die($message);
+            die ($message);
         }
 
         return $order;

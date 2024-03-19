@@ -4,7 +4,7 @@
  * Plugin URI:        https://ecommpay.com
  * GitHub Plugin URI:
  * Description:       Easy payment from WooCommerce by different methods in single Payment Page.
- * Version:           3.3.5
+ * Version:           3.4.0
  * License:           GPL2
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       woo-ecommpay
@@ -17,10 +17,33 @@
  */
 defined('ABSPATH') || exit;
 
-
 if (!defined('ECP_PLUGIN_PATH')) {
-    define( 'ECP_PLUGIN_PATH', __FILE__ );
+    define('ECP_PLUGIN_PATH', __FILE__);
 }
+
+require_once __DIR__ . '/helpers/ecp-woo-blocks-support.php';
+
+/**
+ * Add plugin action links.
+ *
+ * Add a link to the settings page on the plugins.php page.
+ *
+ * @param  array  $links List of existing plugin action links.
+ * @return array         List of modified plugin action links.
+ */
+function gateway_ecommpay_action_links($links)
+{
+    $settings = [
+        sprintf(
+            '<a href="%s">%s</a>',
+            admin_url('admin.php?page=wc-settings&tab=checkout&section=ecommpay-card&sub=general'),
+            __('Settings', 'woo-ecommpay')
+        ),
+    ];
+
+    return array_merge($settings, $links);
+}
+add_action('plugin_action_links_' . plugin_basename(__FILE__), 'gateway_ecommpay_action_links');
 
 add_action(
     'plugins_loaded',
@@ -62,27 +85,27 @@ add_action(
         // Include wp-admin styles
         add_action(
             'admin_enqueue_scripts',
-            function() {
-                wp_enqueue_style(
-                    'woocommerce-ecommpay-admin-style',
-                    ecp_css_url('woocommerce-ecommpay-admin.css'),
-                    [],
-                    ecp_version()
-                );
-            }
+            function () {
+            wp_enqueue_style(
+                'woocommerce-ecommpay-admin-style',
+                ecp_css_url('woocommerce-ecommpay-admin.css'),
+                [],
+                ecp_version()
+            );
+        }
         );
 
         // Include wp-frontend styles
         add_action(
             'wp_enqueue_scripts',
-            function() {
-                wp_enqueue_style(
-                    'woocommerce-ecommpay-frontend-style',
-                    ecp_css_url('woocommerce-ecommpay-frontend.css'),
-                    [],
-                    ecp_version()
-                );
-            }
+            function () {
+            wp_enqueue_style(
+                'woocommerce-ecommpay-frontend-style',
+                ecp_css_url('woocommerce-ecommpay-frontend.css'),
+                [],
+                ecp_version()
+            );
+        }
         );
     },
     0

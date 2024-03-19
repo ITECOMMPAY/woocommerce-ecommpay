@@ -40,12 +40,12 @@ class Ecp_Gateway_Payment_Status_Transition extends Ecp_Gateway_Json
     protected function unpackRules()
     {
         return [
-            self::FIELD_OLD => function($value) {
+            self::FIELD_OLD => function ($value) {
                 return ecp_is_payment_status($value)
                     ? $value
                     : Ecp_Gateway_Payment_Status::INITIAL;
             },
-            self::FIELD_NEW => function($value) {
+            self::FIELD_NEW => function ($value) {
                 return ecp_is_payment_status($value)
                     ? $value
                     : Ecp_Gateway_Payment_Status::INITIAL;

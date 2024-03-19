@@ -55,8 +55,7 @@ class Ecp_Gateway_API_Exception extends Ecp_Gateway_Exception
         $curl_request_data = null,
         $curl_response_data = null,
         Exception $previous = null
-    )
-    {
+    ) {
         // make sure everything is assigned properly
         parent::__construct($message, $code, $previous);
 
@@ -144,10 +143,10 @@ class Ecp_Gateway_API_Exception extends Ecp_Gateway_Exception
             $result[] = sprintf(
                 '[%d] %s%s%s(%s) - %s::%d',
                 $i,
-                isset($item['class']) ? $item['class'] : '',
-                isset($item['type']) ? $item['type'] : '',
+                isset ($item['class']) ? $item['class'] : '',
+                isset ($item['type']) ? $item['type'] : '',
                 $item['function'],
-                implode(', ', $this->prepare_trace_args(isset($item['args']) ? $item['args'] : [])),
+                implode(', ', $this->prepare_trace_args(isset ($item['args']) ? $item['args'] : [])),
                 $item['file'],
                 $item['line']
             );

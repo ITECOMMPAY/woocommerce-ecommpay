@@ -37,8 +37,8 @@ class Ecp_Gateway_API_Protocol extends Ecp_Gateway_Registry
         add_filter('ecp_append_customer_city', [$this, 'append_customer_city'], 10, 2);
         add_filter('ecp_append_customer_address', [$this, 'append_customer_address'], 10, 2);
         add_filter('ecp_append_customer_zip', [$this, 'append_customer_zip'], 10, 2);
-	    add_filter('ecp_append_avs_post_code', [$this, 'append_avs_post_code'], 10, 2);
-	    add_filter('ecp_append_avs_street_address', [$this, 'append_avs_street_address'], 10, 2);
+        add_filter('ecp_append_avs_post_code', [$this, 'append_avs_post_code'], 10, 2);
+        add_filter('ecp_append_avs_street_address', [$this, 'append_avs_street_address'], 10, 2);
         add_filter('ecp_append_billing_data', [$this, 'append_billing_data'], 10, 2);
         add_filter('ecp_append_billing_address', [$this, 'append_billing_address'], 10, 2);
         add_filter('ecp_append_billing_city', [$this, 'append_billing_city'], 10, 2);
@@ -123,8 +123,8 @@ class Ecp_Gateway_API_Protocol extends Ecp_Gateway_Registry
             $this->append_argument(
                 'description',
                 (string) $order->get_reason() !== ''
-                    ? $order->get_reason()
-                    : sprintf('User %s create refund', wp_get_current_user()->ID),
+                ? $order->get_reason()
+                : sprintf('User %s create refund', wp_get_current_user()->ID),
                 $payment
             );
             // Refund ECOMMPAY identifier in WooCommerce.
@@ -223,7 +223,7 @@ class Ecp_Gateway_API_Protocol extends Ecp_Gateway_Registry
      */
     public function append_customer_email($values, $order)
     {
-        $this->append_argument('customer_email', $order->get_billing_email(),$values);
+        $this->append_argument('customer_email', $order->get_billing_email(), $values);
 
         return $values;
     }
@@ -324,36 +324,39 @@ class Ecp_Gateway_API_Protocol extends Ecp_Gateway_Registry
     }
 
 
-	/**
-	 * <h2>Appends ECOMMPAY Payment Page Avs zip.</h2>
-	 *
-	 * @param Ecp_Gateway_Order $order <p>Order object.</p>
-	 * @param array $values <p>Base array for appending data</p>
-	 * @return array Result of appending data as new array.
-	 */
-	public function append_avs_post_code($values, $order)
-	{
-		$this->append_argument( 'avs_post_code',
-			wc_format_postcode($order->get_billing_postcode(), $order->get_billing_country()), $values );
+    /**
+     * <h2>Appends ECOMMPAY Payment Page Avs zip.</h2>
+     *
+     * @param Ecp_Gateway_Order $order <p>Order object.</p>
+     * @param array $values <p>Base array for appending data</p>
+     * @return array Result of appending data as new array.
+     */
+    public function append_avs_post_code($values, $order)
+    {
+        $this->append_argument(
+            'avs_post_code',
+            wc_format_postcode($order->get_billing_postcode(), $order->get_billing_country()),
+            $values
+        );
 
-		return $values;
-	}
+        return $values;
+    }
 
-	/**
-	 * <h2>Appends ECOMMPAY Payment Page Avs address.</h2>
-	 *
-	 * @param Ecp_Gateway_Order $order <p>Order object.</p>
-	 * @param array $values <p>Base array for appending data</p>
-	 * @return array Result of appending data as new array.
-	 */
-	public function append_avs_street_address($values, $order)
-	{
-		$this->append_argument( 'avs_street_address',$order->get_billing_address(), $values );
+    /**
+     * <h2>Appends ECOMMPAY Payment Page Avs address.</h2>
+     *
+     * @param Ecp_Gateway_Order $order <p>Order object.</p>
+     * @param array $values <p>Base array for appending data</p>
+     * @return array Result of appending data as new array.
+     */
+    public function append_avs_street_address($values, $order)
+    {
+        $this->append_argument('avs_street_address', $order->get_billing_address(), $values);
 
-		return $values;
-	}
+        return $values;
+    }
 
-	/**
+    /**
      * @param array $values
      * @since 3.0.0
      * @return array
@@ -575,7 +578,7 @@ class Ecp_Gateway_API_Protocol extends Ecp_Gateway_Registry
                 $this->append_argument('target_element', 'ecommpay-iframe', $values);
             } elseif ($value === Ecp_Gateway_Settings::MODE_EMBEDDED) {
                 $this->append_argument('target_element', 'ecommpay-iframe-embedded', $values);
-            } elseif ($value=== Ecp_Gateway_Settings::MODE_POPUP && $missclick) {
+            } elseif ($value === Ecp_Gateway_Settings::MODE_POPUP && $missclick) {
                 $this->append_argument('close_on_missclick', 1, $values);
             }
         }
@@ -638,19 +641,19 @@ class Ecp_Gateway_API_Protocol extends Ecp_Gateway_Registry
     {
         $values = apply_filters('ecp_append_customer_id', $values, $order);
 
-	    $values = apply_filters('ecp_append_customer_phone', $values, $order);
-	    $values = apply_filters('ecp_append_customer_email', $values, $order);
-	    $values = apply_filters('ecp_append_customer_first_name', $values, $order);
-	    $values = apply_filters('ecp_append_customer_last_name', $values, $order);
-	    $values = apply_filters('ecp_append_customer_data', $values, $order);
-	    $values = apply_filters('ecp_append_billing_data', $values, $order);
-	    //ToDo: Temporary disabled
-	    // $values = apply_filters('ecp_append_shipping_data', $values, $order);
-	    $values = apply_filters('ecp_append_receipt_data', $values, $order, true);
-	    $values = apply_filters('ecp_append_avs_post_code', $values, $order);
-	    $values = apply_filters('ecp_append_avs_street_address', $values, $order);
-	    //ToDo: Temporary disabled
-	    // $values = apply_filters('ecp_append_cash_voucher_data', $values, $order);
+        $values = apply_filters('ecp_append_customer_phone', $values, $order);
+        $values = apply_filters('ecp_append_customer_email', $values, $order);
+        $values = apply_filters('ecp_append_customer_first_name', $values, $order);
+        $values = apply_filters('ecp_append_customer_last_name', $values, $order);
+        $values = apply_filters('ecp_append_customer_data', $values, $order);
+        $values = apply_filters('ecp_append_billing_data', $values, $order);
+        //ToDo: Temporary disabled
+        // $values = apply_filters('ecp_append_shipping_data', $values, $order);
+        $values = apply_filters('ecp_append_receipt_data', $values, $order, true);
+        $values = apply_filters('ecp_append_avs_post_code', $values, $order);
+        $values = apply_filters('ecp_append_avs_street_address', $values, $order);
+        //ToDo: Temporary disabled
+        // $values = apply_filters('ecp_append_cash_voucher_data', $values, $order);
 
         return $values;
     }

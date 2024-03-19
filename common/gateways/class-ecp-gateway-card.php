@@ -32,11 +32,11 @@ class Ecp_Gateway_Card extends Ecp_Gateway
         'subscription_suspension',
         'subscription_amount_changes',
         'subscription_date_changes',
-//        'subscription_payment_method_change_admin',
+        //        'subscription_payment_method_change_admin',
 //        'subscription_payment_method_change_customer',
         'refunds',
         'multiple_subscriptions',
-//        'pre-orders',
+        //        'pre-orders',
     ];
 
     /**
@@ -73,7 +73,8 @@ class Ecp_Gateway_Card extends Ecp_Gateway
     public function __construct()
     {
         $this->id = Ecp_Gateway_Settings_Card::ID;
-        $this->method_title = __('ECOMMPAY', 'woo-ecommpay');
+        $this->method_title = __('ECOMMPAY Cards', 'woo-ecommpay');
+        $this->method_description = __('Accept card payments via ECOMMPAY.', 'woo-ecommpay');
         $this->has_fields = false;
         $this->title = $this->get_option(Ecp_Gateway_Settings::OPTION_TITLE);
         $this->order_button_text = $this->get_option(Ecp_Gateway_Settings::OPTION_CHECKOUT_BUTTON_TEXT);
@@ -90,27 +91,6 @@ class Ecp_Gateway_Card extends Ecp_Gateway
         parent::__construct();
 
         $this->init_subscription();
-    }
-
-    /**
-     * @inheritDoc
-     * @override
-     * @return string
-     * @since 3.0.0
-     */
-    public function get_method_description()
-    {
-        $query_string = http_build_query([
-            'page' => 'wc-settings',
-            'tab' => 'checkout',
-            'section' => $this->id,
-            'sub' => 'general'
-        ]);
-
-        $url = esc_url_raw(admin_url( 'admin.php?' . $query_string, dirname( __FILE__ )));
-        $this->method_description = __('Accept card payments via ECOMMPAY.', 'woo-ecommpay')
-            . sprintf(' <a href="%s">%s</a>.', $url, __('General settings'));
-        return parent::get_method_description();
     }
 
     /**
@@ -156,18 +136,20 @@ class Ecp_Gateway_Card extends Ecp_Gateway
      */
     public function process_payment($order_id)
     {
-        ecp_get_log()->debug('Order ID: ' . $order_id);
-
         $order = ecp_get_order($order_id);
+        $payment_id = $_POST['payment_id'];
+
+        if (!empty ($payment_id)) {
+            $order->set_payment_id($payment_id);
+        }
+
         $options = ecp_payment_page()->get_request_url($order, $this);
-        ecp_get_log()->debug('Card payments Gateway - Request Args for order ' . $order->get_order_number() . ':', $options);
-
-
-//        $order->update_status('pending', _x('Awaiting payment', 'Status payment', 'woo-ecommpay'));
+        $payment_page_url = ecp_payment_page()->get_url() . '/payment?' . http_build_query($options);
 
         return [
             'result' => 'success',
-            'redirect' => $options,
+            'optionsJson' => json_encode($options),
+            'redirect' => $payment_page_url,
             'order_id' => $order_id,
         ];
     }
@@ -257,14 +239,15 @@ class Ecp_Gateway_Card extends Ecp_Gateway
      * @return string DOM element img as a string
      * @since 3.0.0
      */
-    public function get_icon() {
+    public function get_icon()
+    {
         $icon_str = '<img src="' . ecp_img_url(self::PAYMENT_METHOD . '.svg')
             . '" style="max-width: 50px" alt="' . self::PAYMENT_METHOD . '" />';
 
-        return apply_filters('woocommerce_gateway_icon', $icon_str , $this->id);
+        return apply_filters('woocommerce_gateway_icon', $icon_str, $this->id);
     }
 
-//    public function payment_fields() {
+    //    public function payment_fields() {
 //        if (!empty($this->get_description())) {
 //            echo '<p>' . wp_kses_post($this->get_description()) . '</p>';
 //        }

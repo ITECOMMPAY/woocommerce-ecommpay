@@ -59,7 +59,7 @@ class Ecp_Gateway_More extends Ecp_Gateway
     public function __construct()
     {
         $this->id = Ecp_Gateway_Settings_More::ID;
-        $this->method_title = __('ECOMMPAY', 'woo-ecommpay');
+        $this->method_title = __('ECOMMPAY More payment methods', 'woo-ecommpay');
         $this->method_description = __('Open the payment page with all payment methods or select an additional alternative payment method.', 'woo-ecommpay');
         $this->has_fields = false;
         $this->title = $this->get_option(Ecp_Gateway_Settings::OPTION_TITLE);
@@ -101,11 +101,12 @@ class Ecp_Gateway_More extends Ecp_Gateway
     public function process_payment($order_id)
     {
         $order = ecp_get_order($order_id);
-//        $order->update_status('pending', _x('Awaiting payment', 'Status payment', 'woo-ecommpay'));
+        $options = ecp_payment_page()->get_request_url($order, $this);
+        $payment_page_url = ecp_payment_page()->get_url() . '/payment?' . http_build_query($options);
 
         return [
             'result' => 'success',
-            'redirect' => ecp_payment_page()->get_request_url($order, $this),
+            'redirect' => $payment_page_url,
             'order_id' => $order_id,
         ];
     }

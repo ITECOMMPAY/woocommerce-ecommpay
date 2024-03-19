@@ -61,7 +61,7 @@ class Ecp_Form extends Ecp_Gateway_Registry
         add_action('ecp_html_render_field_relative_date_selector', [$this, 'render_field_relative_date_selector'], 10, 1);
         add_action('admin_notices', [$this, 'admin_notice_settings']);
 
-        if (empty($this->tabs)) {
+        if (empty ($this->tabs)) {
             $tabs = [
                 new Ecp_Gateway_Settings_General(),
                 new Ecp_Gateway_Settings_Card(),
@@ -158,7 +158,7 @@ class Ecp_Form extends Ecp_Gateway_Registry
     public function output_fields($options)
     {
         foreach ($options->get_settings() as $value) {
-            if (!isset($value['type'])) {
+            if (!isset ($value['type'])) {
                 continue;
             }
 
@@ -185,7 +185,7 @@ class Ecp_Form extends Ecp_Gateway_Registry
             $data = $_POST;
         }
 
-        if (empty($data)) {
+        if (empty ($data)) {
             return false;
         }
 
@@ -196,8 +196,8 @@ class Ecp_Form extends Ecp_Gateway_Registry
         // Loop options and get values to save.
         foreach ($options->get_settings() as $option) {
             if (
-                !isset($option[Ecp_Gateway_Settings::FIELD_ID])
-                || !isset($option[Ecp_Gateway_Settings::FIELD_TYPE])
+                !isset ($option[Ecp_Gateway_Settings::FIELD_ID])
+                || !isset ($option[Ecp_Gateway_Settings::FIELD_TYPE])
             ) {
                 continue;
             }
@@ -207,11 +207,11 @@ class Ecp_Form extends Ecp_Gateway_Registry
                 parse_str($option[Ecp_Gateway_Settings::FIELD_ID], $option_name_array);
                 $option_name = current(array_keys($option_name_array));
                 $setting_name = key($option_name_array[$option_name]);
-                $raw_value = isset($data[$option_name][$setting_name]) ? wp_unslash($data[$option_name][$setting_name]) : null;
+                $raw_value = isset ($data[$option_name][$setting_name]) ? wp_unslash($data[$option_name][$setting_name]) : null;
             } else {
                 $option_name = $option[Ecp_Gateway_Settings::FIELD_ID];
                 $setting_name = '';
-                $raw_value = isset($data[$option[Ecp_Gateway_Settings::FIELD_ID]])
+                $raw_value = isset ($data[$option[Ecp_Gateway_Settings::FIELD_ID]])
                     ? wp_unslash($data[$option[Ecp_Gateway_Settings::FIELD_ID]])
                     : null;
             }
@@ -226,14 +226,14 @@ class Ecp_Form extends Ecp_Gateway_Registry
                     break;
                 case Ecp_Gateway_Settings::TYPE_MULTI_SELECT:
                 case 'multi_select_countries':
-                    $value = array_filter(array_map('wc_clean', (array)$raw_value));
+                    $value = array_filter(array_map('wc_clean', (array) $raw_value));
                     break;
                 case 'image_width':
                     $value = [];
-                    if (isset($raw_value['width'])) {
+                    if (isset ($raw_value['width'])) {
                         $value['width'] = wc_clean($raw_value['width']);
                         $value['height'] = wc_clean($raw_value['height']);
-                        $value['crop'] = isset($raw_value['crop']) ? 1 : 0;
+                        $value['crop'] = isset ($raw_value['crop']) ? 1 : 0;
                     } else {
                         $value['width'] = $option['default']['width'];
                         $value['height'] = $option['default']['height'];
@@ -241,14 +241,14 @@ class Ecp_Form extends Ecp_Gateway_Registry
                     }
                     break;
                 case Ecp_Gateway_Settings::TYPE_DROPDOWN:
-                    $allowed_values = empty($option[Ecp_Gateway_Settings::FIELD_OPTIONS])
+                    $allowed_values = empty ($option[Ecp_Gateway_Settings::FIELD_OPTIONS])
                         ? []
                         : array_map('strval', array_keys($option[Ecp_Gateway_Settings::FIELD_OPTIONS]));
-                    if (empty($option[Ecp_Gateway_Settings::FIELD_DEFAULT]) && empty($allowed_values)) {
+                    if (empty ($option[Ecp_Gateway_Settings::FIELD_DEFAULT]) && empty ($allowed_values)) {
                         $value = null;
                         break;
                     }
-                    $default = (empty($option[Ecp_Gateway_Settings::FIELD_DEFAULT])
+                    $default = (empty ($option[Ecp_Gateway_Settings::FIELD_DEFAULT])
                         ? $allowed_values[0]
                         : $option[Ecp_Gateway_Settings::FIELD_DEFAULT]);
                     $value = in_array($raw_value, $allowed_values, true)
@@ -269,18 +269,18 @@ class Ecp_Form extends Ecp_Gateway_Registry
 
             // Check if option is an array and handle that differently to single values.
             if ($option_name && $setting_name) {
-                if (!isset($update_options[$option_name])) {
-                    $update_options[$option_name] = get_option($option_name, array());
+                if (!isset ($update_options[$option_name])) {
+                    $update_options[$option_name] = get_option($option_name, []);
                 }
                 if (!is_array($update_options[$option_name])) {
-                    $update_options[$option_name] = array();
+                    $update_options[$option_name] = [];
                 }
                 $update_options[$option_name][$setting_name] = $value;
             } else {
                 $update_options[$option_name] = $value;
             }
 
-            $autoload_options[$option_name] = !isset($option['autoload']) || $option['autoload'];
+            $autoload_options[$option_name] = !isset ($option['autoload']) || $option['autoload'];
         }
 
         ecp_get_log()->debug('Options data', $update_options);
@@ -317,9 +317,9 @@ class Ecp_Form extends Ecp_Gateway_Registry
         }
 
         $key = $value[Ecp_Gateway_Settings::FIELD_ID];
-        $default = $value[Ecp_Gateway_Settings::FIELD_DEFAULT];
+        $default = $value[Ecp_Gateway_Settings::FIELD_DEFAULT] ?? null;
 
-        if (empty($this->settings)) {
+        if (empty ($this->settings)) {
             $this->init_settings();
         }
 
@@ -332,7 +332,7 @@ class Ecp_Form extends Ecp_Gateway_Registry
             $this->settings[$method][$key] = $default;
         }
 
-        return $this->settings[$method][$key];
+        return $this->settings[$method][$key] ?? '';
     }
 
     /**
@@ -369,15 +369,10 @@ class Ecp_Form extends Ecp_Gateway_Registry
         foreach ($this->tabs as $tab) {
             $part = [];
 
-            foreach (
-                apply_filters(
-                     'woocommerce_settings_api_form_fields_' . $tab->get_id(),
-                     array_map([$this, 'set_defaults'], apply_filters('ecp_get_settings_' . $tab->get_id(), []))
-                 ) as $value
-            ) {
+            foreach (apply_filters('woocommerce_settings_api_form_fields_' . $tab->get_id(), array_map([$this, 'set_defaults'], apply_filters('ecp_get_settings_' . $tab->get_id(), []))) as $value) {
                 $default = $this->get_field_default($value);
 
-                if (!empty($default)) {
+                if (!empty ($default)) {
                     $part[$value['id']] = $default;
                 }
             }
@@ -437,7 +432,7 @@ class Ecp_Form extends Ecp_Gateway_Registry
      */
     public function set_defaults($field)
     {
-        if (!isset($field[Ecp_Gateway_Settings::FIELD_DEFAULT])) {
+        if (!isset ($field[Ecp_Gateway_Settings::FIELD_DEFAULT])) {
             $field[Ecp_Gateway_Settings::FIELD_DEFAULT] = '';
         }
 
@@ -452,7 +447,7 @@ class Ecp_Form extends Ecp_Gateway_Registry
      */
     public function get_field_default($field)
     {
-        return empty($field[Ecp_Gateway_Settings::FIELD_DEFAULT])
+        return empty ($field[Ecp_Gateway_Settings::FIELD_DEFAULT])
             ? ''
             : $field[Ecp_Gateway_Settings::FIELD_DEFAULT];
     }
@@ -466,7 +461,7 @@ class Ecp_Form extends Ecp_Gateway_Registry
     {
         $this->init_settings();
 
-//        if (!ecp_is_enabled('enabled')) {
+        //        if (!ecp_is_enabled('enabled')) {
 //            // Exit if plugin disabled.
 //            return;
 //        }
@@ -487,13 +482,13 @@ class Ecp_Form extends Ecp_Gateway_Registry
                     Ecp_Gateway_Settings_General::ID
                 );
 
-                if (wc_get_post_data_by_key($post_key, null) === null && empty($setting_key)) {
+                if (wc_get_post_data_by_key($post_key, null) === null && empty ($setting_key)) {
                     $error_fields[] = $mandatory_field_label;
                 }
             }
         }
 
-        if (!empty($error_fields)) {
+        if (!empty ($error_fields)) {
             ecp_get_view('html-notice-settings.php', ['errors' => $error_fields]);
         }
     }
@@ -557,10 +552,10 @@ class Ecp_Form extends Ecp_Gateway_Registry
     {
         $visibility_class = [];
 
-        if (!isset($value['hide_if_checked'])) {
+        if (!isset ($value['hide_if_checked'])) {
             $value['hide_if_checked'] = false;
         }
-        if (!isset($value['show_if_checked'])) {
+        if (!isset ($value['show_if_checked'])) {
             $value['show_if_checked'] = false;
         }
         if ('yes' === $value['hide_if_checked'] || 'yes' === $value['show_if_checked']) {
@@ -593,7 +588,7 @@ class Ecp_Form extends Ecp_Gateway_Registry
             'post_status' => 'publish,private,draft',
         ];
 
-        if (isset($value[Ecp_Gateway_Settings::FIELD_ARGS])) {
+        if (isset ($value[Ecp_Gateway_Settings::FIELD_ARGS])) {
             $value['args'] = wp_parse_args($value[Ecp_Gateway_Settings::FIELD_ARGS], $args);
         }
 
@@ -634,7 +629,7 @@ class Ecp_Form extends Ecp_Gateway_Registry
         ];
 
         foreach ($property as $key => $default) {
-            if (!isset($value[$key])) {
+            if (!isset ($value[$key])) {
                 $value[$key] = $default;
             }
         }
@@ -645,10 +640,10 @@ class Ecp_Form extends Ecp_Gateway_Registry
     private function get_custom_attributes($value)
     {
         // Custom attribute handling.
-        $custom_attributes = array();
+        $custom_attributes = [];
 
         if (
-            !empty($value[Ecp_Gateway_Settings::FIELD_CUSTOM])
+            !empty ($value[Ecp_Gateway_Settings::FIELD_CUSTOM])
             && is_array($value[Ecp_Gateway_Settings::FIELD_CUSTOM])
         ) {
             foreach ($value[Ecp_Gateway_Settings::FIELD_CUSTOM] as $attribute => $attribute_value) {
@@ -670,7 +665,7 @@ class Ecp_Form extends Ecp_Gateway_Registry
     {
         if (
             true !== $value[Ecp_Gateway_Settings::FIELD_TIP]
-            && !empty($value[Ecp_Gateway_Settings::FIELD_DESC])
+            && !empty ($value[Ecp_Gateway_Settings::FIELD_DESC])
         ) {
             return $value[Ecp_Gateway_Settings::FIELD_DESC];
         }
@@ -691,7 +686,7 @@ class Ecp_Form extends Ecp_Gateway_Registry
             return $value[Ecp_Gateway_Settings::FIELD_DESC];
         }
 
-        if (!empty($value[Ecp_Gateway_Settings::FIELD_TIP])) {
+        if (!empty ($value[Ecp_Gateway_Settings::FIELD_TIP])) {
             return $value[Ecp_Gateway_Settings::FIELD_TIP];
         }
 

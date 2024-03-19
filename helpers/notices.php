@@ -86,15 +86,15 @@ function woocommerce_ecommpay_display_admin_notices($clear = true)
 {
     $notices = get_transient('_wc_ecp_admin_notices');
 
-    if (!empty($notices)) {
+    if (!empty ($notices)) {
 
 
-        if (!empty($notices['success'])) {
+        if (!empty ($notices['success'])) {
             array_walk($notices['success'], 'esc_html');
             echo '<div class="notice notice-info"><p>' . wp_kses_post(implode("</p>\n<p>", $notices['success'])) . '</p></div>';
         }
 
-        if (!empty($notices['error'])) {
+        if (!empty ($notices['error'])) {
             array_walk($notices['error'], 'esc_html');
             echo '<div class="notice notice-error"><p>' . wp_kses_post(implode("</p>\n<p>", $notices['error'])) . '</p></div>';
         }
@@ -120,7 +120,7 @@ function woocommerce_ecommpay_display_dismissible_admin_notices()
 {
     $notices = get_transient('_wc_ecp_admin_runtime_errors');
 
-    if (!empty($notices)) {
+    if (!empty ($notices)) {
         array_walk($notices, 'esc_html');
         echo '<div class="ecp-notice notice notice-error is-dismissible">';
         printf('<h3>%s</h3>', __('ECOMMPAY - Payment related problems registered'));

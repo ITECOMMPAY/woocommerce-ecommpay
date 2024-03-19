@@ -1,10 +1,12 @@
 /* Hide enabled Apple Pay method before check availability */
 .wc_payment_method.payment_method_ecommpay-apple-pay {
-    display: none;
+  display: none;
 }
 
 .ecp-visible {
-    display: block !important;
+  display: block !important;
 }
 
-.payment_method_ecommpay-card {padding: 0 !important;}
+.payment_method_ecommpay-card {
+  padding: 0 !important;
+}

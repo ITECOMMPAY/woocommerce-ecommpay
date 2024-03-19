@@ -21,15 +21,17 @@ function ecp_version()
 }
 
 if (!function_exists('wp_version')) {
-    function wp_version() {
-        include(ABSPATH . WPINC . '/version.php');
+    function wp_version()
+    {
+        include (ABSPATH . WPINC . '/version.php');
         /** @noinspection PhpUndefinedVariableInspection */
         return $wp_version;
     }
 }
 
 if (!function_exists('wc_version')) {
-    function wc_version() {
+    function wc_version()
+    {
         return WC()->version;
     }
 }
@@ -64,7 +66,7 @@ function ecp_assets_url($file_name)
 
 function ecp_js_path($file_name)
 {
-    return ecp_assets_path( 'js/' . trim($file_name, '/'));
+    return ecp_assets_path('js/' . trim($file_name, '/'));
 }
 
 function ecp_css_path($file_name)
@@ -145,7 +147,7 @@ function ecp_admin_link()
  */
 function ecp_get_view($path, $args = [])
 {
-    if (is_array($args) && !empty($args)) {
+    if (is_array($args) && !empty ($args)) {
         extract($args);
     }
 
@@ -355,7 +357,8 @@ function ecp_region_code($country, $region)
  * @since  2.2.2
  *
  */
-function ecp_custom_attributes($attributes) {
+function ecp_custom_attributes($attributes)
+{
     $result = '';
 
     foreach ($attributes as $attribute => $attribute_value) {

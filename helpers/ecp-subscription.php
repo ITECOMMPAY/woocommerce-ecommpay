@@ -67,8 +67,16 @@ function ecp_get_subscriptions_for_renewal_order($order, $single = false)
             [ecommpay(), 'type_wrapper'],
             101
         );
-
-        return $single ? end($subscriptions) : $subscriptions;
+        if ($single) {
+            return new Ecp_Gateway_Subscription(end($subscriptions)->get_id());
+        } else {
+            return array_map(
+                function ($subscription) {
+                    return new Ecp_Gateway_Subscription($subscription->get_id());
+                },
+                $subscriptions
+            );
+        }
     }
 
     return [];

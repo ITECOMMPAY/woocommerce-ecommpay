@@ -32,7 +32,7 @@ if (!function_exists('woocommerce_ecommpay_can_user_manage_payments')) {
 
         $cap = apply_filters('woocommerce_ecommpay_can_user_manage_payment', $default_cap);
 
-        if (!empty($action)) {
+        if (!empty ($action)) {
             $cap = apply_filters('woocommerce_ecommpay_can_user_manage_payment_' . $action, $default_cap);
         }
 

@@ -1,5 +1,29 @@
 <?php
 
+function ecp_HPOS_enabled()
+{
+    if (!class_exists('Automattic\WooCommerce\Utilities\OrderUtil')) {
+        return false;
+    }
+
+    return Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+}
+
+function ecp_HPOS_sync_enabled()
+{
+    if (!function_exists('wc_get_container')) {
+        return false;
+    }
+
+    if (!class_exists('Automattic\WooCommerce\Internal\DataStores\Orders\DataSynchronizer')) {
+        return false;
+    }
+
+    $data_synchronizer = wc_get_container()->get(Automattic\WooCommerce\Internal\DataStores\Orders\DataSynchronizer::class);
+
+    return $data_synchronizer->data_sync_is_enabled();
+}
+
 /**
  * Returns the price with decimals. 1010 returns as 10.10.
  *
@@ -121,32 +145,35 @@ function ecp_callback_url($post_id = null)
  * Returns ECOMMPAY order.
  *
  * @param $the_order
- * @return ?Ecp_Gateway_Order
+ * @param bool $with_type If true, returns an array with the order and its type
+ * @return Ecp_Gateway_Order|Ecp_Gateway_Refund|Ecp_Gateway_Subscription|false
  * @noinspection PhpReturnDocTypeMismatchInspection
  */
-function ecp_get_order($the_order = false)
+function ecp_get_order($the_order = false, $with_type = false)
 {
-    add_filter(
-        'woocommerce_order_class',
-        [ecommpay(), 'type_wrapper'],
-        100,
-        2
-    );
+    $types = ['shop_order', 'shop_order_refund', 'shop_subscription'];
+    $is_order = \Automattic\WooCommerce\Utilities\OrderUtil::is_order($the_order, $types);
 
-    $order = wc_get_order($the_order);
+    if (!$is_order) {
+        return $with_type ? [false, false] : false;
+    }
 
-    remove_filter(
-        'woocommerce_order_class',
-        [ecommpay(), 'type_wrapper'],
-        100
-    );
+    $order_type = \Automattic\WooCommerce\Utilities\OrderUtil::get_order_type($the_order);
 
-    /** @noinspection PhpIncompatibleReturnTypeInspection */
-    return $order;
+    switch ($order_type) {
+        case 'shop_order':
+            return $with_type ? [new Ecp_Gateway_Order($the_order), $order_type] : new Ecp_Gateway_Order($the_order);
+        case 'shop_order_refund':
+            return $with_type ? [new Ecp_Gateway_Refund($the_order), $order_type] : new Ecp_Gateway_Refund($the_order);
+        case 'shop_subscription':
+            return $with_type ? [new Ecp_Gateway_Subscription($the_order), $order_type] : new Ecp_Gateway_Subscription($the_order);
+    }
+
+    return $with_type ? [false, false] : false;
 }
 
 /**
- * Returns 1d3 order.
+ * Returns ECOMMPAY orders.
  *
  * @param array $params
  * @return Ecp_Gateway_Order[]
@@ -154,23 +181,21 @@ function ecp_get_order($the_order = false)
  */
 function ecp_get_orders(array $params)
 {
-    add_filter(
-        'woocommerce_order_class',
-        [ecommpay(), 'type_wrapper'],
-        100,
-        2
+    $query = new WC_Order_Query(
+        array_merge(
+            ['return' => 'ids'],
+            $params,
+        )
     );
+    $order_ids = $query->get_orders();
+    $ecp_orders = [];
 
-    $orders = wc_get_orders($params);
-
-    remove_filter(
-        'woocommerce_order_class',
-        [ecommpay(), 'type_wrapper'],
-        100
-    );
+    foreach ($order_ids as $order_id) {
+        $ecp_orders[] = ecp_get_order($order_id);
+    }
 
     /** @noinspection PhpIncompatibleReturnTypeInspection */
-    return $orders;
+    return $ecp_orders;
 }
 
 /**
@@ -181,22 +206,5 @@ function ecp_get_orders(array $params)
  */
 function ecp_get_refund($the_refund = false)
 {
-    add_filter(
-        'woocommerce_order_class',
-        [ecommpay(), 'type_wrapper'],
-        100,
-        2
-    );
-
-    $refund = wc_get_order($the_refund);
-
-    remove_filter(
-        'woocommerce_order_class',
-        [ecommpay(), 'type_wrapper'],
-        100
-    );
-
-    return $refund instanceof Ecp_Gateway_Refund
-        ? $refund
-        : null;
+    return new Ecp_Gateway_Refund($the_refund->get_id());
 }

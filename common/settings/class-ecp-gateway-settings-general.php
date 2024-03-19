@@ -87,7 +87,14 @@ class Ecp_Gateway_Settings_General extends Ecp_Gateway_Settings
                 self::FIELD_TITLE => _x('General Settings', 'Settings section', 'woo-ecommpay'),
                 self::FIELD_TYPE => self::TYPE_START,
             ],
-
+            [
+                self::FIELD_TITLE => _x('Merchant callback URL', 'Settings integration', 'woo-ecommpay'),
+                self::FIELD_TYPE => self::TYPE_TEXT,
+                self::FIELD_DEFAULT => ecp_callback_url(),
+                self::FIELD_CUSTOM => [
+                    'readonly' => 'readonly',
+                ],
+            ],
             [
                 self::FIELD_ID => self::OPTION_TEST,
                 self::FIELD_TITLE => _x('Demo mode', 'Settings integration', 'woo-ecommpay'),

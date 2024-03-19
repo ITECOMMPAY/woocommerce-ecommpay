@@ -119,3 +119,6 @@ require_once __DIR__ . '/gateways/class-ecp-gateway-googlepay.php';             
 require_once __DIR__ . '/gateways/class-ecp-gateway-applepay.php';                       // Apple Pay Gateway
 require_once __DIR__ . '/gateways/class-ecp-gateway-more.php';                           // More PM Gateway
 require_once __DIR__ . '/gateways/class-ecp-gateway-brazil.php';                       // Brazil online banks Gateway
+
+// Import payment method class for checkout blocks
+require_once __DIR__ . '/includes/class-ecp-gateway-blocks-support.php';

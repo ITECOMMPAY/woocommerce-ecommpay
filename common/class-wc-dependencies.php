@@ -17,7 +17,7 @@ class WC_Dependencies
 
     public static function init()
     {
-        self::$active_plugins = (array)get_option('active_plugins', []);
+        self::$active_plugins = (array) get_option('active_plugins', []);
 
         if (is_multisite()) {
             self::$active_plugins = array_merge(

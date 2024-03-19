@@ -201,7 +201,7 @@ class Ecp_Gateway_Payment
             do_action('ecommpay_payment_status_' . $transition->get_new(), $this->get_id(), $this);
 
             switch (true) {
-                case !empty($transition->get_old()):
+                case !empty ($transition->get_old()):
                     if (!$transition->is_changed()) {
                         return;
                     }
@@ -428,12 +428,14 @@ class Ecp_Gateway_Payment
 
                 ecp_get_log()->debug(
                     __('Find. Check operation last date', 'woo-ecommpay'),
-                    $origin_date->format(DateTime::RFC1123));
+                    $origin_date->format(DateTime::RFC1123)
+                );
 
                 if ($origin_date > $operation_date) {
 
                     ecp_get_log()->debug(
-                        sprintf(__('New operation date [%s] is less then old operation date [%s]', 'woo-ecommpay'),
+                        sprintf(
+                            __('New operation date [%s] is less then old operation date [%s]', 'woo-ecommpay'),
                             $operation_date->format(DateTime::RFC1123),
                             $origin_date->format(DateTime::RFC1123)
                         )
@@ -442,7 +444,8 @@ class Ecp_Gateway_Payment
                 }
 
                 ecp_get_log()->debug(
-                    sprintf(__('New operation date [%s] is great then old operation date [%s]. Skip update', 'woo-ecommpay'),
+                    sprintf(
+                        __('New operation date [%s] is great then old operation date [%s]. Skip update', 'woo-ecommpay'),
                         $operation_date->format(DateTime::RFC1123),
                         $origin_date->format(DateTime::RFC1123)
                     )
@@ -489,7 +492,7 @@ class Ecp_Gateway_Payment
             return in_array($operation->get_type(), ['auth', 'recurring']);
         });
 
-        if (empty($authorized_operations)) {
+        if (empty ($authorized_operations)) {
             return null;
         }
 
@@ -512,7 +515,11 @@ class Ecp_Gateway_Payment
      */
     public function get_balance()
     {
-        return !empty($this->info->get_sum()) ? $this->info->get_sum()->get_amount() : null;
+        if (is_null($this->info)) {
+            return null;
+        }
+
+        return !empty ($this->info->get_sum()) ? $this->info->get_sum()->get_amount() : null;
     }
 
     /**

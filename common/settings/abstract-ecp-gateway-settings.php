@@ -156,7 +156,7 @@ abstract class Ecp_Gateway_Settings
         $nonce = wc_get_var($_REQUEST['_wpnonce']);
 
         if ($nonce === null || !wp_verify_nonce($nonce, 'woocommerce-settings')) {
-            die(__('Action failed. Please refresh the page and retry.', 'woo-ecommpay'));
+            die (__('Action failed. Please refresh the page and retry.', 'woo-ecommpay'));
         }
 
         ecp_get_log()->debug('Run saving plugin settings. Section:', $this->id);

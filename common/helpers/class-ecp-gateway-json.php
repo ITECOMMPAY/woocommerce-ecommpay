@@ -456,7 +456,7 @@ class Ecp_Gateway_Json extends Ecp_Gateway_Array implements JsonSerializable
                     return false;
                 }
 
-                if (!isset($child[$index])) {
+                if (!isset ($child[$index])) {
                     return false;
                 }
 
@@ -526,7 +526,7 @@ class Ecp_Gateway_Json extends Ecp_Gateway_Array implements JsonSerializable
             $count = count($indexes) - 1;
 
             for ($i = 0; $i < $count; ++$i) {
-                if (!isset($child[$indexes[$i]])) {
+                if (!isset ($child[$indexes[$i]])) {
                     return;
                 }
 
@@ -808,7 +808,7 @@ class Ecp_Gateway_Json extends Ecp_Gateway_Array implements JsonSerializable
 
                     if (is_callable($options)) {
                         $this->set($key, $options($value));
-                        continue(2);
+                        continue (2);
                     }
 
                     $className = array_shift($options);

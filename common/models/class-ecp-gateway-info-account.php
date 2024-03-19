@@ -133,10 +133,10 @@ class Ecp_Gateway_Info_Account extends Ecp_Gateway_Json
     {
         return [
             self::FIELD_EXPIRY_MONTH => function ($value) {
-                return (int)$value;
+                return (int) $value;
             },
             self::FIELD_EXPIRY_YEAR => function ($value) {
-                return (int)$value;
+                return (int) $value;
             }
         ];
     }

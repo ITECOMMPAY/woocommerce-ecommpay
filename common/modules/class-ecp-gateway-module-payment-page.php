@@ -74,12 +74,18 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
         add_action('wp_ajax_nopriv_get_payment_status', [$this, 'ajax_process']); // Non-authorised user: Guest access
         add_action('wp_ajax_check_cart_amount', [$this, 'ajax_process']); // Authorised user
         add_action('wp_ajax_nopriv_check_cart_amount', [$this, 'ajax_process']); // Non-authorised user: Guest access
+        add_action('wp_ajax_add_payment_id_to_order', [$this, 'ajax_process']); // Authorised user
+        add_action('wp_ajax_nopriv_add_payment_id_to_order', [$this, 'ajax_process']); // Non-authorised user: Guest access
 
         // register hooks for display payment form on checkout page
         add_action('woocommerce_before_checkout_form', [$this, 'include_frontend_scripts']);
 
         // register hooks for display payment form on payment page
         add_action('before_woocommerce_pay', [$this, 'include_frontend_scripts']);
+
+        // register hooks for display payment form on block-based checkout page
+        add_action('woocommerce_blocks_enqueue_checkout_block_scripts_before', [$this, 'include_new_checkout_scripts']);
+        add_action('enqueue_block_editor_assets', [$this, 'include_new_checkout_scripts']);
 
         // register hooks for additional container on checkout pages
         add_filter('the_content', [$this, 'append_iframe_container'], 10, 1);
@@ -115,12 +121,8 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
                 } elseif (wc_get_var($_REQUEST['woocommerce-pay-nonce']) !== null) {
                     // Checkout pay page
                     global $wp;
-
-                    ecp_get_log()->debug(__('Ecommpay pay process', 'woo-ecommpay'));
-                    foreach (wc_get_var($_GET) as $key => $value) {
-                        $wp->query_vars[$key] = $value;
-                    }
-
+                    $wp->set_query_var('order-pay', wc_get_var($_REQUEST['order_id'], 0));
+                    $_POST['payment_method'] = wc_get_post_data_by_key('payment_method', null);
                     Ecp_Gateway_Form_Handler::pay_action();
                 }
                 break;
@@ -129,7 +131,7 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
                 $order_id = intval(wc_get_post_data_by_key('order_id', 0));
 
                 if ($order_id > 0) {
-                    $order = wc_get_order($order_id);
+                    $order = ecp_get_order($order_id);
 
                     $result = [
                         'redirect' => $order->get_checkout_payment_url(),
@@ -145,7 +147,7 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
                 break;
             case 'check_cart_amount':
                 $this->check_cart_amount(wc_get_var($_REQUEST['amount'], '0'));
-                return;
+                break;
         }
     }
 
@@ -160,7 +162,7 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
         global $wp;
 
         try {
-            if (isset($wp->query_vars['order-pay']) && absint($wp->query_vars['order-pay']) > 0) {
+            if (isset ($wp->query_vars['order-pay']) && absint($wp->query_vars['order-pay']) > 0) {
                 $order_id = absint($wp->query_vars['order-pay']); // The order ID
             } else {
                 $order_id = is_wc_endpoint_url('order-pay');
@@ -198,6 +200,7 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
             ['jquery'],
             ecp_version()
         );
+
         wp_localize_script(
             'ecommpay_checkout_script',
             'ECP',
@@ -209,6 +212,74 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
         );
 
         wp_enqueue_style('ecommpay_loader_css', ecp_css_url('loader.css'));
+    }
+
+    public function include_new_checkout_scripts()
+    {
+        global $wp;
+
+        try {
+            if (isset ($wp->query_vars['order-pay']) && absint($wp->query_vars['order-pay']) > 0) {
+                $order_id = absint($wp->query_vars['order-pay']); // The order ID
+            } else {
+                $order_id = is_wc_endpoint_url('order-pay');
+            }
+        } catch (Exception $e) {
+            $order_id = 0;
+        }
+
+        $url = ecp_payment_page()->get_url();
+
+        // Ecommpay merchant bundle.
+        wp_enqueue_script(
+            'ecommpay_merchant_js',
+            sprintf('%s/shared/merchant.js', $url),
+            [],
+            null
+        );
+        wp_enqueue_style(
+            'ecommpay_merchant_css',
+            sprintf('%s/shared/merchant.css', $url),
+            [],
+            null
+        );
+
+        $script_name = 'wc-ecommpay-blocks-integration';
+        wp_register_script(
+            $script_name,
+            plugins_url('build/index.js', ECP_PLUGIN_PATH),
+            [
+                'jquery',
+                'wc-blocks-registry',
+                'wc-settings',
+                'wp-element',
+                'wp-html-entities',
+                'wp-i18n',
+            ],
+            ecp_version(),
+            true
+        );
+        if (function_exists('wp_set_script_translations')) {
+            wp_set_script_translations($script_name);
+        }
+        wp_enqueue_script($script_name);
+
+        $gateways = (new WC_Payment_Gateways())->get_available_payment_gateways();
+        $filtered_gateways = array_keys(array_filter($gateways, function ($gateway) {
+            return strpos($gateway->id, 'ecommpay-') === 0 && $gateway->enabled === "yes";
+        }));
+
+        wp_localize_script(
+            $script_name,
+            'ECP',
+            [
+                'ajax_url' => admin_url("admin-ajax.php"),
+                'origin_url' => $url,
+                'order_id' => $order_id,
+                'gateways' => $filtered_gateways,
+                'ecp_pay_nonce' => wp_create_nonce('woocommerce-process_checkout'),
+            ]
+        );
     }
 
     /**
@@ -235,7 +306,7 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
      *
      * @param Ecp_Gateway_Order $order <p>Order object.</p>
      * @since 2.0.0
-     * @return array <p>Form data as key-value array.</p>
+     * @return array <p>Settings for the ECOMMPAY payment page.</p>
      * </p>
      */
     public function get_request_url($order, $gateway)
@@ -318,15 +389,14 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
 
     private function get_data_for_payment_form()
     {
-        if (wc_get_var($_GET['pay_for_order'], '') != "" && wc_get_var($_GET['key'], '') != ""){
+        if (wc_get_var($_GET['pay_for_order'], '') != "" && wc_get_var($_GET['key'], '') != "") {
             $order_key = wc_get_var($_GET['key'], '');
             $order_id = wc_get_order_id_by_order_key($order_key);
             $order = ecp_get_order($order_id);
             $payment_currency = $order->get_currency();
             $payment_amount = ecp_price_multiply($order->get_total(), $payment_currency);
             $order->set_payment_system(Ecp_Gateway_Operation_Status::AWAITING_CUSTOMER);
-        }
-        else {
+        } else {
             $payment_currency = get_woocommerce_currency();
             $payment_amount = ecp_price_multiply(WC()->cart->total, $payment_currency);
         }
@@ -345,7 +415,7 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
             'payment_methods_options' => "{\"additional_data\":{\"embedded_mode\":true}}",
         ];
         $data = $this->append_recurring_total_form_cart($data);
-        if (isset($order)){
+        if (isset ($order)) {
             $data = apply_filters('ecp_append_receipt_data', $data, $order, true);
             $data = apply_filters('ecp_append_customer_id', $data, $order);
         } else {
@@ -363,15 +433,17 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
         wp_send_json($data);
     }
 
-    private function append_recurring_total_form_cart($data) {
-        if(class_exists('WC_Subscriptions_Cart') && WC_Subscriptions_Cart::cart_contains_subscription()) {
+    private function append_recurring_total_form_cart($data)
+    {
+        if (class_exists('WC_Subscriptions_Cart') && WC_Subscriptions_Cart::cart_contains_subscription()) {
             $data['recurring'] = '{"register":true,"type":"U"}';
             $data['recurring_register'] = 1;
         }
         return $data;
     }
 
-    private function append_receipt_data_from_cart($data) {
+    private function append_receipt_data_from_cart($data)
+    {
         $cart = WC()->cart;
         $totalTax = abs($cart->get_totals()['total_tax']);
         $totalPrice = abs(floatval($cart->get_totals()['total']));
@@ -391,9 +463,10 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
         return $data;
     }
 
-    private function get_positions($cart) {
+    private function get_positions($cart)
+    {
         $positions = [];
-        foreach ( $cart->get_cart() as $cart_item_key => $cart_item) {
+        foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
             $positions[] = $this->get_receipt_position($cart_item, get_woocommerce_currency());
         }
         return $positions;
@@ -403,7 +476,7 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
         $product = $item['data'];
         $quantity = abs($item['quantity']);
 
-        $price = abs((float)$product->get_price() * (float)$item['quantity']);
+        $price = abs((float) $product->get_price() * (float) $item['quantity']);
         $description = esc_attr($product->name);
         $data = [
             // Required. Amount of the positions.
@@ -435,8 +508,8 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
 
         if (function_exists('mb_strimwidth')) {
             return mb_strlen($string) > $limit
-            ? mb_strimwidth($string, 0, $str_limit) . '...'
-            : $string;
+                ? mb_strimwidth($string, 0, $str_limit) . '...'
+                : $string;
         }
 
         return strlen($string) > $limit
@@ -446,53 +519,54 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
 
     public function wc_custom_redirect_after_purchase()
     {
-        if ( ! is_wc_endpoint_url('order-received') ) return;
+        if (!is_wc_endpoint_url('order-received'))
+            return;
         global $wp;
         // If order_id is defined
-        if ( isset($wp->query_vars['order-received']) && absint($wp->query_vars['order-received']) > 0 ) :
+        if (isset ($wp->query_vars['order-received']) && absint($wp->query_vars['order-received']) > 0):
             $order_key = wc_get_var($_GET['key'], '');
             $order_id = wc_get_order_id_by_order_key($order_key);
             $order = ecp_get_order($order_id);
 
             ?>
-        <script type="text/javascript">
-        // order-receive page status (ty page or failed)
-        var order_is_failed = <?=($order->get_status() == 'failed') ? 'true' : 'false' ?>;
-        let result = {};
+            <script type="text/javascript">
+                // order-receive page status (ty page or failed)
+                var order_is_failed = <?= ($order->get_status() == 'failed') ? 'true' : 'false' ?>;
+                let result = {};
 
-        function get_status(){
-            jQuery.ajax({
-                type: 'POST',
-                url: '<?=admin_url("admin-ajax.php") ?>' + window.location.search,
-                data: [{'name': 'action', 'value': 'get_payment_status'}],
-                dataType: 'json',
-                success: function (response) {
-                    result = response;
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.log('Error while getting order complete status');
-                }
-            });
-            if (result['callback_received']) {
-                if (!(result['status'] ^ order_is_failed)) {
-                    location.reload();
-                } else {
-                    loader = jQuery('.blockUI');
-                    if (loader.length > 0){
-                        loader[0].remove();
+                function get_status() {
+                    jQuery.ajax({
+                        type: 'POST',
+                        url: '<?= admin_url("admin-ajax.php") ?>' + window.location.search,
+                        data: [{ 'name': 'action', 'value': 'get_payment_status' }],
+                        dataType: 'json',
+                        success: function (response) {
+                            result = response;
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.log('Error while getting order complete status');
+                        }
+                    });
+                    if (result['callback_received']) {
+                        if (!(result['status'] ^ order_is_failed)) {
+                            location.reload();
+                        } else {
+                            loader = jQuery('.blockUI');
+                            if (loader.length > 0) {
+                                loader[0].remove();
+                            }
+                            return
+                        }
+                    } else if ((jQuery('.blockUI').length < 1) && (document.getElementsByTagName('body').length > 0)) {
+                        document.getElementsByTagName('body')[0].innerHTML += '<div class="blockUI blockOverlay ecommpay-loader-overlay"></div>';
                     }
-                    return
+                    setTimeout(get_status, 400);
                 }
-            } else if ((jQuery('.blockUI').length < 1) && (document.getElementsByTagName('body').length > 0)) {
-                document.getElementsByTagName('body')[0].innerHTML += '<div class="blockUI blockOverlay ecommpay-loader-overlay"></div>';
-            }
-            setTimeout(get_status, 400);
-        }
 
-        get_status();
+                get_status();
 
-        </script>
-        <?php
+            </script>
+            <?php
         endif;
     }
 
@@ -520,8 +594,20 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
 
     private function check_cart_amount($query_amount)
     {
-        $query_amount = (int)$query_amount;
+        $query_amount = (int) $query_amount;
         $cart_amount = ecp_price_multiply(WC()->cart->total, get_woocommerce_currency());
         wp_send_json(['amount_is_equal' => ($query_amount === $cart_amount)]);
+    }
+
+    private function add_payment_id_to_order()
+    {
+        $order_id = wc_get_var($_REQUEST['order_id'], 0);
+        $payment_id = wc_get_var($_REQUEST['payment_id'], '');
+        $meta_id = wc_add_order_item_meta($order_id, 'payment_id', $payment_id, true);
+        if ($meta_id) {
+            wp_send_json(['status' => 'success']);
+        } else {
+            wp_send_json(['status' => 'error']);
+        }
     }
 }

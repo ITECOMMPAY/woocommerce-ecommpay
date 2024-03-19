@@ -32,10 +32,84 @@ class Ecp_Gateway_Module_Admin_UI extends Ecp_Gateway_Registry
 
         // Add filters only if setting parameter "ecommpay_orders_transaction_info" is on
         if (ecp_is_enabled(Ecp_Gateway_Settings_General::OPTION_TRANSACTION_INFO)) {
+            // For legacy order storage
             add_filter('manage_edit-shop_order_columns', [$this, 'filter_shop_order_posts_columns'], 10, 1);
             add_filter('manage_shop_order_posts_custom_column', [$this, 'apply_custom_order_data']);
-            add_filter('manage_shop_subscription_posts_custom_column', [$this, 'apply_custom_order_data']);
+            add_filter('manage_shop_subscription_posts_custom_column', [$this, 'apply_custom_order_data'], 10, 2);
+
+            // For High-Performance Order Storage feature
+            add_filter('manage_woocommerce_page_wc-orders_columns', [$this, 'add_column_headers_to_order_list'], 999, 1);
+            add_action('manage_woocommerce_page_wc-orders_custom_column', [$this, 'add_column_contents_to_order_list'], 999, 2);
         }
+    }
+
+    /**
+     * <h2>Adds a new "Payment" column to "Orders" list.</h2>
+     *
+     * @param array $columns
+     * @since  2.0.0
+     * @return array
+     */
+    public function add_column_headers_to_order_list($columns)
+    {
+        $reordered_columns = [];
+
+        // Inserting columns to a specific location
+        foreach ($columns as $key => $column) {
+            $reordered_columns[$key] = $column;
+
+            if ($key === 'order_status') {
+                // Inserting after "Status" column
+                $reordered_columns['ecommpay_payment_info'] = __('Payment', 'woo-ecommpay');
+            }
+        }
+        return $reordered_columns;
+    }
+
+    /**
+     * <h2>Applies payment state to the order data overview.</h2>
+     *
+     * @since  2.0.0
+     * @return void
+     */
+    public function add_column_contents_to_order_list($column, $order = false)
+    {
+        if (!$order) {
+            [$order, $type] = $this->get_order_with_type();
+        } else {
+            [$order, $type] = ecp_get_order($order->ID, true);
+        }
+
+        if (!$order) {
+            return;
+        }
+
+        // Show transaction ID on the overview
+        if (!in_array($type, ['shop_order', 'shop_subscription'])) {
+            return;
+        }
+
+        if ($column !== 'ecommpay_payment_info') {
+            return;
+        }
+
+        // Insert transaction id and payment status if any
+        $payment_id = $order->get_payment_id();
+
+        if (!$payment_id || !$order->is_ecp()) {
+            return;
+        }
+
+        if ($order->subscription_is_renewal_failure()) {
+            $status = Ecp_Gateway_Payment_Status::DECLINE_RENEWAL;
+        } else {
+            $status = $order->get_ecp_status();
+        }
+
+        ecp_get_view('html-order-table-payment-data.php', [
+            'payment_status' => $status,
+            'transaction_is_test' => $order->get_is_test(),
+        ]);
     }
 
     /**
@@ -59,14 +133,20 @@ class Ecp_Gateway_Module_Admin_UI extends Ecp_Gateway_Registry
      * @since  2.0.0
      * @return void
      */
-    public function apply_custom_order_data($column)
+    public function apply_custom_order_data($column, $order = false)
     {
-        global $post;
+        if (!$order) {
+            [$order, $type] = $this->get_order_with_type();
+        } else {
+            [$order, $type] = ecp_get_order($order->ID, true);
+        }
 
-        $order = ecp_get_order($post->ID);
+        if (!$order) {
+            return;
+        }
 
         // Show transaction ID on the overview
-        if (!in_array($post->post_type, ['shop_order', 'shop_subscription'])) {
+        if (!in_array($type, ['shop_order', 'shop_subscription'])) {
             return;
         }
 
@@ -101,18 +181,18 @@ class Ecp_Gateway_Module_Admin_UI extends Ecp_Gateway_Registry
      */
     public function add_meta_boxes()
     {
-        global $post;
+        [$order, $type] = $this->get_order_with_type();
 
-        $screen = get_current_screen();
-        $post_types = ['shop_order', 'shop_subscription'];
-
-        if (!in_array($screen->id, $post_types, true) || !in_array($post->post_type, $post_types, true)) {
+        if (!$order) {
             return;
         }
 
-        $order = ecp_get_order($post->ID);
+        $allowed_order_types = [
+            'shop_order',
+            'shop_subscription',
+        ];
 
-        if (!$order->is_ecp()) {
+        if (!in_array($type, $allowed_order_types, true) || !$order->is_ecp()) {
             return;
         }
 
@@ -120,16 +200,15 @@ class Ecp_Gateway_Module_Admin_UI extends Ecp_Gateway_Registry
             'ecommpay-payment-info',
             __('ECOMMPAY Payment', 'woo-ecommpay'),
             [$this, 'meta_box_payment_info'],
-            'shop_order',
+            ['shop_order', wc_get_page_screen_id('shop_order')],
             'side',
             'high'
         );
-
         add_meta_box(
             'ecommpay-payment-actions',
             __('ECOMMPAY Subscription', 'woo-ecommpay'),
             [$this, 'meta_box_subscription'],
-            'shop_subscription',
+            ['shop_subscription', wc_get_page_screen_id('shop_subscription')],
             'side',
             'high'
         );
@@ -143,8 +222,12 @@ class Ecp_Gateway_Module_Admin_UI extends Ecp_Gateway_Registry
      */
     public function meta_box_payment_info()
     {
-        global $post;
-        $order = ecp_get_order($post->ID);
+        [$order, $type] = $this->get_order_with_type();
+
+        if (!$order) {
+            return;
+        }
+
         $payment_id = $order->get_payment_id();
 
         if (!$payment_id || !$order->is_ecp()) {
@@ -156,7 +239,7 @@ class Ecp_Gateway_Module_Admin_UI extends Ecp_Gateway_Registry
         try {
             $payment = $order->get_payment();
             $codeByMapping = Ecp_Gateway_Payment_Methods::get_code($order->get_payment_system());
-            $ps = empty($codeByMapping) ? $order->get_payment_system() : $codeByMapping;
+            $ps = empty ($codeByMapping) ? $order->get_payment_system() : $codeByMapping;
             /** @var ?Ecp_Gateway_Info_Sum $sum */
             $amount = $payment->get_info()->try_get_sum($sum)
                 ? $sum->get_formatted()
@@ -193,10 +276,15 @@ class Ecp_Gateway_Module_Admin_UI extends Ecp_Gateway_Registry
      */
     public function meta_box_subscription()
     {
-        global $post;
+        [$order, $type] = $this->get_order_with_type();
 
-        /** @var Ecp_Gateway_Subscription $order */
-        $order = ecp_get_order($post->ID);
+        if (!$order) {
+            return;
+        }
+
+        if (get_class($order) !== 'Ecp_Gateway_Subscription') {
+            return;
+        }
 
         if (!$order->is_ecp()) {
             ecp_get_log()->debug(__('Subscription not in ECOMMPAY.', 'woo-ecommpay'));
@@ -295,7 +383,7 @@ class Ecp_Gateway_Module_Admin_UI extends Ecp_Gateway_Registry
             exit;
         }
 
-        $order = new Ecp_Gateway_Order((int)$param_post);
+        $order = new Ecp_Gateway_Order((int) $param_post);
 
         switch ($param_action) {
             case 'refresh':
@@ -351,11 +439,12 @@ class Ecp_Gateway_Module_Admin_UI extends Ecp_Gateway_Registry
      */
     private function maybe_enqueue_admin_statics()
     {
-        global $post;
+        [$order, $type] = $this->get_order_with_type();
+
         /**
          * Enqueue on the shop order page
          */
-        if (!empty($post) && in_array($post->post_type, ['shop_order', 'shop_subscription'])) {
+        if ($order && in_array($type, ['shop_order', 'shop_subscription'])) {
             return true;
         }
 
@@ -420,5 +509,32 @@ class Ecp_Gateway_Module_Admin_UI extends Ecp_Gateway_Registry
             $e->write_to_logs();
             exit;
         }
+    }
+
+    /**
+     * Returns the order and post objects
+     * Supports High-Performance Order Storage feature
+     * 
+     * @return array
+     */
+    private function get_order_with_type()
+    {
+        global $post;
+
+        if (is_null($post)) {
+            if (!isset ($_GET['id'])) {
+                return [null, null];
+            }
+
+            [$order, $type] = ecp_get_order($_GET['id'], true);
+
+            if (!$order) {
+                return [null, null];
+            }
+        } else {
+            [$order, $type] = ecp_get_order($post->ID, true);
+        }
+
+        return [$order, $type];
     }
 }

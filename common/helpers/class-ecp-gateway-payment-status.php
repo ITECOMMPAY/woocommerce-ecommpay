@@ -239,7 +239,7 @@ class Ecp_Gateway_Payment_Status
             self::CLEARING_PROCESSING => _x('Clearing processing', 'Payment status', 'woo-ecommpay'),
             self::AWAITING_CONFIRMATION => _x('Awaiting confirmation', 'Payment status', 'woo-ecommpay'),
             self::DECLINE_RENEWAL => _x('Decline renewal', 'Payment status', 'woo-ecommpay'),
-            // INTERNAL STATUS
+                // INTERNAL STATUS
             self::INITIAL => _x('Awaiting payment', 'Payment status', 'woo-ecommpay'),
         ];
     }

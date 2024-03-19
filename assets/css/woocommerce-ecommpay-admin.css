@@ -1,350 +1,360 @@
 .ecp_logo {
-	max-height: 4em;
-	float: right;
+  max-height: 4em;
+  float: right;
 }
 
 #ecommpay-iframe {
-	width: 100%;
-	min-height: 350px;
+  width: 100%;
+  min-height: 350px;
 }
 
 #ecp-version {
-	position: absolute;
-	bottom: 0;
-	right: 1em;
-	color: #999;
+  position: absolute;
+  bottom: 0;
+  right: 1em;
+  color: #999;
 }
 
 .ecp-relative {
-	position: relative !important;
+  position: relative !important;
 }
 
 .is_test {
-	background-color: #ffffc9;
-	padding: 5px 0;
-	margin: 0;
-	text-align: center;
-	font-weight: 900;
-	text-transform: uppercase;
-	color: #CC0000;
-	text-shadow: 0 0 4px #ccc;
+  background-color: #ffffc9;
+  padding: 5px 0;
+  margin: 0;
+  text-align: center;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #cc0000;
+  text-shadow: 0 0 4px #ccc;
 }
 
-.post-type-shop_order .wp-list-table .column-ecommpay_payment_info
-{
-	width: 14ch;
+.post-type-shop_order .wp-list-table .column-ecommpay_payment_info {
+  width: 14ch;
 }
 
 fieldset.ecp-fieldset {
-	border: 1px solid #ccc;
-	padding: 0 1em;
-	margin: 1em 0 0 0;
-	border-radius: 0.5em;
+  border: 1px solid #ccc;
+  padding: 0 1em;
+  margin: 1em 0 0 0;
+  border-radius: 0.5em;
 }
 
 @media screen and (max-width: 782px) {
-	fieldset.ecp-fieldset {
-		border: 0 none;
-		border-top: 1px solid #ccc;
-		margin: 1em 0 0 0;
-		padding: 0;
-		border-radius: 0;
-	}
+  fieldset.ecp-fieldset {
+    border: 0 none;
+    border-top: 1px solid #ccc;
+    margin: 1em 0 0 0;
+    padding: 0;
+    border-radius: 0;
+  }
 
-	.ecp tr {
-		border-bottom: 1px dashed #ccc;
-	}
-	.ecp tr:last-child {
-		border-bottom: 0 none;
-	}
+  .ecp tr {
+    border-bottom: 1px dashed #ccc;
+  }
+  .ecp tr:last-child {
+    border-bottom: 0 none;
+  }
 
-	.post-type-shop_order .wp-list-table td.column-ecommpay_payment_info {
-		display: inline-block !important;
-		padding: 0 1em 1em 1em !important;
-		float:right;
-	}
+  .post-type-shop_order .wp-list-table td.column-ecommpay_payment_info {
+    display: inline-block !important;
+    padding: 0 1em 1em 1em !important;
+    float: right;
+  }
 
-	.wp-list-table tr:not(.inline-edit-row):not(.no-items) td.column-ecommpay_payment_info::before {
-		right: 6ch;
-		width: 100%;
-		left: inherit;
-	}
+  .wp-list-table
+    tr:not(.inline-edit-row):not(.no-items)
+    td.column-ecommpay_payment_info::before {
+    right: 6ch;
+    width: 100%;
+    left: inherit;
+  }
 
-	.order-status {
-		margin: .25em 0;
-	}
+  .order-status {
+    margin: 0.25em 0;
+  }
 
-	.post-type-shop_order .wp-list-table td.column-order_status {
-		display: inline-block !important;
-		padding: 0 1em 0.2em 1em !important;
-	}
+  .post-type-shop_order .wp-list-table td.column-order_status {
+    display: inline-block !important;
+    padding: 0 1em 0.2em 1em !important;
+  }
 }
 
 fieldset.ecp-fieldset legend {
-	font-size: 1.4em;
-	padding: 0 1em;
-	margin: 0 1em;
+  font-size: 1.4em;
+  padding: 0 1em;
+  margin: 0 1em;
 }
 
 #ecommpay-payment-info .inside {
-	margin: 0;
-	padding: 0;
+  margin: 0;
+  padding: 0;
 }
 
 #ecommpay-payment-info .inside ul.order_actions li:last-child {
-	border-bottom: 0;
+  border-bottom: 0;
 }
 
-
 #ecommpay-payment-info .inside ul.order_actions li.ecp-meta-box-header {
-	padding: 5px;
+  padding: 5px;
 }
 
 li.ecp-meta-box-header .ecp-full-width {
-	line-height: 1;
+  line-height: 1;
 }
 .ecp-pm-logo {
-	max-height: 2.2em;
+  max-height: 2.2em;
 }
 
 .ecp-amount {
-	font-size: 146%;
-	line-height: 1.6;
+  font-size: 146%;
+  line-height: 1.6;
 }
 
 .order_actions li .refresh-info {
-	float: right;
+  float: right;
 }
 
 .ecp-payment-status {
-	display: inline-flex;
-	line-height: 2.5em;
-	color: #666;
-	background: #E5E5E5;
-	border-radius: 4px;
-	border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-	margin: -.25em 0;
-	cursor: inherit !important;
-	white-space: nowrap;
-	max-width: 100%;
+  display: inline-flex;
+  line-height: 2.5em;
+  color: #666;
+  background: #e5e5e5;
+  border-radius: 4px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  margin: -0.25em 0;
+  cursor: inherit !important;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .ecp-payment-status.status-awaiting-3ds-result,
 .ecp-payment-status.status-awaiting-redirect-result,
 .ecp-payment-status.status-awaiting-clarification,
 .ecp-payment-status.status-processing {
-
 }
 
 .ecp-payment-status.status-reversed,
 .ecp-payment-status.status-cancelled {
-	color: #999;
-	background: #f2f2f2;
+  color: #999;
+  background: #f2f2f2;
 }
 
 .ecp-payment-status.status-refunded,
 .ecp-payment-status.status-partially-refunded,
 .ecp-payment-status.status-success {
-	 background: #C8D7E1;
-	 color: #2e4453;
+  background: #c8d7e1;
+  color: #2e4453;
 }
 
 .ecp-payment-status.status-awaiting-customer {
-	 background: #f8dda7;
-	 color: #94660c;
+  background: #f8dda7;
+  color: #94660c;
 }
 
 .ecp-payment-status.status-decline,
 .ecp-payment-status.status-decline-renewal,
 .ecp-payment-status.status-error {
-	 background: #eba3a3;
-	 color: #761919;
+  background: #eba3a3;
+  color: #761919;
 }
 
 .ecp-payment-status.status-awaiting-capture {
-	 background: #C6E1C6;
-	 color: #5B841B;
+  background: #c6e1c6;
+  color: #5b841b;
 }
 
 .ecp-payment-status span {
-	margin: 0 1em;
-	overflow: hidden;
-	text-overflow: ellipsis;
+  margin: 0 1em;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .payment-method img {
-	max-height: 16px;
+  max-height: 16px;
 }
 
 .is-test {
-	background: #ebe9a3;
-	color: #78790b;
-	font-weight: bold;
+  background: #ebe9a3;
+  color: #78790b;
+  font-weight: bold;
 }
 
 .order-status .meta:not(:last-child) {
-	margin-bottom: 3px;
+  margin-bottom: 3px;
 }
 
 .payment-method img,
 .ecp-meta-card img {
-	top: 4px;
-	position: relative;
+  top: 4px;
+  position: relative;
 }
 
 .ecp-meta-card img {
-	max-height: 20px;
+  max-height: 20px;
 }
 
 .payment-method img {
-	margin: -1px 3px 0 0 !important;
-	border-radius: 3px;
+  margin: -1px 3px 0 0 !important;
+  border-radius: 3px;
 }
 
 #ecommpay-payment-actions,
 #ecommpay-payment-info {
-	position:relative;
+  position: relative;
 }
 
 #ecommpay-payment-info .left {
-	float:left;
+  float: left;
 }
 
 .order-status.subscription-status.right,
 #ecommpay-payment-info .right {
-	float:right;
+  float: right;
 }
 
 .lds-ecp {
-	display: inline-block;
-	position: relative;
-	padding-top: 50%;
-	padding-left: 50%;
-	margin-top: -1.5em;
-	margin-left: -1em;
+  display: inline-block;
+  position: relative;
+  padding-top: 50%;
+  padding-left: 50%;
+  margin-top: -1.5em;
+  margin-left: -1em;
 }
 .lds-ecp:after {
-	content: " ";
-	display: block;
-	border-radius: 50%;
-	width: 0;
-	height: 0;
-	margin: 0;
-	box-sizing: border-box;
-	border: 1em solid;
-	border-color: #999 transparent #999 transparent;
-	animation: lds-ecp 1.2s infinite;
+  content: " ";
+  display: block;
+  border-radius: 50%;
+  width: 0;
+  height: 0;
+  margin: 0;
+  box-sizing: border-box;
+  border: 1em solid;
+  border-color: #999 transparent #999 transparent;
+  animation: lds-ecp 1.2s infinite;
 }
 
 @keyframes lds-ecp {
-	0% {
-		transform: rotate(0);
-		animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
-	}
-	50% {
-		transform: rotate(900deg);
-		animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
-	}
-	100% {
-		transform: rotate(1800deg);
-	}
+  0% {
+    transform: rotate(0);
+    animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+  }
+  50% {
+    transform: rotate(900deg);
+    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  100% {
+    transform: rotate(1800deg);
+  }
 }
 
 .ecp-full-width,
 .ecp-full-width .button {
-	width: 100%;
-	display: block;
-	clear: both;
-	margin: 0;
+  width: 100%;
+  display: block;
+  clear: both;
+  margin: 0;
 }
 
 .ecp-full-width .button {
-	text-align: center;
+  text-align: center;
 }
 
 .ecp-balance {
-	margin-bottom: 0;
-	height: 20px;
+  margin-bottom: 0;
+  height: 20px;
 }
 
 .ecp-balance + p:not(.ecp-balance) {
-	margin-top: 5px;
+  margin-top: 5px;
 }
 
 .ecp-balance:after {
-	clear: both;
-	content: "";
-	display: table;
+  clear: both;
+  content: "";
+  display: table;
 }
 
 .ecp-balance__label,
 .ecp-balance__amount {
-	background-color: #f9f9f9;
-	box-sizing: border-box;
-	float: left;
-	padding: 7px 10px;
-	text-transform: uppercase;
-	font-size: 10px;
-	color: #8a8a8a;
+  background-color: #f9f9f9;
+  box-sizing: border-box;
+  float: left;
+  padding: 7px 10px;
+  text-transform: uppercase;
+  font-size: 10px;
+  color: #8a8a8a;
 }
 
 .ecp-balance__label {
-	font-weight: bold;
-	width: 60%;
-	border-right: 3px solid #FFF;
+  font-weight: bold;
+  width: 60%;
+  border-right: 3px solid #fff;
 }
 .ecp-balance__amount {
-	border-right: 0;
-	width: 40%;
-	border-left: 3px solid #FFF;
-	display: -webkit-box;  /* OLD - iOS 6-, Safari 3.1-6, BB7 */
-	display: -ms-flexbox;  /* TWEENER - IE 10 */
-	display: -webkit-flex; /* NEW - Safari 6.1+. iOS 7.1+, BB10 */
-	display: flex;         /* NEW, Spec - Firefox, Chrome, Opera */
+  border-right: 0;
+  width: 40%;
+  border-left: 3px solid #fff;
+  display: -webkit-box; /* OLD - iOS 6-, Safari 3.1-6, BB7 */
+  display: -ms-flexbox; /* TWEENER - IE 10 */
+  display: -webkit-flex; /* NEW - Safari 6.1+. iOS 7.1+, BB10 */
+  display: flex; /* NEW, Spec - Firefox, Chrome, Opera */
 }
 
 .ecp-balance__currency {
-	margin-right: 10px;
+  margin-right: 10px;
 }
 
 .ecp-balance.last .ecp-balance__currency {
-	margin-right: 0;
+  margin-right: 0;
 }
 
 #ecp-balance__amount-field {
-	width: 100%;
-	font-size: 10px;
-	margin-top: -5px;
-	top: 3px;
-	position: relative;
-	margin-left: 5px;
-	min-height: auto;
+  width: 100%;
+  font-size: 10px;
+  margin-top: -5px;
+  top: 3px;
+  position: relative;
+  margin-left: 5px;
+  min-height: auto;
 }
-
 
 .button.wc-ecp-debug-button {
-	margin-right: 5px;
+  margin-right: 5px;
 }
 
-@-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
-@-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
-@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+@-moz-keyframes spin {
+  100% {
+    -moz-transform: rotate(360deg);
+  }
+}
+@-webkit-keyframes spin {
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
+}
+@keyframes spin {
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
 
 .woocommerce table.form-table fieldset:first-child {
-	position: relative;
+  position: relative;
 }
 
 .nav-tab img {
-	height: 1em;
+  height: 1em;
 }
 
 .ecp-toggle-switcher {
-	text-decoration: underline;
-	color: #0000cc;
-	cursor: pointer;
+  text-decoration: underline;
+  color: #0000cc;
+  cursor: pointer;
 }
 
 .ecp-toggle {
-	margin: 1em;
+  margin: 1em;
 }
-

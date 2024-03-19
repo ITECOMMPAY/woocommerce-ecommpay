@@ -50,7 +50,21 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
     {
         global $wpdb;
         $payment_id = $info->get_payment()->get_id() ?? $_GET['payment_id'];
-        return $wpdb->get_var( $wpdb->prepare( "SELECT DISTINCT ID FROM $wpdb->posts as posts LEFT JOIN $wpdb->postmeta as meta ON posts.ID = meta.post_id WHERE meta.meta_value = %s AND meta.meta_key = %s", $payment_id, '_payment_id' ) );
+
+        if (ecp_HPOS_enabled()) {
+            $orders = wc_get_orders([
+                'limit' => 1,
+                'meta_query' => [
+                    [
+                        'key' => '_payment_id',
+                        'value' => $payment_id,
+                    ],
+                ],
+            ]);
+            return current($orders) ? current($orders)->get_id() : false;
+        } else {
+            return $wpdb->get_var($wpdb->prepare("SELECT DISTINCT ID FROM $wpdb->posts as posts LEFT JOIN $wpdb->postmeta as meta ON posts.ID = meta.post_id WHERE meta.meta_value = %s AND meta.meta_key = %s", $payment_id, '_payment_id'));
+        }
     }
 
     /**
@@ -59,11 +73,11 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
     public function create_payment_id()
     {
         $test_mode = ecp_is_enabled(Ecp_Gateway_Settings_General::OPTION_TEST);
-        
-        $_payment_id = get_post_meta($this->get_id(), '_payment_id', true);
-        if ($_payment_id!='' & ($_REQUEST['action']!='ecommpay_process')){
+
+        $_payment_id = $this->get_ecp_meta('_payment_id');
+        if ($_payment_id != '' & ($_REQUEST['action'] != 'ecommpay_process')) {
             $id = $_payment_id;
-        } else if (!empty($_REQUEST['payment_id'])) {
+        } else if (!empty ($_REQUEST['payment_id'])) {
             $id = $_REQUEST['payment_id'];
         } else {
             $id = $this->get_id() . '_' . ($this->get_failed_ecommpay_payment_count() + 1);
@@ -89,7 +103,7 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
      */
     private static function remove_order_prefix($orderId, $prefix)
     {
-        return (int)preg_replace(
+        return (int) preg_replace(
             '/^' . $prefix . '&' . preg_quote(wc_get_var($_SERVER['SERVER_NAME'], 'undefined')) . '&/',
             '',
             $orderId
@@ -154,7 +168,7 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
 
     public function get_transaction_order_id($context = 'view')
     {
-        return $this->get_meta('_ecommpay_request_id', true, $context);
+        return $this->get_ecp_meta('_ecommpay_request_id', true, $context);
     }
 
     /**
@@ -165,7 +179,7 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
      */
     public function set_transaction_order_id($transaction_order_id)
     {
-        update_post_meta($this->get_id(), '_ecommpay_request_id', $transaction_order_id);
+        $this->set_ecp_meta('_ecommpay_request_id', $transaction_order_id);
     }
 
     /**
@@ -207,7 +221,7 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
         ecp_get_log()->debug(__('Find order unprocessed refund.', 'woo-ecommpay'));
 
         foreach ($this->get_refunds() as $refund) {
-            if (!$refund->get_transaction_id()) {
+            if (!$refund->get_ecp_transaction_id()) {
                 ecp_get_log()->debug(__('Unprocessed refund found:', 'woo-ecommpay'), $refund->get_id());
                 return $refund;
             }
@@ -229,7 +243,7 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
         ecp_get_log()->debug(__('Request ID:', 'woo-ecommpay'), $request_id);
 
         foreach ($this->get_refunds() as $refund) {
-            if ($request_id === $refund->get_transaction_id()) {
+            if ($request_id === $refund->get_ecp_transaction_id()) {
                 ecp_get_log()->info(__('Refund by request found:', 'woo-ecommpay'), $refund->get_id());
                 return $refund;
             }
@@ -264,7 +278,7 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
         if (ecp_subscription_is_active() && class_exists('WC_Subscriptions_Change_Payment_Gateway')) {
             $is_request_to_change_payment = WC_Subscriptions_Change_Payment_Gateway::$is_request_to_change_payment;
 
-            if (!$is_request_to_change_payment && !empty($_GET['ecommpay_change_payment_method'])) {
+            if (!$is_request_to_change_payment && !empty ($_GET['ecommpay_change_payment_method'])) {
                 $is_request_to_change_payment = true;
             }
         }
@@ -287,9 +301,9 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
      */
     public function get_failed_ecommpay_payment_count()
     {
-        $count = get_post_meta($this->get_id(), self::META_FAILED_PAYMENT_COUNT, true);
+        $count = $this->get_ecp_meta(self::META_FAILED_PAYMENT_COUNT);
 
-        if (!empty($count)) {
+        if (!empty ($count)) {
             ecp_get_log()->debug(__('Count of failed payment attempts:', 'woo-ecommpay'), $count);
             return $count;
         }
@@ -306,8 +320,8 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
      */
     public function increase_failed_ecommpay_payment_count()
     {
-        $count = $this->get_failed_ecommpay_payment_count();
-        update_post_meta($this->get_id(), self::META_FAILED_PAYMENT_COUNT, ++$count);
+        $count = $this->get_failed_ecommpay_payment_count() + 1;
+        $this->set_ecp_meta(self::META_FAILED_PAYMENT_COUNT, $count);
 
         ecp_get_log()->debug(__('Count of failed payment attempts increased:', 'woo-ecommpay'), $count);
         return $count;
@@ -320,9 +334,9 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
      */
     public function get_refund_attempts_count()
     {
-        $count = get_post_meta($this->get_id(), self::META_REFUND_ATTEMPTS_COUNT, true);
+        $count = $this->get_ecp_meta(self::META_REFUND_ATTEMPTS_COUNT);
 
-        if (!empty($count)) {
+        if (!empty ($count)) {
             ecp_get_log()->debug(__('Count of refund attempts:', 'woo-ecommpay'), $count);
             return $count;
         }
@@ -339,8 +353,8 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
      */
     public function increase_refund_attempts_count()
     {
-        $count = $this->get_refund_attempts_count();
-        update_post_meta($this->get_id(), self::META_REFUND_ATTEMPTS_COUNT, ++$count);
+        $count = $this->get_refund_attempts_count() + 1;
+        $this->set_ecp_meta(self::META_REFUND_ATTEMPTS_COUNT, $count);
 
         ecp_get_log()->debug(__('Count of refund attempts increased:', 'woo-ecommpay'), $count);
         return $count;
@@ -353,9 +367,9 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
      */
     public function get_payment_method_change_count()
     {
-        $count = get_post_meta($this->get_id(), self::META_PAYMENT_METHOD_CHANGE_COUNT, true);
+        $count = $this->get_ecp_meta(self::META_PAYMENT_METHOD_CHANGE_COUNT);
 
-        if (!empty($count)) {
+        if (!empty ($count)) {
             return $count;
         }
 
@@ -370,9 +384,8 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
      */
     public function increase_payment_method_change_count()
     {
-        $count = $this->get_payment_method_change_count();
-
-        update_post_meta($this->get_id(), self::META_PAYMENT_METHOD_CHANGE_COUNT, ++$count);
+        $count = $this->get_payment_method_change_count() + 1;
+        $this->set_ecp_meta(self::META_PAYMENT_METHOD_CHANGE_COUNT, $count);
 
         return $count;
     }

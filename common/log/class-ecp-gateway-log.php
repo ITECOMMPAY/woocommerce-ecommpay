@@ -267,7 +267,7 @@ class Ecp_Gateway_Log extends Ecp_Gateway_Registry
             $level,
             $message,
             [
-                'source'  => $this->domain,
+                'source' => $this->domain,
                 '_legacy' => false,
             ]
         );

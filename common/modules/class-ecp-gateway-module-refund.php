@@ -112,9 +112,9 @@ class Ecp_Gateway_Module_Refund extends Ecp_Gateway_Registry
                     sprintf(
                         __('Refund amount (%1$s) is greater than payment balance (%2$s).', 'woo-ecommpay'),
                         ecp_price_multiplied_to_float($amount, $order->get_currency())
-                            . $order->get_currency(),
+                        . $order->get_currency(),
                         $payment->get_info()->get_sum()->get_amount_float()
-                            . $payment->get_info()->get_sum()->get_currency()
+                        . $payment->get_info()->get_sum()->get_currency()
                     )
                 );
             }
@@ -136,8 +136,7 @@ class Ecp_Gateway_Module_Refund extends Ecp_Gateway_Registry
 
             // Adding additional data to the refund object and save it.
             $refund->update_status('initial');
-            $refund->set_transaction_id($payment->get_request_id());
-            $refund->save_meta_data();
+            $refund->update_meta_data('_transaction_id', $payment->get_request_id());
             $refund->save();
 
             ecp_get_log()->debug(__('Refund ID:', 'woo-ecommpay'), $refund->get_id());
@@ -200,7 +199,7 @@ class Ecp_Gateway_Module_Refund extends Ecp_Gateway_Registry
         ecp_get_log()->debug(__('Apply order refund.', 'woo-ecommpay'));
         ecp_get_log()->debug(__('Refund ID:', 'woo-ecommpay'), $refund_id);
 
-        $refund = wc_get_order($refund_id);
+        $refund = ecp_get_order($refund_id);
 
         if (!$refund) {
             throw new Ecp_Gateway_Logic_Exception(__('Cannot processed refund now.', 'woo-ecommpay'));
@@ -217,7 +216,7 @@ class Ecp_Gateway_Module_Refund extends Ecp_Gateway_Registry
 
         ecp_get_log()->debug(
             __('Refund request ID:', 'woo-ecommpay'),
-            get_post_meta($refund->get_id(), '_ecommpay_request_id', true)
+            $refund->get_ecp_meta('_ecommpay_request_id')
         );
         ecp_get_log()->debug(__('Order ID:', 'woo-ecommpay'), $order->get_id());
         ecp_get_log()->debug(__('Payment ID:', 'woo-ecommpay'), $order->get_payment_id());
@@ -279,7 +278,7 @@ class Ecp_Gateway_Module_Refund extends Ecp_Gateway_Registry
             $refund = $order->find_refund_by_request_id($operation->get_request_id());
         } catch (Ecp_Gateway_Exception $e) {
             $e->write_to_logs();
-            die($e->getMessage());
+            die ($e->getMessage());
         }
 
         switch ($callback->get_payment()->get_status()) {
@@ -332,7 +331,7 @@ class Ecp_Gateway_Module_Refund extends Ecp_Gateway_Registry
 
         $order->add_order_note(
             sprintf(
-            /* translators: 1: Refunded sum 2: Payment balance */
+                /* translators: 1: Refunded sum 2: Payment balance */
                 _x('Refunded %1$s. Payment balance: %2$s', 'Refund note', 'woo-ecommpay'),
                 $refund->get_formatted_refund_amount(),
                 $callback->get_payment()->get_sum()->get_formatted()
@@ -359,7 +358,7 @@ class Ecp_Gateway_Module_Refund extends Ecp_Gateway_Registry
      * @param Ecp_Gateway_Order $order
      * @return void
      */
-    private function failed(Ecp_Gateway_Info_Callback$info, Ecp_Gateway_Order $order, Ecp_Gateway_Refund $refund)
+    private function failed(Ecp_Gateway_Info_Callback $info, Ecp_Gateway_Order $order, Ecp_Gateway_Refund $refund)
     {
         ecp_get_log()->debug(__('Write data on completed refund', 'woo-commerce'));
         ecp_get_log()->error(__('Cannot refund order:', 'woo-commerce'), $order->get_id());

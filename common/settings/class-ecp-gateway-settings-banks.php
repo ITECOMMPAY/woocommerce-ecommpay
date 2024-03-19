@@ -91,7 +91,7 @@ class Ecp_Gateway_Settings_Banks extends Ecp_Gateway_Settings
             ],
             [
                 self::FIELD_ID => self::OPTION_DESCRIPTION,
-                self::FIELD_TITLE => _x('Description', 'Settings banks payments','woo-ecommpay'),
+                self::FIELD_TITLE => _x('Description', 'Settings banks payments', 'woo-ecommpay'),
                 self::FIELD_TYPE => self::TYPE_AREA,
                 self::FIELD_TIP => _x(
                     'This controls the description which the user sees during checkout.',

@@ -87,7 +87,7 @@ class Ecp_Gateway_Settings_Card extends Ecp_Gateway_Settings
             ],
             [
                 self::FIELD_ID => self::OPTION_DESCRIPTION,
-                self::FIELD_TITLE => _x('Description', 'Settings card payments','woo-ecommpay'),
+                self::FIELD_TITLE => _x('Description', 'Settings card payments', 'woo-ecommpay'),
                 self::FIELD_TYPE => self::TYPE_AREA,
                 self::FIELD_TIP => _x(
                     'This controls the description which the user sees during checkout',
@@ -113,7 +113,7 @@ class Ecp_Gateway_Settings_Card extends Ecp_Gateway_Settings
             ],
             [
                 self::FIELD_ID => self::OPTION_MODE,
-                self::FIELD_TITLE => _x('Display mode', 'Settings card payments','woo-ecommpay'),
+                self::FIELD_TITLE => _x('Display mode', 'Settings card payments', 'woo-ecommpay'),
                 self::FIELD_TYPE => self::TYPE_DROPDOWN,
                 self::FIELD_TIP => _x(
                     'Payment page display mode',
@@ -123,7 +123,7 @@ class Ecp_Gateway_Settings_Card extends Ecp_Gateway_Settings
                 self::FIELD_OPTIONS => [
                     self::MODE_REDIRECT => _x('Redirect', 'Display mode', 'woo-ecommpay'),
                     self::MODE_POPUP => _x('Popup', 'Display mode', 'woo-ecommpay'),
-//                    self::MODE_IFRAME => _x('iFrame', 'Display mode', 'woo-ecommpay'),
+                        //                    self::MODE_IFRAME => _x('iFrame', 'Display mode', 'woo-ecommpay'),
                     self::MODE_EMBEDDED => _x('Embedded', 'Display mode', 'woo-ecommpay'),
                 ],
                 self::FIELD_DEFAULT => self::MODE_EMBEDDED,
@@ -135,7 +135,8 @@ class Ecp_Gateway_Settings_Card extends Ecp_Gateway_Settings
                 self::FIELD_DESC => _x(
                     'Close popup window on mouse miss click',
                     'Settings card payments',
-                    'woo-ecommpay'),
+                    'woo-ecommpay'
+                ),
                 self::FIELD_DEFAULT => self::NO
             ],
             [

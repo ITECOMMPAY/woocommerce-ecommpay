@@ -62,7 +62,8 @@ class Ecp_Gateway_Blik extends Ecp_Gateway
     public function __construct()
     {
         $this->id = Ecp_Gateway_Settings_Blik::ID;
-        $this->method_title = __('ECOMMPAY', 'woo-ecommpay');
+        $this->method_title = __('ECOMMPAY Blik', 'woo-ecommpay');
+        $this->method_description = __('Accept payments via Blik.', 'woo-ecommpay');
         $this->has_fields = false;
         $this->title = $this->get_option(Ecp_Gateway_Settings::OPTION_TITLE);
         $this->order_button_text = $this->get_option(Ecp_Gateway_Settings::OPTION_CHECKOUT_BUTTON_TEXT);
@@ -74,27 +75,6 @@ class Ecp_Gateway_Blik extends Ecp_Gateway
         }
 
         parent::__construct();
-    }
-
-    /**
-     * @inheritDoc
-     * @override
-     * @return string
-     * @since 3.0.0
-     */
-    public function get_method_description()
-    {
-        $query_string = http_build_query([
-            'page' => 'wc-settings',
-            'tab' => 'checkout',
-            'section' => $this->id,
-            'sub' => 'general'
-        ]);
-
-        $url = esc_url_raw(admin_url( 'admin.php?' . $query_string, dirname( __FILE__ )));
-        $this->method_description = __('Accept payments via Blik.', 'woo-ecommpay')
-            . sprintf(' <a href="%s">%s</a>.', $url, __('General settings'));
-        return parent::get_method_description();
     }
 
     /**
@@ -128,11 +108,12 @@ class Ecp_Gateway_Blik extends Ecp_Gateway
     public function process_payment($order_id)
     {
         $order = ecp_get_order($order_id);
-//        $order->update_status('pending', _x('Awaiting payment', 'Status payment', 'woo-ecommpay'));
+        $options = ecp_payment_page()->get_request_url($order, $this);
+        $payment_page_url = ecp_payment_page()->get_url() . '/payment?' . http_build_query($options);
 
         return [
             'result' => 'success',
-            'redirect' => ecp_payment_page()->get_request_url($order, $this),
+            'redirect' => $payment_page_url,
             'order_id' => $order_id,
         ];
     }
@@ -185,10 +166,11 @@ class Ecp_Gateway_Blik extends Ecp_Gateway
      * @return string DOM element img as a string
      * @since 3.0.0
      */
-    public function get_icon() {
+    public function get_icon()
+    {
         $icon_str = '<img src="' . ecp_img_url(self::PAYMENT_METHOD . '.svg')
             . '" style="max-width: 50px" alt="' . self::PAYMENT_METHOD . '" />';
 
-        return apply_filters('woocommerce_gateway_icon', $icon_str , $this->id);
+        return apply_filters('woocommerce_gateway_icon', $icon_str, $this->id);
     }
 }

@@ -150,22 +150,24 @@ class WC_Gateway_Ecommpay_Module_Subscription extends Ecp_Gateway_Registry
 
         $subscription = new Ecp_Gateway_Subscription($subscription);
 
-        if (!apply_filters(
-            'woocommerce_ecommpay_allow_subscription_transaction_cancellation',
-            true,
-            $subscription,
-            $this
-        )) {
+        if (
+            !apply_filters(
+                'woocommerce_ecommpay_allow_subscription_transaction_cancellation',
+                true,
+                $subscription,
+                $this
+            )
+        ) {
             return;
         }
 
         $order = new Ecp_Gateway_Order($subscription);
-//        $payment = $order->get_payment();
+        //        $payment = $order->get_payment();
 // todo: check status parent_order or last order, if needed
 //        if ($payment->is_action_allowed('cancel')) {
-            $api = new Ecp_Gateway_API_Subscription();
-            $api->cancel($subscription->get_recurring_id(), $order);
-//        }
+        $api = new Ecp_Gateway_API_Subscription();
+        $api->cancel($subscription->get_recurring_id(), $order);
+        //        }
     }
 
     /**
@@ -240,7 +242,7 @@ class WC_Gateway_Ecommpay_Module_Subscription extends Ecp_Gateway_Registry
      */
     public function woocommerce_subscription_validate_payment_meta($payment_meta, $subscription)
     {
-        if (!isset($payment_meta['post_meta'][Ecp_Gateway_Order::META_TRANSACTION_ID]['value'])) {
+        if (!isset ($payment_meta['post_meta'][Ecp_Gateway_Order::META_TRANSACTION_ID]['value'])) {
             return;
         }
 

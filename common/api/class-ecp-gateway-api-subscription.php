@@ -56,10 +56,12 @@ class Ecp_Gateway_API_Subscription extends Ecp_Gateway_API
         ecp_get_log()->debug(__('Payment status:', 'woo-ecommpay'), $order->get_ecp_status());
 
         if (!class_exists('WC_Subscriptions_Order')) {
-            ecp_get_log()->alert(__(
-                'Woocommerce Subscription plugin is not available. Interrupt process.',
-                'woo-ecommpay'
-            ));
+            ecp_get_log()->alert(
+                __(
+                    'Woocommerce Subscription plugin is not available. Interrupt process.',
+                    'woo-ecommpay'
+                )
+            );
             throw new Ecp_Gateway_API_Exception(__('Woocommerce Subscription plugin is not available.', 'woo-ecommpay'));
         }
 
@@ -137,7 +139,7 @@ class Ecp_Gateway_API_Subscription extends Ecp_Gateway_API
         ecp_get_log()->debug(__('Payment status:', 'woo-ecommpay'), $order->get_ecp_status());
 
         return true;
-// todo: get sub_id and send request to cancelled
+        // todo: get sub_id and send request to cancelled
 //        $data = apply_filters('ecp_api_recurring_cancel_form_data', $subscription_id, $order);
 //        $request_url = sprintf('%s/%s/%s',
 //            Ecp_Gateway_Payment_Methods::get_code($order->get_payment_system()),
@@ -175,10 +177,10 @@ class Ecp_Gateway_API_Subscription extends Ecp_Gateway_API
         $data = apply_filters('ecp_api_append_recurring_data', $data, $subscription_id);
         $data = apply_filters('ecp_append_payment_section', $data, $order);
 
-        $ip_address = get_post_meta($order->get_id(), '_customer_ip_address', true);
+        $ip_address = $order->get_ecp_meta('_customer_ip_address');
         $data['customer'] = [
             'id' => (string) $order->get_customer_id(),
-            "ip_address" => $ip_address ? : wc_get_var($_SERVER['REMOTE_ADDR'])
+            "ip_address" => $ip_address ?: wc_get_var($_SERVER['REMOTE_ADDR'])
         ];
 
         return apply_filters('ecp_append_interface_type', $data);
@@ -196,7 +198,8 @@ class Ecp_Gateway_API_Subscription extends Ecp_Gateway_API
     {
         ecp_get_log()->info(__('Create form data for recurring cancel request.', 'woo-ecommpay'));
 
-        return apply_filters('ecp_append_interface_type',
+        return apply_filters(
+            'ecp_append_interface_type',
             $this->create_general_section(
                 apply_filters(
                     'ecp_api_append_recurring_data',

@@ -42,7 +42,7 @@ final class Ecp_Core extends WC_Settings_API
      * @var string
      * @since 2.0.0
      */
-    const WC_ECP_VERSION = '3.3.5';
+    const WC_ECP_VERSION = '3.4.0';
     // endregion
 
     /**
@@ -171,7 +171,7 @@ final class Ecp_Core extends WC_Settings_API
     {
         return ecp_is_enabled(Ecp_Gateway_Settings_General::OPTION_TEST)
             ? self::TEST_PROJECT_ID
-            : (int)ecommpay()->get_general_option(Ecp_Gateway_Settings_General::OPTION_PROJECT_ID);
+            : (int) ecommpay()->get_general_option(Ecp_Gateway_Settings_General::OPTION_PROJECT_ID);
     }
 
     /**
@@ -205,7 +205,7 @@ final class Ecp_Core extends WC_Settings_API
 
     public function settings()
     {
-        if (empty($this->form)) {
+        if (empty ($this->form)) {
             $this->form = Ecp_Form::get_instance();
         }
 
@@ -214,7 +214,7 @@ final class Ecp_Core extends WC_Settings_API
 
     public function get_payment_methods()
     {
-        if (empty($this->methods)) {
+        if (empty ($this->methods)) {
             foreach (self::$classes as $className) {
                 $this->methods[] = new $className();
             }
@@ -230,7 +230,7 @@ final class Ecp_Core extends WC_Settings_API
 
     public function get_option($key, $empty_value = [])
     {
-        if (empty($this->settings)) {
+        if (empty ($this->settings)) {
             $this->init_settings();
         }
 
@@ -252,7 +252,7 @@ final class Ecp_Core extends WC_Settings_API
      */
     public function update_option($key, $value = '')
     {
-        if (empty($this->settings)) {
+        if (empty ($this->settings)) {
             $this->init_settings();
         }
 
@@ -277,9 +277,9 @@ final class Ecp_Core extends WC_Settings_API
         $settings = $this->get_option($payment_method);
 
         // Get option default if unset.
-        if (!isset($settings[$key])) {
+        if (!isset ($settings[$key])) {
             $form_fields = $this->get_form_fields();
-            $settings[$key] = isset($form_fields[$key]) ? $this->get_field_default($form_fields[$key]) : '';
+            $settings[$key] = isset ($form_fields[$key]) ? $this->get_field_default($form_fields[$key]) : '';
         }
 
         return !is_null($default) && '' === $settings[$key]
@@ -344,7 +344,7 @@ final class Ecp_Core extends WC_Settings_API
 
         if (preg_match($regexp, $content, $matches)) {
             $version = trim($matches[1]);
-            $notices = (array)preg_split('~[\r\n]+~', trim($matches[2]));
+            $notices = (array) preg_split('~[\r\n]+~', trim($matches[2]));
 
             if (version_compare(self::WC_ECP_VERSION, $version, '<')) {
 
@@ -352,10 +352,12 @@ final class Ecp_Core extends WC_Settings_API
 
                 foreach ($notices as $line) {
                     /** @noinspection HtmlUnknownTarget */
-                    $upgrade_notice .= wp_kses_post(preg_replace(
+                    $upgrade_notice .= wp_kses_post(
+                        preg_replace(
                             '~\[([^]]*)]\(([^)]*)\)~',
                             '<a href="${2}">${1}</a>',
-                            $line)
+                            $line
+                        )
                     );
                 }
 
