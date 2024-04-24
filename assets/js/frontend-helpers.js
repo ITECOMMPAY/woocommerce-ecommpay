@@ -2,9 +2,7 @@ jQuery(document).ready(function () {
   /**
    * Wrapper available payment methods on checkout page
    */
-  var $paymentMethodsWrapper = document.querySelector(
-    "#order_review.woocommerce-checkout-review-order"
-  )
+  var $paymentMethodsWrapper = document.querySelector("#payment")?.parentElement;
 
   if (!$paymentMethodsWrapper) {
     return

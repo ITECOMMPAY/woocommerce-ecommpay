@@ -394,7 +394,7 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
             $order_id = wc_get_order_id_by_order_key($order_key);
             $order = ecp_get_order($order_id);
             $payment_currency = $order->get_currency();
-            $payment_amount = ecp_price_multiply($order->get_total(), $payment_currency);
+            $payment_amount = ecp_price_multiply($order->get_total(), $order->get_currency());
             $order->set_payment_system(Ecp_Gateway_Operation_Status::AWAITING_CUSTOMER);
         } else {
             $payment_currency = get_woocommerce_currency();
