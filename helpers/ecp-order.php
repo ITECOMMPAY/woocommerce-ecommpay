@@ -86,7 +86,7 @@ function ecp_price_custom_to_multiplied($price, $currency)
 function ecp_price_multiply($price, $currency = null)
 {
     if ($currency && ecp_is_currency_using_decimals($currency)) {
-        return (int) ($price * 100);
+        return (int) (round($price * 100));
     }
 
     return $price;
