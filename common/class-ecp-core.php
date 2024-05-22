@@ -42,7 +42,7 @@ final class Ecp_Core extends WC_Settings_API
      * @var string
      * @since 2.0.0
      */
-    const WC_ECP_VERSION = '3.4.2';
+    const WC_ECP_VERSION = '3.4.3';
     // endregion
 
     /**
@@ -71,6 +71,7 @@ final class Ecp_Core extends WC_Settings_API
         Ecp_Gateway_Googlepay::class,
         Ecp_Gateway_Banks::class,
         Ecp_Gateway_PayPal::class,
+        Ecp_Gateway_PayPal_PayLater::class,
         Ecp_Gateway_Sofort::class,
         Ecp_Gateway_Ideal::class,
         Ecp_Gateway_Klarna::class,
@@ -134,6 +135,7 @@ final class Ecp_Core extends WC_Settings_API
         $this->methods = [
             Ecp_Gateway_Settings_Card::ID => Ecp_Gateway_Card::get_instance(),
             Ecp_Gateway_Settings_PayPal::ID => Ecp_Gateway_PayPal::get_instance(),
+            Ecp_Gateway_Settings_PayPal_PayLater::ID => Ecp_Gateway_PayPal_PayLater::get_instance(),
             Ecp_Gateway_Settings_Klarna::ID => Ecp_Gateway_Klarna::get_instance(),
             Ecp_Gateway_Settings_Sofort::ID => Ecp_Gateway_Sofort::get_instance(),
             Ecp_Gateway_Settings_Blik::ID => Ecp_Gateway_Blik::get_instance(),

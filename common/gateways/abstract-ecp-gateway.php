@@ -42,7 +42,7 @@ abstract class Ecp_Gateway extends WC_Payment_Gateway
      * @param array $values
      * @return array
      */
-    public function apply_payment_args($values, $order)
+    public function apply_payment_args(array $values, Ecp_Gateway_Order $order)
     {
         return $values;
     }

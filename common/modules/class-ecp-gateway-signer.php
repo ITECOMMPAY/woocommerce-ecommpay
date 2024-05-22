@@ -151,7 +151,7 @@ final class Ecp_Gateway_Signer extends Ecp_Gateway_Registry
                 );
             }
 
-            $paramKey = ($prefix ? $prefix . self::KEY_SEPARATOR : self::BLANK) . $key;
+            $paramKey = ($prefix ? $prefix . self::KEY_SEPARATOR : self::BLANK) . str_replace(':', '::', $key);
 
             switch (true) {
                 case is_array($value):

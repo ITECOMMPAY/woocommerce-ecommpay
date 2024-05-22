@@ -85,6 +85,7 @@ require_once __DIR__ . '/settings/abstract-ecp-gateway-settings.php';           
 require_once __DIR__ . '/settings/class-ecp-gateway-settings-general.php';          // General settings
 require_once __DIR__ . '/settings/class-ecp-gateway-settings-card.php';             // Card settings
 require_once __DIR__ . '/settings/class-ecp-gateway-settings-paypal.php';           // PayPal settings
+require_once __DIR__ . '/settings/class-ecp-gateway-settings-paypal-paylater.php';  // PayPal PayLater settings
 require_once __DIR__ . '/settings/class-ecp-gateway-settings-klarna.php';           // Klarna settings
 require_once __DIR__ . '/settings/class-ecp-gateway-settings-giropay.php';          // Giropay settings
 require_once __DIR__ . '/settings/class-ecp-gateway-settings-sofort.php';           // Sofort settings
@@ -109,6 +110,7 @@ require_once __DIR__ . '/class-ecp-core.php';                                   
 require_once __DIR__ . '/gateways/abstract-ecp-gateway.php';                             // Abstract Gateway
 require_once __DIR__ . '/gateways/class-ecp-gateway-card.php';                           // Card Gateway
 require_once __DIR__ . '/gateways/class-ecp-gateway-paypal.php';                         // PayPal Gateway
+require_once __DIR__ . '/gateways/class-ecp-gateway-paypal-paylater.php';                // PayPal PayLater Gateway
 require_once __DIR__ . '/gateways/class-ecp-gateway-klarna.php';                         // Klarna Gateway
 require_once __DIR__ . '/gateways/class-ecp-gateway-giropay.php';                        // Giropay Gateway
 require_once __DIR__ . '/gateways/class-ecp-gateway-sofort.php';                         // Sofort Gateway

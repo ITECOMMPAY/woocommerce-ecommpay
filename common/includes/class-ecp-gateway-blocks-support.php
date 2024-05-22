@@ -10,9 +10,12 @@ class Ecp_Gateway_Blocks_Support extends AbstractPaymentMethodType
 	public function __construct($payment_method, $gateway)
 	{
 		$gateway_class = get_class($gateway);
-		$icon = defined($gateway_class . '::PAYMENT_METHOD')
-			? ecp_img_url(constant($gateway_class . '::PAYMENT_METHOD')) . '.svg'
-			: null;
+		$icon = null;
+		if (defined($gateway_class . '::ICON_NAME')) {
+			$icon = ecp_img_url(constant($gateway_class . '::ICON_NAME')) . '.svg';
+		} elseif (defined($gateway_class . '::PAYMENT_METHOD')) {
+			$icon = ecp_img_url(constant($gateway_class . '::PAYMENT_METHOD')) . '.svg';
+		}
 
 		$this->payment_method = $payment_method;
 		$this->name = sprintf('ecommpay-%s', $this->payment_method);

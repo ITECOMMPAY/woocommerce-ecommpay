@@ -30,6 +30,7 @@ add_action('woocommerce_blocks_loaded', function () {
 					Ecp_Gateway_Settings_Klarna::ID => new Ecp_Gateway_Klarna(),
 					Ecp_Gateway_Settings_More::ID => new Ecp_Gateway_More(),
 					Ecp_Gateway_Settings_PayPal::ID => new Ecp_Gateway_PayPal(),
+					Ecp_Gateway_Settings_PayPal_PayLater::ID => new Ecp_Gateway_PayPal_PayLater(),
 					Ecp_Gateway_Settings_Sofort::ID => new Ecp_Gateway_Sofort(),
 				];
 
