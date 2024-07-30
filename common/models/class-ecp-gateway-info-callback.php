@@ -255,6 +255,37 @@ class Ecp_Gateway_Info_Callback extends Ecp_Gateway_Json
 
     }
 
+    public function get_payment_sum(): ?Ecp_Gateway_Json
+    {
+        $payment = $this->get_payment();
+        return $payment ? $payment->get_sum() : null;
+    }
+
+    public function get_payment_amount_minor(): ?int
+    {
+        $payment_sum = $this->get_payment_sum();
+        return $payment_sum ? $payment_sum->get_amount() : null;
+    }
+
+    public function get_payment_amount(): ?float
+    {
+        $payment_amount_minor = $this->get_payment_amount_minor();
+        $currency = $this->get_payment_currency();
+        if (!$payment_amount_minor || !$currency) {
+            return null;
+        }
+        return ecp_price_multiplied_to_float($payment_amount_minor, $currency);
+    }
+
+    public function get_payment_currency(): ?string
+    {
+        if (!$payment_sum = $this->get_payment_sum()) {
+            return null;
+        }
+        $currency = $payment_sum->get_currency();
+        return $currency ? strtoupper($currency) : null;
+    }
+
     /**
      * @inheritDoc
      */

@@ -248,19 +248,22 @@ class Ecp_Gateway_Callbacks
      */
     private function complete_order(Ecp_Gateway_Info_Callback $callback, Ecp_Gateway_Order $order)
     {
-        $is_amount_equal = (string) $callback['payment']['sum']['amount'] === (string) str_replace('.', '', $order->get_total());
-        $is_currency_equal = $callback['payment']['sum']['currency'] === $order->get_currency();
+        $order_currency = $order->get_currency_uppercase();
+        $payment_currency = $callback->get_payment_currency();
 
-        if ($is_amount_equal && $is_currency_equal) {
-            ecp_get_log()->debug(__('Run success process.', 'woo-ecommpay'), $order->get_id());
-            $order->payment_complete($callback->get_operation()->get_request_id());
-            ecp_get_log()->debug(__('Success process completed.', 'woo-ecommpay'), $order->get_id());
-        } else {
-            $order->add_order_note(
-                __('The payment amount does not match the order amount. The order is on hold.', 'woo-ecommpay')
+        $is_amount_equal = $order->get_total_minor() === $callback->get_payment_amount_minor();
+        $is_currency_equal = $order_currency === $payment_currency;
+
+        ecp_get_log()->debug(__('Run success process.', 'woo-ecommpay'), $order->get_id());
+        $order->payment_complete($callback->get_operation()->get_request_id());
+        ecp_get_log()->debug(__('Success process completed.', 'woo-ecommpay'), $order->get_id());
+
+        if (!$is_amount_equal || !$is_currency_equal) {
+            $message = sprintf(
+                'The payment amount does not match the order amount. The order has %s %s. The payment has %s %s', 
+                $order->get_total(), $order_currency, $callback->get_payment_amount(), $payment_currency
             );
-            $this->hold_order($callback, $order);
-            return;
+            $order->add_order_note(__($message, 'woo-ecommpay'));
         }
     }
 

@@ -198,4 +198,14 @@ trait ECP_Gateway_Order_Extension
 
         return $meta;
     }
+
+    public function get_currency_uppercase(): string
+    {
+        return strtoupper($this->get_currency());
+    }
+
+    public function get_total_minor(): int
+    {
+        return ecp_price_multiply($this->get_total(), $this->get_currency());
+    }
 }
