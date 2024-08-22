@@ -42,7 +42,7 @@ final class Ecp_Core extends WC_Settings_API
      * @var string
      * @since 2.0.0
      */
-    const WC_ECP_VERSION = '3.4.4';
+    const WC_ECP_VERSION = '3.4.5';
     // endregion
 
     /**

@@ -483,7 +483,7 @@ class Ecp_Form extends Ecp_Gateway_Registry
                     Ecp_Gateway_Settings_General::ID
                 );
 
-                if (wc_get_post_data_by_key($post_key, null) === null && empty ($setting_key)) {
+                if (filter_input(INPUT_POST, $post_key, FILTER_SANITIZE_STRING) === null && empty ($setting_key)) {
                     $error_fields[] = $mandatory_field_label;
                 }
             }
