@@ -610,4 +610,12 @@ class Ecp_Gateway_Order extends \Automattic\WooCommerce\Admin\Overrides\Order
 
         return in_array($state, $allowed_states[$action]);
     }
+
+    public function needs_processing()
+    {
+        if (ecp_is_enabled(Ecp_Gateway_Settings_General::OPTION_AUTO_COMPETE_ORDER)) {
+            return false;
+        }
+        return parent::needs_processing();
+    }
 }

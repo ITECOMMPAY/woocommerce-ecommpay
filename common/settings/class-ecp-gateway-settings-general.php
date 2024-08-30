@@ -22,6 +22,7 @@ class Ecp_Gateway_Settings_General extends Ecp_Gateway_Settings
     const OPTION_LANGUAGE = 'language';
     const OPTION_LOG_LEVEL = 'log_level';
     const OPTION_TRANSACTION_INFO = 'orders_transaction_info';
+    const OPTION_AUTO_COMPETE_ORDER = 'complete_order';
     const OPTION_CUSTOM_VARIABLES = 'custom_variables';
 
     // ECOMMPAY Custom variables data
@@ -243,6 +244,22 @@ class Ecp_Gateway_Settings_General extends Ecp_Gateway_Settings
                     'woo-ecommpay'
                 ),
                 self::FIELD_DEFAULT => self::YES,
+            ],
+            [
+                self::FIELD_ID => self::OPTION_AUTO_COMPETE_ORDER,
+                self::FIELD_TITLE => _x('Сomplete order automatically', 'Settings shop admin setup', 'woo-ecommpay'),
+                self::FIELD_TYPE => self::TYPE_CHECKBOX,
+                self::FIELD_DESC => _x(
+                    'Enable',
+                    'Settings shop admin setup',
+                    'woo-ecommpay'
+                ),
+                self::FIELD_TIP => _x(
+                    'Automatically complete the order in case of successful payment. Otherwise, the order will be in the Processing status.',
+                    'Settings shop admin setup',
+                    'woo-ecommpay'
+                ),
+                self::FIELD_DEFAULT => self::NO,
             ],
             [
                 self::FIELD_ID => self::ADMIN_OPTIONS,
