@@ -1,6 +1,6 @@
 <?php
 
-defined('ABSPATH') || exit;
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Ecp_Gateway_Recurring_Status class
@@ -11,69 +11,41 @@ defined('ABSPATH') || exit;
  * @category Class
  * @internal
  */
-class Ecp_Gateway_Recurring_Status
-{
-    /**
-     * COF-purchase is active
-     */
-    const ACTIVE = 'active';
+class Ecp_Gateway_Recurring_Status {
+	/**
+	 * COF-purchase is active
+	 */
+	const ACTIVE = 'active';
 
-    /**
-     * COF-purchase is cancelled
-     */
-    const CANCELLED = 'cancelled';
+	/**
+	 * COF-purchase is cancelled
+	 */
+	const CANCELLED = 'cancelled';
 
-    private static $names;
-    private static $codes;
+	private static $names;
 
-    public static function get_status_code($status)
-    {
-        return array_key_exists($status, self::get_status_codes())
-            ? self::get_status_codes()[$status]
-            : 'undefined';
-    }
+	private static function compile_codes(): array {
+		$data = [];
 
-    public static function get_status_name($status)
-    {
-        return array_key_exists($status, self::get_status_names())
-            ? self::get_status_names()[$status]
-            : 'Undefined';
-    }
+		foreach ( self::get_status_names() as $key => $value ) {
+			$data[ $key ] = str_replace( ' ', '-', $key );
+		}
 
-    public static function get_status_names()
-    {
-        if (!self::$names) {
-            self::$names = self::compile_names();
-        }
+		return $data;
+	}
 
-        return self::$names;
-    }
+	public static function get_status_names(): array {
+		if ( ! self::$names ) {
+			self::$names = self::compile_names();
+		}
 
-    public static function get_status_codes()
-    {
-        if (!self::$codes) {
-            self::$codes = self::compile_codes();
-        }
+		return self::$names;
+	}
 
-        return self::$codes;
-    }
-
-    private static function compile_names()
-    {
-        return [
-            self::ACTIVE => _x('Active', 'Recurring status', 'woo-ecommpay'),
-            self::CANCELLED => _x('Cancelled', 'Recurring status', 'woo-ecommpay'),
-        ];
-    }
-
-    private static function compile_codes()
-    {
-        $data = [];
-
-        foreach (self::get_status_names() as $key => $value) {
-            $data[$key] = str_replace(' ', '-', $key);
-        }
-
-        return $data;
-    }
+	private static function compile_names(): array {
+		return [
+			self::ACTIVE    => _x( 'Active', 'Recurring status', 'woo-ecommpay' ),
+			self::CANCELLED => _x( 'Cancelled', 'Recurring status', 'woo-ecommpay' ),
+		];
+	}
 }

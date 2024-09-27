@@ -5,8 +5,7 @@ add_action('before_woocommerce_init', function () {
 	if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
 		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
 			'cart_checkout_blocks',
-			ECP_PLUGIN_PATH,
-			true
+			ECP_PLUGIN_PATH
 		);
 	}
 });
@@ -23,6 +22,8 @@ add_action('woocommerce_blocks_loaded', function () {
 					Ecp_Gateway_Settings_Banks::ID => new Ecp_Gateway_Banks(),
 					Ecp_Gateway_Settings_Blik::ID => new Ecp_Gateway_Blik(),
 					Ecp_Gateway_Settings_Brazil_Online_Banks::ID => new Ecp_Gateway_Brazil_Online_Banks(),
+					Ecp_Gateway_Settings_DirectDebit_BACS::ID => new Ecp_Gateway_DirectDebit_BACS(),
+					Ecp_Gateway_Settings_DirectDebit_SEPA::ID => new Ecp_Gateway_DirectDebit_SEPA(),
 					Ecp_Gateway_Settings_Card::ID => new Ecp_Gateway_Card(),
 					Ecp_Gateway_Settings_Giropay::ID => new Ecp_Gateway_Giropay(),
 					Ecp_Gateway_Settings_Googlepay::ID => new Ecp_Gateway_Googlepay(),

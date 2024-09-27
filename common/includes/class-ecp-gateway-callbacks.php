@@ -19,14 +19,14 @@ class Ecp_Gateway_Callbacks
      * @var string[]
      * @since 2.0.0
      */
-    private $operations = [
+	private array $operations = [
         Ecp_Gateway_Operation_Type::SALE => 'woocommerce_ecommpay_callback_sale',
         Ecp_Gateway_Operation_Type::REFUND => 'woocommerce_ecommpay_callback_refund',
         Ecp_Gateway_Operation_Type::REVERSAL => 'woocommerce_ecommpay_callback_reversal',
         Ecp_Gateway_Operation_Type::RECURRING => 'woocommerce_ecommpay_callback_recurring',
         Ecp_Gateway_Operation_Type::ACCOUNT_VERIFICATION => 'woocommerce_ecommpay_callback_verify',
-        Ecp_Gateway_Operation_Type::RECURRING_CANCEL => 'woocommerce_ecommpay_callback_recurring_cancel',
         Ecp_Gateway_Operation_Type::PAYMENT_CONFIRMATION => 'woocommerce_ecommpay_callback_payment_confirmation',
+        Ecp_Gateway_Operation_Type::CONTRACT_REGISTRATION => 'woocommerce_ecommpay_callback_contract_registration'
     ];
 
     /**
@@ -43,6 +43,7 @@ class Ecp_Gateway_Callbacks
         add_action('woocommerce_ecommpay_callback_recurring', [$this, 'recurring'], 10, 2);
         add_action('woocommerce_ecommpay_callback_verify', [$this, 'verify'], 10, 2);
         add_action('woocommerce_ecommpay_callback_payment_confirmation', [$this, 'confirm'], 10, 2);
+        add_action('woocommerce_ecommpay_callback_contract_registration', [$this, 'contractRegistration'], 10, 2);
 
         // Decode the body into JSON
         $info = new Ecp_Gateway_Info_Callback($data);
@@ -176,6 +177,25 @@ class Ecp_Gateway_Callbacks
         $this->process($callback, $order);
     }
 
+    /**
+    * @param Ecp_Gateway_Info_Callback $callback
+    * @param Ecp_Gateway_Order $order
+     *
+    * @throws WC_Data_Exception
+    */
+	public function contractRegistration( Ecp_Gateway_Info_Callback $callback, Ecp_Gateway_Order $order ): void
+    {
+        ecp_get_log()->info(__('Apply contract confirmation callback data.', 'woo-ecommpay'));
+        $this->log_order_data($order);
+        $this->update_subscription($order, $callback);
+
+	    if ( $callback->get_payment()->get_sum()->get_amount() === 0 ) {
+		    $this->update_payment( $order, $callback );
+		    $order->set_payment_system( $callback->get_payment()->get_method() );
+		    $this->process( $callback, $order );
+	    }
+    }
+
     private function log_order_data(Ecp_Gateway_Order $order)
     {
         ecp_get_log()->debug(__('Order ID:', 'woo-ecommpay'), $order->get_id());
@@ -200,7 +220,9 @@ class Ecp_Gateway_Callbacks
                 break;
             case Ecp_Gateway_Operation_Status::EXTERNAL_PROCESSING:
                 break;
-            default:
+	        case Ecp_Gateway_Operation_Status::AWAITING_FINALIZATION:
+		        $order->add_order_note( __( 'Direct debit request has been submitted successfully. Activation may take some time to complete.', 'woo-ecommpay' ) );
+	        default:
                 $this->processOperation($callback, $order);
                 break;
         }
@@ -316,7 +338,7 @@ class Ecp_Gateway_Callbacks
     private function get_order($info)
     {
         // Fetch order number;
-        $order_number = Ecp_Gateway_Order::get_order_id_from_callback($info, Ecp_Core::CMS_PREFIX);
+	    $order_number = Ecp_Gateway_Order::get_order_id_from_callback( $info );
         $order = ecp_get_order($order_number);
 
         if (!$order) {
@@ -367,28 +389,30 @@ class Ecp_Gateway_Callbacks
      */
     private function update_subscription($order, $callback)
     {
-        if ($order->contains_subscription()) {
-            ecp_get_log()->debug(__('Order has subscriptions', 'woo-ecommpay'));
-            $subscriptions = $order->get_subscriptions();
+        if (!$order->contains_subscription()) {
+            return;
+        }
 
-            if (count($subscriptions) <= 0) {
-                return;
-            }
+        if (!$callback->try_get_recurring($recurring)) {
+            ecp_get_log()->warning(
+                __('No recurring information found in callback data. The Subscription cannot be renewed.', 'woo-ecommpay')
+            );
+            return;
+        }
 
-            if (!$callback->try_get_recurring($recurring)) {
-                ecp_get_log()->critical(
-                    __('No recurring information found in callback data. The Subscription cannot be renewed.', 'woo-ecommpay')
-                );
-                return;
-            }
+        ecp_get_log()->debug(__('Order has subscriptions', 'woo-ecommpay'));
+        $subscriptions = $order->get_subscriptions();
 
-            ecp_get_log()->debug(__('Recurring ID:', 'woo-ecommpay'), $recurring->get_id());
+        if ($subscriptions === null) {
+            return;
+        }
 
-            foreach ($subscriptions as $subscription) {
-                ecp_get_log()->debug(__('Subscription ID:', 'woo-ecommpay'), $subscription->get_id());
-                $subscription->set_recurring_id($callback->get_recurring()->get_id());
-                $subscription->save();
-            }
+        ecp_get_log()->debug(__('Recurring ID:', 'woo-ecommpay'), $recurring->get_id());
+
+        foreach ($subscriptions as $subscription) {
+            ecp_get_log()->debug(__('Subscription ID:', 'woo-ecommpay'), $subscription->get_id());
+            $subscription->set_recurring_id($callback->get_recurring()->get_id());
+            $subscription->save();
         }
     }
 }

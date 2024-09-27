@@ -31,34 +31,34 @@ class Ecp_Form extends Ecp_Gateway_Registry
      */
     protected function init()
     {
-        add_filter('ecp_field_normalisation', [$this, 'normalize_field'], 10, 1);
+	    add_filter( 'ecp_field_normalisation', [ $this, 'normalize_field' ] );
 
-        add_action('ecp_html_render_field_section_start', [$this, 'render_fieldset_start'], 10, 1);
-        add_action('ecp_html_render_field_section_end', [$this, 'render_fieldset_end'], 10, 1);
-        add_action('ecp_html_render_field_toggle_start', [$this, 'render_toggle_start'], 10, 1);
-        add_action('ecp_html_render_field_toggle_end', [$this, 'render_toggle_end'], 10, 1);
-        add_action('ecp_html_render_field_text', [$this, 'render_field_input'], 10, 1);
-        add_action('ecp_html_render_field_password', [$this, 'render_field_input'], 10, 1);
-        add_action('ecp_html_render_field_datetime', [$this, 'render_field_input'], 10, 1);
-        add_action('ecp_html_render_field_datetime-local', [$this, 'render_field_input'], 10, 1);
-        add_action('ecp_html_render_field_date', [$this, 'render_field_input'], 10, 1);
-        add_action('ecp_html_render_field_month', [$this, 'render_field_input'], 10, 1);
-        add_action('ecp_html_render_field_time', [$this, 'render_field_input'], 10, 1);
-        add_action('ecp_html_render_field_week', [$this, 'render_field_input'], 10, 1);
-        add_action('ecp_html_render_field_number', [$this, 'render_field_input'], 10, 1);
-        add_action('ecp_html_render_field_email', [$this, 'render_field_input'], 10, 1);
-        add_action('ecp_html_render_field_url', [$this, 'render_field_input'], 10, 1);
-        add_action('ecp_html_render_field_tel', [$this, 'render_field_input'], 10, 1);
-        add_action('ecp_html_render_field_color', [$this, 'render_field_color'], 10, 1);
-        add_action('ecp_html_render_field_textarea', [$this, 'render_field_text'], 10, 1);
-        add_action('ecp_html_render_field_select', [$this, 'render_field_select'], 10, 1);
-        add_action('ecp_html_render_field_multiselect', [$this, 'render_field_select'], 10, 1);
-        add_action('ecp_html_render_field_radio', [$this, 'render_field_radio'], 10, 1);
-        add_action('ecp_html_render_field_checkbox', [$this, 'render_field_checkbox'], 10, 1);
-        add_action('ecp_html_render_field_single_select_page', [$this, 'render_field_single_select_page'], 10, 1);
-        add_action('ecp_html_render_field_single_select_country', [$this, 'render_field_single_select_country'], 10, 1);
-        add_action('ecp_html_render_field_multi_select_country', [$this, 'render_field_multi_select_country'], 10, 1);
-        add_action('ecp_html_render_field_relative_date_selector', [$this, 'render_field_relative_date_selector'], 10, 1);
+	    add_action( 'ecp_html_render_field_section_start', [ $this, 'render_fieldset_start' ] );
+	    add_action( 'ecp_html_render_field_section_end', [ $this, 'render_fieldset_end' ] );
+	    add_action( 'ecp_html_render_field_toggle_start', [ $this, 'render_toggle_start' ] );
+	    add_action( 'ecp_html_render_field_toggle_end', [ $this, 'render_toggle_end' ] );
+	    add_action( 'ecp_html_render_field_text', [ $this, 'render_field_input' ] );
+	    add_action( 'ecp_html_render_field_password', [ $this, 'render_field_input' ] );
+	    add_action( 'ecp_html_render_field_datetime', [ $this, 'render_field_input' ] );
+	    add_action( 'ecp_html_render_field_datetime-local', [ $this, 'render_field_input' ] );
+	    add_action( 'ecp_html_render_field_date', [ $this, 'render_field_input' ] );
+	    add_action( 'ecp_html_render_field_month', [ $this, 'render_field_input' ] );
+	    add_action( 'ecp_html_render_field_time', [ $this, 'render_field_input' ] );
+	    add_action( 'ecp_html_render_field_week', [ $this, 'render_field_input' ] );
+	    add_action( 'ecp_html_render_field_number', [ $this, 'render_field_input' ] );
+	    add_action( 'ecp_html_render_field_email', [ $this, 'render_field_input' ] );
+	    add_action( 'ecp_html_render_field_url', [ $this, 'render_field_input' ] );
+	    add_action( 'ecp_html_render_field_tel', [ $this, 'render_field_input' ] );
+	    add_action( 'ecp_html_render_field_color', [ $this, 'render_field_color' ] );
+	    add_action( 'ecp_html_render_field_textarea', [ $this, 'render_field_text' ] );
+	    add_action( 'ecp_html_render_field_select', [ $this, 'render_field_select' ] );
+	    add_action( 'ecp_html_render_field_multiselect', [ $this, 'render_field_select' ] );
+	    add_action( 'ecp_html_render_field_radio', [ $this, 'render_field_radio' ] );
+	    add_action( 'ecp_html_render_field_checkbox', [ $this, 'render_field_checkbox' ] );
+	    add_action( 'ecp_html_render_field_single_select_page', [ $this, 'render_field_single_select_page' ] );
+	    add_action( 'ecp_html_render_field_single_select_country', [ $this, 'render_field_single_select_country' ] );
+	    add_action( 'ecp_html_render_field_multi_select_country', [ $this, 'render_field_multi_select_country' ] );
+	    add_action( 'ecp_html_render_field_relative_date_selector', [ $this, 'render_field_relative_date_selector' ] );
         add_action('admin_notices', [$this, 'admin_notice_settings']);
 
         if (empty ($this->tabs)) {
@@ -67,6 +67,8 @@ class Ecp_Form extends Ecp_Gateway_Registry
                 new Ecp_Gateway_Settings_Card(),
                 new Ecp_Gateway_Settings_Applepay(),
                 new Ecp_Gateway_Settings_Googlepay(),
+                new Ecp_Gateway_Settings_DirectDebit_BACS(),
+                new Ecp_Gateway_Settings_DirectDebit_SEPA(),
                 new Ecp_Gateway_Settings_Banks(),
                 new Ecp_Gateway_Settings_PayPal(),
                 new Ecp_Gateway_Settings_PayPal_PayLater(),
@@ -117,7 +119,7 @@ class Ecp_Form extends Ecp_Gateway_Registry
     public function output($tab = null)
     {
         $current_tab = $this->get_section();
-        $suffix = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '' : ''; //'.min';
+	    $suffix = '';
 
         do_action('ecp_settings_start');
 
@@ -474,22 +476,20 @@ class Ecp_Form extends Ecp_Gateway_Registry
             Ecp_Gateway_Settings_General::OPTION_SECRET_KEY => __('Secret key', 'woo-ecommpay')
         ];
 
-        if (!ecp_is_enabled(Ecp_Gateway_Settings_General::OPTION_TEST)) {
-            // Check mandatory parameters
-            foreach ($mandatory_fields as $mandatory_field_setting => $mandatory_field_label) {
-                $post_key = 'woocommerce_ecommpay_' . $mandatory_field_setting;
-                $setting_key = $this->get_option(
-                    ['id' => $mandatory_field_setting],
-                    Ecp_Gateway_Settings_General::ID
-                );
+	    // Check mandatory parameters
+	    foreach ( $mandatory_fields as $mandatory_field_setting => $mandatory_field_label ) {
+		    $post_key    = 'woocommerce_ecommpay_' . $mandatory_field_setting;
+		    $setting_key = $this->get_option(
+			    [ 'id' => $mandatory_field_setting ],
+			    Ecp_Gateway_Settings_General::ID
+		    );
 
-                if (filter_input(INPUT_POST, $post_key, FILTER_SANITIZE_STRING) === null && empty ($setting_key)) {
-                    $error_fields[] = $mandatory_field_label;
-                }
+		    if ( filter_input( INPUT_POST, $post_key ) === null && empty( $setting_key ) ) {
+			    $error_fields[] = $mandatory_field_label;
             }
         }
 
-        if (!empty ($error_fields)) {
+	    if ( ! empty ( $error_fields ) ) {
             ecp_get_view('html-notice-settings.php', ['errors' => $error_fields]);
         }
     }

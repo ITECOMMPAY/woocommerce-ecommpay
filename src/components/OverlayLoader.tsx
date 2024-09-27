@@ -1,9 +1,15 @@
-import { useEffect, useMemo } from "@wordpress/element"
+import {useEffect, useMemo} from "@wordpress/element"
 import useDelayUnmount from "../hooks/useDelayUnmount"
 import Loader from "./Loader"
 
 interface IProps {
   show: boolean
+}
+
+declare global {
+  interface Window {
+    ECP: any;
+  }
 }
 
 const ANIMATION_DURATION = 300

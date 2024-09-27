@@ -1,7 +1,7 @@
 <?php
 
-if (!defined('ABSPATH')) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
 /**
@@ -12,215 +12,186 @@ if (!defined('ABSPATH')) {
  * @package  Ecp_Gateway/Gateways
  * @category Class
  */
-class Ecp_Gateway_Applepay extends Ecp_Gateway
-{
-    const PAYMENT_METHOD = 'apple_pay_core';
+class Ecp_Gateway_Applepay extends Ecp_Gateway {
+	protected const PAYMENT_METHOD = 'apple_pay_core';
+	
+	/**
+	 * @inheritDoc
+	 * @override
+	 * @var string[]
+	 * @since 3.0.1
+	 */
+	public $supports = [
+		self::SUPPORT_PRODUCTS,
+		self::SUPPORT_REFUNDS,
+		self::SUPPORT_SUBSCRIPTIONS,
+		self::SUPPORT_SUBSCRIPTION_CANCELLATION,
+		self::SUPPORT_SUBSCRIPTION_REACTIVATION,
+		self::SUPPORT_SUBSCRIPTION_SUSPENSION,
+		self::SUPPORT_SUBSCRIPTION_AMOUNT_CHANGES,
+		self::SUPPORT_SUBSCRIPTION_DATE_CHANGES,
+		self::SUPPORT_MULTIPLE_SUBSCRIPTIONS,
+	];
 
-    // region Properties
-    /**
-     * @inheritDoc
-     * @override
-     * @var string[]
-     * @since 3.0.1
-     */
-    public $supports = [
-        'products',
-        'refunds',
-        'subscriptions',
-        'subscription_cancellation',
-        'subscription_reactivation',
-        'subscription_suspension',
-        'subscription_amount_changes',
-        'subscription_date_changes',
-        'multiple_subscriptions',
-    ];
 
-    /**
-     * <h2>Instance of ECOMMPAY Apple Pay Gateway.</h2>
-     *
-     * @var Ecp_Gateway
-     * @since 3.0.1
-     */
-    private static $_instance;
+	/**
+	 * <h2>ECOMMPAY Apple Pay Gateway constructor.</h2>
+	 */
+	public function __construct() {
+		$this->id                 = Ecp_Gateway_Settings_Applepay::ID;
+		$this->method_title       = __( 'ECOMMPAY ApplePay', 'woo-ecommpay' );
+		$this->method_description = __( 'Accept payments via ApplePay.', 'woo-ecommpay' );
+		$this->has_fields         = false;
+		$this->title              = $this->get_option( Ecp_Gateway_Settings::OPTION_TITLE );
+		$this->order_button_text  = $this->get_option( Ecp_Gateway_Settings::OPTION_CHECKOUT_BUTTON_TEXT );
+		$this->enabled            = $this->get_option( Ecp_Gateway_Settings::OPTION_ENABLED );
+		$this->icon               = $this->get_icon();
 
-    // endregion
+		if ( $this->is_enabled( Ecp_Gateway_Settings::OPTION_SHOW_DESCRIPTION ) ) {
+			$this->description = $this->get_option( Ecp_Gateway_Settings::OPTION_DESCRIPTION );
+		}
 
-    // region Static methods
+		parent::__construct();
 
-    /**
-     * <h2>Returns a new instance of self, if it does not already exist.</h2>
-     *
-     * @return static
-     * @since 3.0.1
-     */
-    public static function get_instance()
-    {
-        if (null === self::$_instance) {
-            self::$_instance = new self();
-        }
+		$this->init_subscription();
+	}
 
-        return self::$_instance;
-    }
-    // endregion
+	private function init_subscription() {
+		// WooCommerce Subscriptions hooks/filters
+		if ( ! ecp_subscription_is_active() ) {
+			return;
+		}
 
-    /**
-     * <h2>ECOMMPAY Apple Pay Gateway constructor.</h2>
-     */
-    public function __construct()
-    {
-        $this->id = Ecp_Gateway_Settings_Applepay::ID;
-        $this->method_title = __('ECOMMPAY ApplePay', 'woo-ecommpay');
-        $this->method_description = __('Accept payments via ApplePay.', 'woo-ecommpay');
-        $this->has_fields = false;
-        $this->title = $this->get_option(Ecp_Gateway_Settings::OPTION_TITLE);
-        $this->order_button_text = $this->get_option(Ecp_Gateway_Settings::OPTION_CHECKOUT_BUTTON_TEXT);
-        $this->enabled = $this->get_option(Ecp_Gateway_Settings::OPTION_ENABLED);
-        $this->icon = $this->get_icon();
+		// On scheduled subscription
+		add_action(
+			'woocommerce_scheduled_subscription_payment_' . $this->id,
+			[ WC_Gateway_Ecommpay_Module_Subscription::get_instance(), 'scheduled_subscription_payment' ],
+			10,
+			2
+		);
 
-        if ($this->is_enabled(Ecp_Gateway_Settings::OPTION_SHOW_DESCRIPTION)) {
-            $this->description = $this->get_option(Ecp_Gateway_Settings::OPTION_DESCRIPTION);
-        }
+		// On cancelled subscription
+		add_action(
+			'woocommerce_subscription_cancelled_' . $this->id,
+			[ WC_Gateway_Ecommpay_Module_Subscription::get_instance(), 'subscription_cancellation' ]
+		);
 
-        parent::__construct();
+		// On updated subscription
+		add_action(
+			'woocommerce_subscription_payment_method_updated_to_' . $this->id,
+			[
+				WC_Gateway_Ecommpay_Module_Subscription::get_instance(),
+				'on_subscription_payment_method_updated_to_ecommpay'
+			],
+			10,
+			2
+		);
 
-        $this->init_subscription();
-    }
+		add_action(
+			'woocommerce_subscription_validate_payment_meta_' . $this->id,
+			[
+				WC_Gateway_Ecommpay_Module_Subscription::get_instance(),
+				'woocommerce_subscription_validate_payment_meta'
+			],
+			10,
+			2
+		);
+	}
 
-    /**
-     * @inheritDoc
-     * @override
-     * @return array
-     * @since 3.0.1
-     */
-    public function apply_payment_args($values, $order)
-    {
-        $amount = ecp_price_multiply($order->get_total(), $order->get_currency());
+	/**
+	 * <h2>Returns a new instance of self, if it does not already exist.</h2>
+	 *
+	 * @return static
+	 * @since 3.0.1
+	 */
+	public static function get_instance() {
+		if ( null === self::$_instance ) {
+			self::$_instance = new self();
+		}
 
-        $values = apply_filters('ecp_append_operation_mode', $values, $amount > 0 ? 'purchase' : 'card_verify');
-        $values = apply_filters('ecp_append_force_mode', $values, self::PAYMENT_METHOD);
-        $values = apply_filters('ecp_append_recurring', $values, $order);
+		return self::$_instance;
+	}
 
-        return parent::apply_payment_args($values, $order);
-    }
+	/**
+	 * @inheritDoc
+	 * @override
+	 * @return array
+	 * @since 3.0.1
+	 */
+	public function apply_payment_args( $values, $order ): array {
+		$amount = ecp_price_multiply( $order->get_total(), $order->get_currency() );
 
-    /**
-     * @return string
-     * @since 3.0.1
-     */
-    public function get_refund_endpoint($order)
-    {
-        return Ecp_Gateway_Payment_Methods::get_code($order);
-    }
+		$values = apply_filters( 'ecp_append_operation_mode', $values, $amount > 0 ? self::MODE_PURCHASE : self::MODE_CARD_VERIFY  );
+		$values = apply_filters( 'ecp_append_force_mode', $values, self::PAYMENT_METHOD );
+		$values = apply_filters( 'ecp_append_recurring', $values, $order );
 
-    /**
-     * @inheritDoc
-     * @override
-     * @return array <p>Settings for redirecting to the ECOMMPAY payment page.</p>
-     * @since 3.0.1
-     */
-    public function process_payment($order_id)
-    {
-        $order = ecp_get_order($order_id);
-        $options = ecp_payment_page()->get_request_url($order, $this);
-        $payment_page_url = ecp_payment_page()->get_url() . '/payment?' . http_build_query($options);
+		return parent::apply_payment_args( $values, $order );
+	}
 
-        return [
-            'result' => 'success',
-            'redirect' => $payment_page_url,
-            'order_id' => $order_id,
-        ];
-    }
+	/**
+	 * @param $order
+	 *
+	 * @return string
+	 * @since 3.0.1
+	 */
+	public function get_refund_endpoint( $order ): string {
+		return Ecp_Gateway_Payment_Methods::get_code( $order );
+	}
 
-    /**
-     * @inheritDoc
-     * @override
-     * @return bool <p><b>TRUE</b> on process completed successfully, <b>FALSE</b> otherwise.</p>
-     * @throws Ecp_Gateway_API_Exception
-     * @throws Ecp_Gateway_Logic_Exception
-     * @throws WC_Data_Exception
-     * @since 3.0.1
-     */
-    public function process_refund($order_id, $amount = null, $reason = '')
-    {
-        return Ecp_Gateway_Module_Refund::get_instance()->process($order_id, $amount, $reason);
-    }
+	/**
+	 * @inheritDoc
+	 * @override
+	 * @return array <p>Settings for redirecting to the ECOMMPAY payment page.</p>
+	 * @since 3.0.1
+	 */
+	public function process_payment( $order_id ): array {
+		$order            = ecp_get_order( $order_id );
+		$options          = ecp_payment_page()->get_request_url( $order, $this );
+		$payment_page_url = ecp_payment_page()->get_url() . '/payment?' . http_build_query( $options );
 
-    /**
-     * @inheritDoc
-     * <p>If false, the automatic refund button is hidden in the UI.</p>
-     *
-     * @param WC_Order $order <p>Order object.</p>
-     * @override
-     * @return bool <p><b>TRUE</b> if a refund available for the order, or <b>FALSE</b> otherwise.</p>
-     * @since 3.0.1
-     */
-    public function can_refund_order($order)
-    {
-        if (!$order) {
-            ecp_get_log()->debug(
-                _x('Undefined argument order. Hide refund via ECOMMPAY button.', 'Log information', 'woo-ecommpay')
-            );
-            return false;
-        }
+		return [
+			'result' => self::PROCESS_RESULT_SUCCESS,
+			'redirect' => $payment_page_url,
+			'order_id' => $order_id,
+		];
+	}
 
-        $order = ecp_get_order($order);
+	/**
+	 * @inheritDoc
+	 * @override
+	 * @return bool <p><b>TRUE</b> on process completed successfully, <b>FALSE</b> otherwise.</p>
+	 * @since 3.0.1
+	 */
+	public function process_refund( $order_id, $amount = null, $reason = '' ): bool {
+		return Ecp_Gateway_Module_Refund::get_instance()->process( $order_id, $amount, $reason );
+	}
 
-        // Check if there is a ECOMMPAY payment
-        if (!$order->is_ecp()) {
-            return false;
-        }
+	/**
+	 * @inheritDoc
+	 * <p>If false, the automatic refund button is hidden in the UI.</p>
+	 *
+	 * @param WC_Order $order <p>Order object.</p>
+	 *
+	 * @override
+	 * @return bool <p><b>TRUE</b> if a refund available for the order, or <b>FALSE</b> otherwise.</p>
+	 * @since 3.0.1
+	 */
+	public function can_refund_order( $order ): bool {
+		if ( ! $order ) {
+			ecp_get_log()->debug(
+				_x( 'Undefined argument order. Hide refund via ECOMMPAY button.', 'Log information', 'woo-ecommpay' )
+			);
 
-        return Ecp_Gateway_Module_Refund::get_instance()->is_available($order);
-    }
+			return false;
+		}
 
-    private function init_subscription()
-    {
-        // WooCommerce Subscriptions hooks/filters
-        if (!ecp_subscription_is_active()) {
-            return;
-        }
+		$order = ecp_get_order( $order );
 
-        // On scheduled subscription
-        add_action(
-            'woocommerce_scheduled_subscription_payment_' . $this->id,
-            [WC_Gateway_Ecommpay_Module_Subscription::get_instance(), 'scheduled_subscription_payment'],
-            10,
-            2
-        );
+		// Check if there is a ECOMMPAY payment
+		if ( ! $order->is_ecp() ) {
+			return false;
+		}
 
-        // On cancelled subscription
-        add_action(
-            'woocommerce_subscription_cancelled_' . $this->id,
-            [WC_Gateway_Ecommpay_Module_Subscription::get_instance(), 'subscription_cancellation']
-        );
-
-        // On updated subscription
-        add_action(
-            'woocommerce_subscription_payment_method_updated_to_' . $this->id,
-            [WC_Gateway_Ecommpay_Module_Subscription::get_instance(), 'on_subscription_payment_method_updated_to_ecommpay'],
-            10,
-            2
-        );
-
-        add_action(
-            'woocommerce_subscription_validate_payment_meta_' . $this->id,
-            [WC_Gateway_Ecommpay_Module_Subscription::get_instance(), 'woocommerce_subscription_validate_payment_meta'],
-            10,
-            2
-        );
-    }
-
-    /**
-     * @inheritDoc
-     * @override
-     * @return string DOM element img as a string
-     * @since 3.0.1
-     */
-    public function get_icon()
-    {
-        $icon_str = '<img src="' . ecp_img_url(self::PAYMENT_METHOD . '.svg')
-            . '" style="max-width: 50px" alt="' . self::PAYMENT_METHOD . '" />';
-
-        return apply_filters('woocommerce_gateway_icon', $icon_str, $this->id);
-    }
+		return Ecp_Gateway_Module_Refund::get_instance()->is_available( $order );
+	}
 }

@@ -92,17 +92,20 @@ function ecp_img_url($file_name)
 /**
  * Returns the link to the gateway settings page.
  *
+ * @param string $sub
+ *
  * @return string
  */
-function ecp_settings_page_url($sub = Ecp_Gateway_Settings_General::ID)
-{
+function ecp_settings_page_url( string $sub = Ecp_Gateway_Settings_General::ID ): string {
     if ($sub !== Ecp_Gateway_Settings_General::ID) {
         return admin_url('admin.php?page=wc-settings&tab=checkout&section=' . esc_attr($sub));
     }
 
-    foreach (ecp_payment_methods() as $method) {
-        return admin_url('admin.php?page=wc-settings&tab=checkout&section=' . $method->id . '&sub=general');
+    foreach (ecp_payment_methods() as $id => $method) {
+        return admin_url('admin.php?page=wc-settings&tab=checkout&section=' . $id . '&sub=general');
     }
+
+	return admin_url( 'admin.php?page=wc-settings&tab=checkout' );
 }
 
 /**
@@ -129,14 +132,27 @@ function ecp_error_code_link($code)
  */
 function ecp_admin_link()
 {
-    $log_path = wc_get_log_file_path(Ecp_Gateway_Log::ECOMMPAY_DOMAIN);
-    $log_path_parts = explode('/', $log_path);
+	wc_get_logger();
+	$source    = Ecp_Gateway_Log::ECOMMPAY_DOMAIN;
+	$handler   = new WC_Log_Handler_File();
+	$log_files = $handler->get_log_files();
+	$log_file  = '';
+	foreach ( $log_files as $file_name => $file_path ) {
+		if ( str_contains( $file_name, $source ) ) {
+			$log_file = $file_name;
+			break;
+		}
+	}
 
-    return add_query_arg([
-        'page' => 'wc-status',
-        'tab' => 'logs',
-        'log_file' => end($log_path_parts)
-    ], admin_url('admin.php'));
+	if ( empty( $log_file ) ) {
+		return '';
+	}
+
+	return add_query_arg( [
+		'page'     => 'wc-status',
+		'tab'      => 'logs',
+		'log_file' => $log_file
+	], admin_url( 'admin.php' ) );
 }
 
 /**
@@ -211,7 +227,7 @@ function ecp_payment_classnames()
  */
 function ecp_has_available_methods()
 {
-    foreach (ecp_payment_methods() as $method) {
+    foreach (ecp_payment_methods() as $id => $method) {
         if ($method->enabled) {
             return true;
         }
@@ -290,8 +306,7 @@ function get_ecp_payment_method_icon($payment_type)
  * Returns ECOMMPAY Logger
  * @return Ecp_Gateway_Log
  */
-function ecp_get_log()
-{
+function ecp_get_log(): Ecp_Gateway_Log {
     return Ecp_Gateway_Log::get_instance();
 }
 
@@ -300,8 +315,7 @@ function ecp_get_log()
  *
  * @return Ecp_Gateway_Signer
  */
-function ecp_get_signer()
-{
+function ecp_get_signer(): Ecp_Gateway_Signer {
     return Ecp_Gateway_Signer::get_instance();
 }
 
@@ -330,7 +344,7 @@ function ecp_sign_request_data(array &$data)
  * {@see Ecp_Gateway_Signer::VALUE_SEPARATOR} symbol.
  * </p>
  */
-function ecp_check_signature($data)
+function ecp_check_signature(array $data)
 {
     return ecp_get_signer()->check($data);
 }

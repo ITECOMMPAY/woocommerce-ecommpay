@@ -12,9 +12,9 @@ defined('ABSPATH') || exit;
  */
 class Ecp_Gateway_Info_Callback extends Ecp_Gateway_Json
 {
-    // region Constants
 
-    /**
+
+	/**
      * Label for payment instrument information.
      */
     const FIELD_ACCOUNT = 'account';
@@ -74,9 +74,8 @@ class Ecp_Gateway_Info_Callback extends Ecp_Gateway_Json
      */
     const FIELD_REDIRECT_DATA = 'redirect_data';
 
-    // endregion
 
-    /**
+	/**
      * Callback information constructor.
      *
      * @param array $data [optional] <p>JSON-data as array.</p>
@@ -96,10 +95,9 @@ class Ecp_Gateway_Info_Callback extends Ecp_Gateway_Json
     /**
      * <h2>Returns the payment instrument information.</h2>
      *
-     * @return ?Ecp_Gateway_Info_Account
+     * @return ?Ecp_Gateway_Json
      */
-    public function get_account()
-    {
+	public function get_account(): ?Ecp_Gateway_Json {
         if ($this->try_get_json($account, self::FIELD_ACCOUNT)) {
             return $account;
         }
@@ -110,10 +108,9 @@ class Ecp_Gateway_Info_Callback extends Ecp_Gateway_Json
     /**
      * <h2>Returns the 3-D Secure data information.</h2>
      *
-     * @return ?Ecp_Gateway_Info_ACS
+     * @return ?Ecp_Gateway_Json
      */
-    public function get_acs()
-    {
+	public function get_acs(): ?Ecp_Gateway_Json {
         if ($this->try_get_json($acs, self::FIELD_ACS)) {
             return $acs;
         }
@@ -124,10 +121,9 @@ class Ecp_Gateway_Info_Callback extends Ecp_Gateway_Json
     /**
      * <h2>Returns the customer information.</h2>
      *
-     * @return ?Ecp_Gateway_Info_Customer
+     * @return ?Ecp_Gateway_Json
      */
-    public function get_customer()
-    {
+	public function get_customer(): ?Ecp_Gateway_Json {
         if ($this->try_get_json($customer, self::FIELD_CUSTOMER)) {
             return $customer;
         }
@@ -140,8 +136,7 @@ class Ecp_Gateway_Info_Callback extends Ecp_Gateway_Json
      *
      * @return ?string
      */
-    public function get_decision()
-    {
+	public function get_decision(): ?string {
         if ($this->try_get_string($decision, self::FIELD_DECISION)) {
             return $decision;
         }
@@ -154,8 +149,7 @@ class Ecp_Gateway_Info_Callback extends Ecp_Gateway_Json
      *
      * @return string[]
      */
-    public function get_decision_message()
-    {
+	public function get_decision_message(): array {
         $this->try_get_array($messages, self::FIELD_DECISION_MESSAGE);
         return $messages;
     }
@@ -165,8 +159,7 @@ class Ecp_Gateway_Info_Callback extends Ecp_Gateway_Json
      *
      * @return Ecp_Gateway_Info_Error[]
      */
-    public function get_errors()
-    {
+	public function get_errors(): array {
         $this->try_get_array($errors, self::FIELD_ERRORS);
         return $errors;
     }
@@ -175,8 +168,7 @@ class Ecp_Gateway_Info_Callback extends Ecp_Gateway_Json
      * <h2>Returns the operation information.</h2>
      * @return Ecp_Gateway_Info_Operation
      */
-    public function get_operation()
-    {
+	public function get_operation(): ?Ecp_Gateway_Json {
         if ($this->try_get_json($operation, self::FIELD_OPERATION)) {
             return $operation;
         }
@@ -189,8 +181,7 @@ class Ecp_Gateway_Info_Callback extends Ecp_Gateway_Json
      *
      * @return Ecp_Gateway_Info_Payment
      */
-    public function get_payment()
-    {
+	public function get_payment(): Ecp_Gateway_Json {
         $this->try_get_json($payment, self::FIELD_PAYMENT);
         return $payment;
     }
@@ -200,8 +191,7 @@ class Ecp_Gateway_Info_Callback extends Ecp_Gateway_Json
      *
      * @return int
      */
-    public function get_project_id()
-    {
+	public function get_project_id(): int {
         $this->try_get_int($id, self::FIELD_PROJECT_ID);
         return $id;
     }
@@ -212,8 +202,7 @@ class Ecp_Gateway_Info_Callback extends Ecp_Gateway_Json
      *
      * @return ?array
      */
-    public function get_provider_extra_fields()
-    {
+	public function get_provider_extra_fields(): ?array {
         if ($this->try_get_array($extra_data, self::FIELD_PROVIDER_EXTRA_FIELDS)) {
             return $extra_data;
         }
@@ -226,9 +215,8 @@ class Ecp_Gateway_Info_Callback extends Ecp_Gateway_Json
      *
      * @return ?Ecp_Gateway_Info_Recurring
      */
-    public function get_recurring()
-    {
-        if ($this->try_get_recurring($recurring, self::FIELD_RECURRING)) {
+	public function get_recurring(): ?Ecp_Gateway_Info_Recurring {
+		if ( $this->try_get_recurring( $recurring ) ) {
             return $recurring;
         }
 
@@ -284,6 +272,23 @@ class Ecp_Gateway_Info_Callback extends Ecp_Gateway_Json
         }
         $currency = $payment_sum->get_currency();
         return $currency ? strtoupper($currency) : null;
+    }
+
+    public function get_operation_sum_initial_amount(): ?float
+    {
+        if (!$operation = $this->get_operation()) {
+            return null;
+        }
+        if (!$sum_initial = $operation->get_sum_initial()) {
+            return null;
+        }
+        if (!$amount_minor = $sum_initial->get_amount()) {
+            return null;
+        }
+        if (!$currency = $sum_initial->get_currency()) {
+            return null;
+        }
+        return ecp_price_multiplied_to_float($amount_minor, $currency);
     }
 
     /**

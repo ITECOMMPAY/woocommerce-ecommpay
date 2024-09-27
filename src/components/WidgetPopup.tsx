@@ -1,9 +1,18 @@
-import { useCallback, useEffect } from "@wordpress/element"
+import {useCallback, useEffect} from "@wordpress/element"
 import useBack from "../hooks/useBack"
-import { PaymentMethodInterface } from "../woocommerce-types"
+import {PaymentMethodInterface} from "../woocommerce-types"
+
 
 interface IProps extends PaymentMethodInterface {
   children: React.ReactNode
+}
+
+declare global {
+    interface Window {
+        ECP: any;
+        jQuery: any;
+        EPayWidget: any;
+    }
 }
 
 function WidgetPopup(props: IProps) {

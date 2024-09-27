@@ -1,9 +1,9 @@
 === ECOMMPAY Payments ===
 Contributors: ECOMMPAY
 Tags: card payments, apple pay, google pay, open banking, subscriptions, paypal, sofort, ideal, klarna, giropay, payment gateway, woocommerce
-Requires at least: 4.0.0
-Tested up to: 6.4
-Stable tag: 3.4.6
+Requires at least: 6.2
+Tested up to: 6.6
+Stable tag: 3.5.0
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -61,6 +61,9 @@ General:
 3. If WooCommerce Subscriptions is used, the required minimum version is >= 2.0
 
 == Changelog ==
+= 3.5.0 =
+* Feature: Compatible with refunds via Ecommpay Dashboard
+
 = 3.4.0 =
 * Dev: Compatible with WooCommerce 8.3.0 - 8.6.1
 * Feature: Compatible with WooCommerce Block-based Checkout Page

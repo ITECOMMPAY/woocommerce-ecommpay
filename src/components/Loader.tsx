@@ -1,4 +1,6 @@
+// @ts-ignore
 import loader from "../../assets/img/loader.svg"
+// @ts-ignore
 import loaderDark from "../../assets/img/loader_dark.svg"
 
 interface IProps {

@@ -10,7 +10,7 @@
 ?>
 
 <ul class="order_action">
-    <?php if (isset ($status) && !empty ($status)): ?>
+	<?php if ( ! empty ( $status ) ): ?>
         <li class="wide ecp-meta-box-header">
             <p class="ecp-full-width">
                 <img class="ecp-pm-logo" src="<?php echo esc_url_raw($logo); ?>" alt="" title="" />
@@ -42,7 +42,7 @@
                 <?php echo esc_html($recurring_id); ?>
             </small>
         </p>
-        <?php if (isset ($transaction_order_id) && !empty ($transaction_order_id)): ?>
+	    <?php if ( ! empty ( $transaction_order_id ) ): ?>
             <p class="ecp-full-width">
                 <small>
                     <strong>

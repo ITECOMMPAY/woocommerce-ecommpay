@@ -76,11 +76,6 @@ trait ECP_Gateway_Order_Extension
         return (bool) $this->get_ecp_meta('_ecommpay_payment_test');
     }
 
-    public function set_is_test()
-    {
-        $this->set_ecp_meta('_ecommpay_payment_test', 1);
-    }
-
     /**
      * @param string $context
      *
@@ -155,12 +150,11 @@ trait ECP_Gateway_Order_Extension
      *
      * @return bool
      */
-    public function is_ecp()
-    {
+	public function is_ecp(): bool {
         $pm = $this->get_ecp_meta('_payment_method');
 
-        foreach (ecp_payment_methods() as $method) {
-            if ($pm === $method->id) {
+        foreach (ecp_payment_methods() as $id => $method) {
+            if ($pm === $id) {
                 return true;
             }
         }
@@ -174,21 +168,25 @@ trait ECP_Gateway_Order_Extension
      * @param string $key
      * @param mixed $value
      * @param bool $unique
+     *
      * @return void
      */
-    public function set_ecp_meta($key, $value, $unique = true)
+	public function set_ecp_meta( string $key, $value, bool $unique = true )
     {
         $this->add_meta_data($key, $value, $unique);
         $this->save_meta_data();
     }
 
-    /**
-     * Returns meta data by key.
-     *
-     * @return string
-     */
-    public function get_ecp_meta($key, $single = true, $context = 'view')
-    {
+	/**
+	 * Returns meta data by key.
+	 *
+	 * @param $key
+	 * @param bool $single
+	 * @param string $context
+	 *
+	 * @return string
+	 */
+	public function get_ecp_meta( $key, bool $single = true, string $context = 'view' ): string {
         $meta = $this->get_meta($key, $single, $context);
 
         // For compatibility with older versions of ECOMMPAY plugin.

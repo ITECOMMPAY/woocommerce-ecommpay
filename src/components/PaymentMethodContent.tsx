@@ -1,6 +1,6 @@
-import { useMemo } from "@wordpress/element"
-import { decodeEntities } from "@wordpress/html-entities"
-import type { PaymentMethodInterface } from "../woocommerce-types"
+import {useMemo} from "@wordpress/element"
+import {decodeEntities} from "@wordpress/html-entities"
+import type {PaymentMethodInterface} from "../woocommerce-types"
 import WidgetEmbedded from "./WidgetEmbedded"
 import WidgetPopup from "./WidgetPopup"
 
@@ -10,10 +10,10 @@ function PaymentMethodContent(props: PaymentMethodInterface & { data: any }) {
     [props.data.description]
   )
 
-  const content = useMemo(() => {
+  return useMemo(() => {
     if (
-      props.data.pp_mode === "embedded" &&
-      props.activePaymentMethod === "ecommpay-card"
+        props.data.pp_mode === "embedded" &&
+        props.activePaymentMethod === "ecommpay-card"
     ) {
       return <WidgetEmbedded {...props} />
     }
@@ -24,8 +24,6 @@ function PaymentMethodContent(props: PaymentMethodInterface & { data: any }) {
 
     return description
   }, [props])
-
-  return content
 }
 
 export default PaymentMethodContent

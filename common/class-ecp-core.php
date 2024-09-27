@@ -2,23 +2,6 @@
 
 final class Ecp_Core extends WC_Settings_API
 {
-    // region Constants
-    /**
-     * <h2>Test project identifier.</h2>
-     *
-     * @var int
-     * @since 2.0.0
-     */
-    const TEST_PROJECT_ID = 112;
-
-    /**
-     * <h2>Secret key for the test project.</h2>
-     *
-     * @var string
-     * @since 2.0.0
-     */
-    const TEST_PROJECT_KEY = 'kHRhsQHHhOUHeD+rt4kgH7OZiwE=';
-
     /**
      * <h2>Global prefix for internal actions.</h2>
      *
@@ -42,10 +25,10 @@ final class Ecp_Core extends WC_Settings_API
      * @var string
      * @since 2.0.0
      */
-    const WC_ECP_VERSION = '3.4.6';
-    // endregion
+    const WC_ECP_VERSION = '3.5.0';
 
-    /**
+
+	/**
      * @var ?Ecp_Core
      */
     private static $instance;
@@ -58,17 +41,19 @@ final class Ecp_Core extends WC_Settings_API
     /**
      * @var ?Ecp_Gateway[]
      */
-    private $methods;
+	private ?array $methods;
 
     /**
      * @var string
      */
     public $id = 'ecommpay';
 
-    private static $classes = [
+	private static array $classes = [
         Ecp_Gateway_Card::class,
         Ecp_Gateway_Applepay::class,
         Ecp_Gateway_Googlepay::class,
+        Ecp_Gateway_DirectDebit_BACS::class,
+        Ecp_Gateway_DirectDebit_SEPA::class,
         Ecp_Gateway_Banks::class,
         Ecp_Gateway_PayPal::class,
         Ecp_Gateway_PayPal_PayLater::class,
@@ -81,24 +66,21 @@ final class Ecp_Core extends WC_Settings_API
         Ecp_Gateway_More::class,
     ];
 
-    // region Static methods
 
-    /**
+	/**
      * <h2>Adds action links inside the plugin overview.</h2>
      *
      * @return array <p>Action link list.</p>
      * @since 2.0.0
      */
-    public static function add_action_links($links)
-    {
+	public static function add_action_links( $links ): array {
         return array_merge([
             '<a href="' . ecp_settings_page_url() . '">' . __('Settings', 'woo-ecommpay') . '</a>',
         ], $links);
     }
-    // endregion
 
-    public static function get_instance()
-    {
+
+	public static function get_instance(): ?Ecp_Core {
         if (!self::$instance) {
             self::$instance = new Ecp_Core();
         }
@@ -132,21 +114,7 @@ final class Ecp_Core extends WC_Settings_API
         Ecp_Gateway_Module_Refund::get_instance();
         Ecp_Gateway_API_Protocol::get_instance();
 
-        $this->methods = [
-            Ecp_Gateway_Settings_Card::ID => Ecp_Gateway_Card::get_instance(),
-            Ecp_Gateway_Settings_PayPal::ID => Ecp_Gateway_PayPal::get_instance(),
-            Ecp_Gateway_Settings_PayPal_PayLater::ID => Ecp_Gateway_PayPal_PayLater::get_instance(),
-            Ecp_Gateway_Settings_Klarna::ID => Ecp_Gateway_Klarna::get_instance(),
-            Ecp_Gateway_Settings_Sofort::ID => Ecp_Gateway_Sofort::get_instance(),
-            Ecp_Gateway_Settings_Blik::ID => Ecp_Gateway_Blik::get_instance(),
-            Ecp_Gateway_Settings_Ideal::ID => Ecp_Gateway_Ideal::get_instance(),
-            Ecp_Gateway_Settings_Banks::ID => Ecp_Gateway_Banks::get_instance(),
-            Ecp_Gateway_Settings_Giropay::ID => Ecp_Gateway_Giropay::get_instance(),
-            Ecp_Gateway_Settings_Brazil_Online_Banks::ID => Ecp_Gateway_Brazil_Online_Banks::get_instance(),
-            Ecp_Gateway_Settings_Googlepay::ID => Ecp_Gateway_Googlepay::get_instance(),
-            Ecp_Gateway_Settings_Applepay::ID => Ecp_Gateway_Applepay::get_instance(),
-            Ecp_Gateway_Settings_More::ID => Ecp_Gateway_More::get_instance(),
-        ];
+        $this->set_payment_methods();
 
         if (ecp_subscription_is_active()) {
             WC_Gateway_Ecommpay_Module_Subscription::get_instance();
@@ -162,6 +130,26 @@ final class Ecp_Core extends WC_Settings_API
         );
     }
 
+    private function set_payment_methods(): void
+    {
+        $this->methods = [
+            Ecp_Gateway_Settings_Card::ID => Ecp_Gateway_Card::get_instance(),
+            Ecp_Gateway_Settings_PayPal::ID => Ecp_Gateway_PayPal::get_instance(),
+            Ecp_Gateway_Settings_PayPal_PayLater::ID => Ecp_Gateway_PayPal_PayLater::get_instance(),
+            Ecp_Gateway_Settings_Klarna::ID => Ecp_Gateway_Klarna::get_instance(),
+            Ecp_Gateway_Settings_Sofort::ID => Ecp_Gateway_Sofort::get_instance(),
+            Ecp_Gateway_Settings_Blik::ID => Ecp_Gateway_Blik::get_instance(),
+            Ecp_Gateway_Settings_Ideal::ID => Ecp_Gateway_Ideal::get_instance(),
+            Ecp_Gateway_Settings_Banks::ID => Ecp_Gateway_Banks::get_instance(),
+            Ecp_Gateway_Settings_Giropay::ID => Ecp_Gateway_Giropay::get_instance(),
+            Ecp_Gateway_Settings_Brazil_Online_Banks::ID => Ecp_Gateway_Brazil_Online_Banks::get_instance(),
+            Ecp_Gateway_Settings_Googlepay::ID => Ecp_Gateway_Googlepay::get_instance(),
+            Ecp_Gateway_Settings_Applepay::ID => Ecp_Gateway_Applepay::get_instance(),
+            Ecp_Gateway_Settings_DirectDebit_BACS::ID => Ecp_Gateway_DirectDebit_BACS::get_instance(),
+            Ecp_Gateway_Settings_DirectDebit_SEPA::ID => Ecp_Gateway_DirectDebit_SEPA::get_instance(),
+            Ecp_Gateway_Settings_More::ID => Ecp_Gateway_More::get_instance(),
+        ];
+    }
 
     /**
      * <h2>Returns the merchant project identifier.</h2>
@@ -169,11 +157,8 @@ final class Ecp_Core extends WC_Settings_API
      * @return int
      * @since 3.0.0
      */
-    public function get_project_id()
-    {
-        return ecp_is_enabled(Ecp_Gateway_Settings_General::OPTION_TEST)
-            ? self::TEST_PROJECT_ID
-            : (int) ecommpay()->get_general_option(Ecp_Gateway_Settings_General::OPTION_PROJECT_ID);
+	public function get_project_id(): int {
+		return (int) ecommpay()->get_general_option( Ecp_Gateway_Settings_General::OPTION_PROJECT_ID );
     }
 
     /**
@@ -217,11 +202,8 @@ final class Ecp_Core extends WC_Settings_API
     public function get_payment_methods()
     {
         if (empty ($this->methods)) {
-            foreach (self::$classes as $className) {
-                $this->methods[] = new $className();
-            }
+            $this->set_payment_methods();
         }
-
         return $this->methods;
     }
 
@@ -267,8 +249,7 @@ final class Ecp_Core extends WC_Settings_API
         );
     }
 
-    public function update_pm_option($payment_method, $key, $value = '')
-    {
+	public function update_pm_option( $payment_method, $key, $value = '' ): bool {
         $settings = $this->get_option($payment_method);
         $settings[$key] = $value;
         return $this->update_option($payment_method, $settings);
@@ -300,8 +281,7 @@ final class Ecp_Core extends WC_Settings_API
      * @return string
      * @since 3.0.0
      */
-    public function get_option_key()
-    {
+	public function get_option_key(): string {
         return $this->plugin_id . $this->id . '_settings';
     }
 
@@ -327,9 +307,8 @@ final class Ecp_Core extends WC_Settings_API
         }
     }
 
-    // region Private methods
 
-    /**
+	/**
      * <h2>Parse update notice from readme file.</h2>
      *
      * @param string $content
@@ -385,5 +364,5 @@ final class Ecp_Core extends WC_Settings_API
         );
     }
 
-    // endregion
+
 }

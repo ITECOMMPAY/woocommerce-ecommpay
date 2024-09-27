@@ -1,15 +1,7 @@
 jQuery(document).ready(function () {
-  let test_mode = document.getElementById("test")
   let show_description = document.getElementById("show_description")
   let pp_mode = document.getElementById("pp_mode")
   let toggle = jQuery(".ecp-toggle-switcher")
-
-  if (test_mode !== null) {
-    toggleTest(test_mode.checked)
-    test_mode.addEventListener("change", function (e) {
-      toggleTest(e.target.checked)
-    })
-  }
 
   if (show_description !== null) {
     toggleDesc(show_description.checked)
@@ -23,16 +15,6 @@ jQuery(document).ready(function () {
     pp_mode.addEventListener("change", function (e) {
       toggleMissClick(e.target.value)
     })
-  }
-
-  function toggleTest(checked) {
-    if (checked) {
-      jQuery("#project_id").parents("tr").hide()
-      jQuery("#salt").parents("tr").hide()
-    } else {
-      jQuery("#salt").parents("tr").show()
-      jQuery("#project_id").parents("tr").show()
-    }
   }
 
   function toggleDesc(checked) {

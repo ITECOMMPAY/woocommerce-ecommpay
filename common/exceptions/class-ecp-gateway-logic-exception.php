@@ -1,6 +1,6 @@
 <?php
 
-defined('ABSPATH') || exit;
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Ecp_Gateway_Logic_Exception class
@@ -10,16 +10,14 @@ defined('ABSPATH') || exit;
  * @package Ecp_Gateway/Exceptions
  * @category Class
  */
-class Ecp_Gateway_Logic_Exception extends Ecp_Gateway_Exception
-{
+class Ecp_Gateway_Logic_Exception extends Ecp_Gateway_Exception {
 
-    protected function prepare_message()
-    {
-        return [
-            [
-                $this->get_base_message(),
-                WC_Log_Levels::ERROR
-            ]
-        ];
-    }
+	protected function prepare_message(): array {
+		return [
+			[
+				$this->get_base_message(),
+				WC_Log_Levels::ERROR
+			]
+		];
+	}
 }
