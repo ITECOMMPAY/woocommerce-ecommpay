@@ -1,11 +1,19 @@
-import { useCallback, useEffect } from "@wordpress/element"
-import { useDebouncedCallback } from "use-debounce"
+import {useCallback, useEffect} from "@wordpress/element"
+import {useDebouncedCallback} from "use-debounce"
 import getFieldsForGateway from "../helpers/getFieldsForGateway"
 import scrollToSelector from "../helpers/scrollToSelector"
 import useBack from "../hooks/useBack"
 import useBoolean from "../hooks/useBoolean"
-import { PaymentMethodInterface } from "../woocommerce-types"
+import {PaymentMethodInterface} from "../woocommerce-types"
 import OverlayLoader from "./OverlayLoader"
+
+declare global {
+  interface Window {
+    ECP: any;
+    jQuery: any;
+    EPayWidget: any
+  }
+}
 
 function WidgetEmbedded(props: PaymentMethodInterface) {
   const {
@@ -18,7 +26,11 @@ function WidgetEmbedded(props: PaymentMethodInterface) {
   const { value: isWidgetLoading, setFalse: setWidgetLoaded } = useBoolean(true)
   const { back } = useBack()
 
-  const onEmbeddedModeRedirect3dsParentPage = useCallback((data) => {
+  const onEmbeddedModeRedirect3dsParentPage = useCallback((data: {
+    method: string;
+    url: string;
+    body: { [x: string]: string }
+  }) => {
     const form = document.createElement("form")
     form.setAttribute("method", data.method)
     form.setAttribute("action", data.url)
@@ -34,7 +46,7 @@ function WidgetEmbedded(props: PaymentMethodInterface) {
     form.submit()
   }, [])
 
-  const onMessage = useCallback((event) => {
+  const onMessage = useCallback((event: { origin: any; data: string }) => {
     if (event.origin !== window.ECP.origin_url) {
       return
     }
@@ -69,7 +81,7 @@ function WidgetEmbedded(props: PaymentMethodInterface) {
             message: "Clarification required",
           })
         },
-        onEmbeddedModeCheckValidationResponse: (response) => {
+        onEmbeddedModeCheckValidationResponse: (response: { data: { [s: string]: unknown } | ArrayLike<unknown> }) => {
           scrollToSelector(
             '[for="radio-control-wc-payment-method-options-ecommpay-card"]'
           )
@@ -147,7 +159,7 @@ function WidgetEmbedded(props: PaymentMethodInterface) {
       url: window.ECP.ajax_url + "?" + window.location.href.split("?")[1],
       data,
       dataType: "json",
-      success: function (paramsForEmbeddedPP) {
+      success: function (paramsForEmbeddedPP: any) {
         window.ECP = {
           ...window.ECP,
           isEmbeddedMode: true,
@@ -165,7 +177,7 @@ function WidgetEmbedded(props: PaymentMethodInterface) {
 
         window.EPayWidget.run(window.ECP.paramsForEmbeddedPP, "POST")
       },
-      error: function (jqXHR, textStatus, errorThrown) {
+      error: function (jqXHR: any, textStatus: any, errorThrown: any) {
         console.error(jqXHR, textStatus, errorThrown)
       },
     })
@@ -203,10 +215,15 @@ function WidgetEmbedded(props: PaymentMethodInterface) {
           data.processingResponse.paymentDetails.optionsJson
         )
 
-        const isAmountEqual =
-          props.billing.cartTotal.value === options.payment_amount
-        const isCurrencyEqual =
-          props.billing.currency.code === options.payment_currency
+        const nonDecimalCurrencies = ['BIF', 'CLP', 'DJF', 'GNF', 'ISK', 'JPY',
+          'KMF', 'KRW', 'PYG', 'RWF', 'UGX', 'UYI', 'VND', 'VUV', 'XAF', 'XOF', 'XPF'];
+        
+        const paymentPageAmount = options.payment_amount;
+        const divisorOrder = props.billing.currency.minorUnit - (nonDecimalCurrencies.includes(props.billing.currency.code) ? 0 : 2);
+        const cartTotal = Math.round(props.billing.cartTotal.value / Math.pow(10, divisorOrder))
+
+        const isAmountEqual = paymentPageAmount === cartTotal
+        const isCurrencyEqual = props.billing.currency.code === options.payment_currency
 
         if (isAmountEqual && isCurrencyEqual) {
           return await submitIframe(options)

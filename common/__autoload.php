@@ -96,13 +96,15 @@ require_once __DIR__ . '/settings/class-ecp-gateway-settings-applepay.php';     
 require_once __DIR__ . '/settings/class-ecp-gateway-settings-more.php';             // More payments settings
 require_once __DIR__ . '/settings/class-ecp-gateway-settings-googlepay.php';        // GooglePay settings
 require_once __DIR__ . '/settings/class-ecp-gateway-settings-brazil.php';           // Brazil online banks settings
+require_once __DIR__ . '/settings/class-ecp-gateway-settings-directdebit-bacs.php'; // Direct Debit BACS settings
+require_once __DIR__ . '/settings/class-ecp-gateway-settings-directdebit-sepa.php'; // Direct Debit SEPA settings
 require_once __DIR__ . '/settings/class-ecp-form.php';                              // Settings main page
 
-if (ecp_subscription_is_active()) {
-    require_once __DIR__ . '/api/class-ecp-gateway-api-subscription.php';               // Subscription API
-    require_once __DIR__ . '/includes/class-ecp-gateway-subscription.php';              // Subscription wrapper
-    require_once __DIR__ . '/modules/class-ecp-gateway-module-subscription.php';        // Subscription controller
-    require_once __DIR__ . '/models/class-ecp-gateway-info-recurring.php';              // Recurring data
+if ( ecp_subscription_is_active() ) {
+	require_once __DIR__ . '/api/class-ecp-gateway-api-subscription.php';               // Subscription API
+	require_once __DIR__ . '/includes/class-ecp-gateway-subscription.php';              // Subscription wrapper
+	require_once __DIR__ . '/modules/class-ecp-gateway-module-subscription.php';        // Subscription controller
+	require_once __DIR__ . '/models/class-ecp-gateway-info-recurring.php';              // Recurring data
 }
 
 // Import main class
@@ -120,7 +122,10 @@ require_once __DIR__ . '/gateways/class-ecp-gateway-banks.php';                 
 require_once __DIR__ . '/gateways/class-ecp-gateway-googlepay.php';                      // Banks Gateway
 require_once __DIR__ . '/gateways/class-ecp-gateway-applepay.php';                       // Apple Pay Gateway
 require_once __DIR__ . '/gateways/class-ecp-gateway-more.php';                           // More PM Gateway
-require_once __DIR__ . '/gateways/class-ecp-gateway-brazil.php';                       // Brazil online banks Gateway
+require_once __DIR__ . '/gateways/class-ecp-gateway-brazil.php';                         // Brazil online banks Gateway
+require_once __DIR__ . '/gateways/class-ecp-gateway-directdebit-bacs.php';               // Direct Debit BACS Gateway
+require_once __DIR__ . '/gateways/class-ecp-gateway-directdebit-sepa.php';               // Direct Debit SEPA Gateway
+
 
 // Import payment method class for checkout blocks
 require_once __DIR__ . '/includes/class-ecp-gateway-blocks-support.php';

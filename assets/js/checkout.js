@@ -170,20 +170,19 @@ jQuery(document).ready(function () {
   function success(result) {
     switch (result.result) {
       case "success":
-        ECP.order_id = result.order_id
+        ECP.order_id = result.order_id;
         if (window.ECP.isEmbeddedMode && isEcommpayCardPayment()) {
-          processOrderWithEmbeddedIframe(result)
+          processOrderWithEmbeddedIframe(result);
           break
         }
-        switch (window.ECP.paramsForEmbeddedPP.frame_mode) {
-          case "popup":
-            const options = JSON.parse(result.optionsJson)
-            showPopup(options)
+        if (result.optionsJson) {
+          const options = JSON.parse(result.optionsJson);
+          if (options.frame_mode === 'popup') {
+            showPopup(options);
             break
-          default:
-            redirect(result.redirect)
-            break
+          }
         }
+        redirect(result.redirect);
         break
       case "failure":
         show_error(result, "Result failure")

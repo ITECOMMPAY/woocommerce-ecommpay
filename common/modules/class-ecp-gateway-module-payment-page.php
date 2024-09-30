@@ -1,6 +1,6 @@
 <?php
 
-defined('ABSPATH') || exit;
+defined( 'ABSPATH' ) || exit;
 
 /**
  * <h2>Request generator to open ECOMMPAY Payment Page.</h2>
@@ -10,540 +10,498 @@ defined('ABSPATH') || exit;
  * @package  Ecp_Gateway/Modules
  * @category Class
  */
-class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
-{
-    // region Constants
+class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry {
 
-    /**
-     * <h2>ECOMMPAY Payment Page URL protocol.</h2>
-     *
-     * @const
-     * @var string
-     * @since 2.0.0
-     */
-    const PROTOCOL = 'https';
 
-    /**
-     * <h2>ECOMMPAY Payment Page URL host name.</h2>
-     *
-     * @const
-     * @var string
-     * @since 2.0.0
-     */
-    const HOST = 'paymentpage.ecommpay.com';
+	/**
+	 * <h2>ECOMMPAY Payment Page URL protocol.</h2>
+	 *
+	 * @const
+	 * @var string
+	 * @since 2.0.0
+	 */
+	private const PROTOCOL = 'https';
 
-    // endregion
+	/**
+	 * <h2>ECOMMPAY Payment Page URL host name.</h2>
+	 *
+	 * @const
+	 * @var string
+	 * @since 2.0.0
+	 */
+	private const HOST = 'paymentpage.ecommpay.com';
 
-    // region Properties
 
-    /**
-     * <h2>Stores line items to send to ECOMMPAY.</h2>
-     *
-     * @var array
-     * @since 2.0.0
-     */
-    protected $line_items = [];
+	/**
+	 * <h2>Stores line items to send to ECOMMPAY.</h2>
+	 *
+	 * @var array
+	 * @since 2.0.0
+	 */
+	protected array $line_items = [];
 
-    /**
-     * <h2>Endpoint for ECOMMPAY Payment Page.</h2>
-     *
-     * @var string
-     * @since 2.0.0
-     */
-    protected $endpoint;
+	/**
+	 * <h2>Endpoint for ECOMMPAY Payment Page.</h2>
+	 *
+	 * @var string
+	 * @since 2.0.0
+	 */
+	protected string $endpoint;
 
-    // endregion
 
-    /**
-     * @inheritDoc
-     * @since 2.0.0
-     * @return void
-     */
-    protected function init()
-    {
-        $this->endpoint = sprintf('%s://%s', $this->get_protocol(), $this->get_host());
+	/**
+	 * <h2>Return payment page options for AJAX request.</h2>
+	 *
+	 * @throws Exception
+	 * @since 2.0.0
+	 */
+	public function ajax_process() {
+		switch ( wc_get_var( $_REQUEST['action'] ) ) {
+			case 'ecommpay_process':
+				if ( wc_get_var( $_REQUEST['woocommerce-process-checkout-nonce'] ) !== null ) {
+					ecp_get_log()->debug( __( 'Ecommpay checkout process', 'woo-ecommpay' ) );
+					// Checkout page
+					WC()->checkout()->process_checkout();
+				} elseif ( wc_get_var( $_REQUEST['woocommerce-pay-nonce'] ) !== null ) {
+					// Checkout pay page
+					global $wp;
+					$wp->set_query_var( 'order-pay', wc_get_var( $_REQUEST['order_id'], 0 ) );
+					$_POST['payment_method'] = wc_get_post_data_by_key( 'payment_method', null );
+					Ecp_Gateway_Form_Handler::pay_action();
+				}
+				break;
+			case 'ecommpay_break':
+				ecp_get_log()->debug( __( 'Ecommpay break process', 'woo-ecommpay' ) );
+				$order_id = intval( wc_get_post_data_by_key( 'order_id', 0 ) );
 
-        // register hooks for AJAX requests
-        add_action('wp_ajax_ecommpay_process', [$this, 'ajax_process']); // Authorised user
-        add_action('wp_ajax_ecommpay_break', [$this, 'ajax_process']); // Authorised user
-        add_action('wp_ajax_nopriv_ecommpay_process', [$this, 'ajax_process']); // Non-authorised user: Guest access
-        add_action('wp_ajax_nopriv_ecommpay_break', [$this, 'ajax_process']); // Non-authorised user: Guest access
-        add_action('wp_ajax_get_data_for_payment_form', [$this, 'ajax_process']); // Authorised user
-        add_action('wp_ajax_nopriv_get_data_for_payment_form', [$this, 'ajax_process']); // Non-authorised user: Guest access
-        add_action('wp_ajax_get_payment_status', [$this, 'ajax_process']); // Authorised user
-        add_action('wp_ajax_nopriv_get_payment_status', [$this, 'ajax_process']); // Non-authorised user: Guest access
-        add_action('wp_ajax_check_cart_amount', [$this, 'ajax_process']); // Authorised user
-        add_action('wp_ajax_nopriv_check_cart_amount', [$this, 'ajax_process']); // Non-authorised user: Guest access
-        add_action('wp_ajax_add_payment_id_to_order', [$this, 'ajax_process']); // Authorised user
-        add_action('wp_ajax_nopriv_add_payment_id_to_order', [$this, 'ajax_process']); // Non-authorised user: Guest access
+				if ( $order_id > 0 ) {
+					$order = ecp_get_order( $order_id );
 
-        // register hooks for display payment form on checkout page
-        add_action('woocommerce_before_checkout_form', [$this, 'include_frontend_scripts']);
+					$result = [
+						'redirect' => $order->get_checkout_payment_url(),
+					];
+					wp_send_json( $result );
+				}
+				break;
+			case 'get_data_for_payment_form':
+				$this->get_data_for_payment_form();
+				break;
+			case 'get_payment_status':
+				$this->get_payment_status();
+				break;
+			case 'check_cart_amount':
+				$this->check_cart_amount( wc_get_var( $_REQUEST['amount'], '0' ) );
+				break;
+		}
+	}
 
-        // register hooks for display payment form on payment page
-        add_action('before_woocommerce_pay', [$this, 'include_frontend_scripts']);
+	/**
+	 * @throws Ecp_Gateway_Signature_Exception
+	 */
+	private function get_data_for_payment_form() {
+		if ( wc_get_var( $_GET['pay_for_order'], '' ) != "" && wc_get_var( $_GET['key'], '' ) != "" ) {
+			$order_key        = wc_get_var( $_GET['key'], '' );
+			$order_id         = wc_get_order_id_by_order_key( $order_key );
+			$order            = ecp_get_order( $order_id );
+			$payment_currency = $order->get_currency();
+			$payment_amount   = ecp_price_multiply( $order->get_total(), $order->get_currency() );
+			$order->set_payment_system( Ecp_Gateway_Operation_Status::AWAITING_CUSTOMER );
+		} else {
+			$payment_currency = get_woocommerce_currency();
+			$payment_amount   = ecp_price_multiply( WC()->cart->total, $payment_currency );
+		}
 
-        // register hooks for display payment form on block-based checkout page
-        add_action('woocommerce_blocks_enqueue_checkout_block_scripts_before', [$this, 'include_new_checkout_scripts']);
-        add_action('enqueue_block_editor_assets', [$this, 'include_new_checkout_scripts']);
+		$data = [
+			'mode' => $payment_amount > 0 ? self::MODE_PURCHASE : self::MODE_CARD_VERIFY,
+			'payment_amount'          => $payment_amount,
+			'payment_currency'        => $payment_currency,
+			'project_id'              => ecommpay()->get_project_id(),
+			'payment_id'              => uniqid( 'wp_' ),
+			'force_payment_method'    => 'card',
+			'target_element'          => 'ecommpay-iframe-embedded',
+			'frame_mode'              => 'iframe',
+			'merchant_callback_url'   => ecp_callback_url(),
+			'interface_type'          => '{"id":18}',
+			'payment_methods_options' => "{\"additional_data\":{\"embedded_mode\":true}}",
+		];
+		$data = $this->append_recurring_total_form_cart( $data );
+		if ( isset ( $order ) ) {
+			$data = apply_filters( 'ecp_append_receipt_data', $data, $order, true );
+			$data = apply_filters( 'ecp_append_customer_id', $data, $order );
+		} else {
+			$data = $this->append_receipt_data_from_cart( $data );
+			if ( WC()->cart->get_customer()->id ) {
+				$data['customer_id'] = WC()->cart->get_customer()->id;
+			}
+		}
 
-        // register hooks for additional container on checkout pages
-        add_filter('the_content', [$this, 'append_iframe_container'], 10, 1);
+		$data = apply_filters( 'ecp_append_language_code', $data );
 
-        add_action('wp_head', [$this, 'wc_custom_redirect_after_purchase']);
-    }
+		ecp_get_log()->debug( __( json_encode( $data ), 'woo-ecommpay' ) );
 
-    /**
-     * <h2>Returns the ECOMMPAY Payment page URL.</h2>
-     *
-     * @since 2.0.0
-     * @return string <p>Payment Page URL.</p>
-     */
-    public function get_url()
-    {
-        return $this->endpoint;
-    }
+		$data = Ecp_Gateway_Signer::get_instance()->sign( $data );
+		wp_send_json( $data );
+	}
 
-    /**
-     * <h2>Return payment page options for AJAX request.</h2>
-     *
-     * @since 2.0.0
-     * @throws Exception
-     */
-    public function ajax_process()
-    {
-        switch (wc_get_var($_REQUEST['action'])) {
-            case 'ecommpay_process':
-                if (wc_get_var($_REQUEST['woocommerce-process-checkout-nonce']) !== null) {
-                    ecp_get_log()->debug(__('Ecommpay checkout process', 'woo-ecommpay'));
-                    // Checkout page
-                    WC()->checkout()->process_checkout();
-                } elseif (wc_get_var($_REQUEST['woocommerce-pay-nonce']) !== null) {
-                    // Checkout pay page
-                    global $wp;
-                    $wp->set_query_var('order-pay', wc_get_var($_REQUEST['order_id'], 0));
-                    $_POST['payment_method'] = wc_get_post_data_by_key('payment_method', null);
-                    Ecp_Gateway_Form_Handler::pay_action();
-                }
-                break;
-            case 'ecommpay_break':
-                ecp_get_log()->debug(__('Ecommpay break process', 'woo-ecommpay'));
-                $order_id = intval(wc_get_post_data_by_key('order_id', 0));
+	private function append_recurring_total_form_cart( $data ) {
+		if ( class_exists( 'WC_Subscriptions_Cart' ) && WC_Subscriptions_Cart::cart_contains_subscription() ) {
+			$data['recurring']          = '{"register":true,"type":"U"}';
+			$data['recurring_register'] = 1;
+		}
 
-                if ($order_id > 0) {
-                    $order = ecp_get_order($order_id);
+		return $data;
+	}
 
-                    $result = [
-                        'redirect' => $order->get_checkout_payment_url(),
-                    ];
-                    wp_send_json($result);
-                }
-                break;
-            case 'get_data_for_payment_form':
-                $this->get_data_for_payment_form();
-                break;
-            case 'get_payment_status':
-                $this->get_payment_status();
-                break;
-            case 'check_cart_amount':
-                $this->check_cart_amount(wc_get_var($_REQUEST['amount'], '0'));
-                break;
-        }
-    }
+	private function append_receipt_data_from_cart( $data ) {
+		$cart                 = WC()->cart;
+		$totalTax             = abs( $cart->get_totals()['total_tax'] );
+		$totalPrice           = abs( floatval( $cart->get_totals()['total'] ) );
+		$receipt              = $totalTax > 0
+			? [
+				// Item positions.
+				'positions'        => $this->get_positions( $cart ),
+				// Total tax amount per payment.
+				'total_tax_amount' => ecp_price_multiply( $totalTax, get_woocommerce_currency() ),
+				'common_tax'       => round( $totalTax * 100 / ( $totalPrice - $totalTax ), 2 ),
+			]
+			: [
+				// Item positions.
+				'positions' => $this->get_positions( $cart )
+			];
+		$data['receipt_data'] = base64_encode( json_encode( $receipt ) );
 
-    /**
-     * <h2>Injects scripts and styles into the site.</h2>
-     *
-     * @since 2.0.0
-     * @return void
-     */
-    public function include_frontend_scripts()
-    {
-        global $wp;
+		return $data;
+	}
 
-        try {
-            if (isset ($wp->query_vars['order-pay']) && absint($wp->query_vars['order-pay']) > 0) {
-                $order_id = absint($wp->query_vars['order-pay']); // The order ID
-            } else {
-                $order_id = is_wc_endpoint_url('order-pay');
-            }
-        } catch (Exception $e) {
-            $order_id = 0;
-        }
+	private function get_positions( $cart ): array {
+		$positions = [];
+		foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) {
+			$positions[] = $this->get_receipt_position( $cart_item, get_woocommerce_currency() );
+		}
 
-        $url = ecp_payment_page()->get_url();
+		return $positions;
+	}
 
-        // Ecommpay merchant bundle.
-        wp_enqueue_script(
-            'ecommpay_merchant_js',
-            sprintf('%s/shared/merchant.js', $url),
-            [],
-            null
-        );
-        wp_enqueue_style(
-            'ecommpay_merchant_css',
-            sprintf('%s/shared/merchant.css', $url),
-            [],
-            null
-        );
+	private function get_receipt_position( $item, $currency ) {
+		$product  = $item['data'];
+		$quantity = abs( $item['quantity'] );
 
-        // Woocommerce Ecommpay Plugin frontend
-        wp_enqueue_script(
-            'ecommpay_checkout_script',
-            ecp_js_url('checkout.js'),
-            ['jquery'],
-            ecp_version()
-        );
-        wp_enqueue_script(
-            'ecommpay_frontend_helpers_script',
-            ecp_js_url('frontend-helpers.js'),
-            ['jquery'],
-            ecp_version()
-        );
+		$price       = abs( (float) $product->get_price() * (float) $item['quantity'] );
+		$description = esc_attr( $product->name );
+		$data        = [
+			// Required. Amount of the positions.
+			'amount' => ecp_price_multiply( $price, $currency ),
+		];
+		if ( $quantity > 0 ) {
+			// Quantity of the goods or services. Multiple of: 0.000001.
+			$data['quantity'] = $quantity;
+		}
+		if ( strlen( $description ) > 0 ) {
+			// Goods or services description. >= 1 characters<= 255 characters.
+			$data['description'] = $this->limit_length( $description, 255 );
+		}
 
-        wp_localize_script(
-            'ecommpay_checkout_script',
-            'ECP',
-            [
-                'ajax_url' => admin_url("admin-ajax.php"),
-                'origin_url' => $url,
-                'order_id' => $order_id,
-            ]
-        );
+		$totalTax = abs( $item['line_tax'] );
 
-        wp_enqueue_style('ecommpay_loader_css', ecp_css_url('loader.css'));
-    }
+		if ( $totalTax > 0 ) {
+			// Tax percentage for the position. Multiple of: 0.01.
+			$data['tax'] = round( $totalTax * 100 / $price, 2 );
+			// Tax amount for the position.
+			$data['tax_amount'] = ecp_price_multiply( $totalTax, $currency );
+		}
 
-    public function include_new_checkout_scripts()
-    {
-        global $wp;
+		return $data;
+	}
 
-        try {
-            if (isset ($wp->query_vars['order-pay']) && absint($wp->query_vars['order-pay']) > 0) {
-                $order_id = absint($wp->query_vars['order-pay']); // The order ID
-            } else {
-                $order_id = is_wc_endpoint_url('order-pay');
-            }
-        } catch (Exception $e) {
-            $order_id = 0;
-        }
+	private function limit_length( $string, $limit = 127 ) {
+		$str_limit = $limit - 3;
 
-        $url = ecp_payment_page()->get_url();
+		if ( function_exists( 'mb_strimwidth' ) ) {
+			return mb_strlen( $string ) > $limit
+				? mb_strimwidth( $string, 0, $str_limit ) . '...'
+				: $string;
+		}
 
-        // Ecommpay merchant bundle.
-        wp_enqueue_script(
-            'ecommpay_merchant_js',
-            sprintf('%s/shared/merchant.js', $url),
-            [],
-            null
-        );
-        wp_enqueue_style(
-            'ecommpay_merchant_css',
-            sprintf('%s/shared/merchant.css', $url),
-            [],
-            null
-        );
+		return strlen( $string ) > $limit
+			? substr( $string, 0, $str_limit ) . '...'
+			: $string;
+	}
 
-        $script_name = 'wc-ecommpay-blocks-integration';
-        wp_register_script(
-            $script_name,
-            plugins_url('build/index.js', ECP_PLUGIN_PATH),
-            [
-                'jquery',
-                'wc-blocks-registry',
-                'wc-settings',
-                'wp-element',
-                'wp-html-entities',
-                'wp-i18n',
-            ],
-            ecp_version(),
-            true
-        );
-        if (function_exists('wp_set_script_translations')) {
-            wp_set_script_translations($script_name);
-        }
-        wp_enqueue_script($script_name);
+	private function get_payment_status() {
+		$order_key = wc_get_var( $_GET['key'], '' );
+		$order_id  = wc_get_order_id_by_order_key( $order_key );
+		$order     = ecp_get_order( $order_id );
+		$status    = $order->get_ecp_status();
+		$statuses  = [
+			Ecp_Gateway_Payment_Status::SUCCESS,
+			Ecp_Gateway_Payment_Status::DECLINE,
+			Ecp_Gateway_Payment_Status::EXPIRED,
+			Ecp_Gateway_Payment_Status::INTERNAL_ERROR,
+			Ecp_Gateway_Payment_Status::EXTERNAL_ERROR,
+			Ecp_Gateway_Payment_Status::AWAITING_CONFIRMATION,
+			Ecp_Gateway_Payment_Status::AWAITING_CUSTOMER
+		];
+		$data      = [
+			'callback_received' => in_array( $status, $statuses ),
+			'status'            => in_array( $status, [
+				Ecp_Gateway_Payment_Status::SUCCESS,
+				Ecp_Gateway_Payment_Status::AWAITING_CONFIRMATION
+			] ),
+		];
+		wp_send_json( $data );
+	}
 
-        $gateways = (new WC_Payment_Gateways())->get_available_payment_gateways();
-        $filtered_gateways = array_keys(array_filter($gateways, function ($gateway) {
-            return strpos($gateway->id, 'ecommpay-') === 0 && $gateway->enabled === "yes";
-        }));
+	private function check_cart_amount( $query_amount ) {
+		$query_amount = (int) $query_amount;
+		$cart_amount  = ecp_price_multiply( WC()->cart->total, get_woocommerce_currency() );
+		wp_send_json( [ 'amount_is_equal' => ( $query_amount === $cart_amount ) ] );
+	}
 
-        wp_localize_script(
-            $script_name,
-            'ECP',
-            [
-                'ajax_url' => admin_url("admin-ajax.php"),
-                'origin_url' => $url,
-                'order_id' => $order_id,
-                'gateways' => $filtered_gateways,
-                'ecp_pay_nonce' => wp_create_nonce('woocommerce-process_checkout'),
-            ]
-        );
-    }
+	/**
+	 * <h2>Injects scripts and styles into the site.</h2>
+	 *
+	 * @return void
+	 * @since 2.0.0
+	 */
+	public function include_frontend_scripts() {
+		global $wp;
 
-    /**
-     * <h2></h2>
-     *
-     * @param string $content
-     * @since 2.0.0
-     * @return string
-     */
-    public function append_iframe_container($content)
-    {
-        if (!is_checkout()) {
-            return $content;
-        }
+		try {
+			if ( isset ( $wp->query_vars['order-pay'] ) && absint( $wp->query_vars['order-pay'] ) > 0 ) {
+				$order_id = absint( $wp->query_vars['order-pay'] ); // The order ID
+			} else {
+				$order_id = is_wc_endpoint_url( 'order-pay' );
+			}
+		} catch ( Exception $e ) {
+			$order_id = 0;
+		}
 
-        return '<div id="ecommpay-loader"><div class="lds-ecommpay"><div></div><div></div><div></div></div></div>'
-            . '<div id="ecommpay-iframe"></div><div id="woocommerce_ecommpay_checkout_page">'
-            . '<div id="ecommpay-overlay-loader" class="blockUI blockOverlay ecommpay-loader-overlay" style="display: none;"></div>'
-            . $content . "</div>";
-    }
+		$url = ecp_payment_page()->get_url();
 
-    /**
-     * <h2>Returns ECOMMPAY request form data for an order.</h2>
-     *
-     * @param Ecp_Gateway_Order $order <p>Order object.</p>
-     * @since 2.0.0
-     * @return array <p>Settings for the ECOMMPAY payment page.</p>
-     * </p>
-     */
-    public function get_request_url($order, $gateway)
-    {
-        return apply_filters('ecp_append_signature', $this->get_form_data($order, $gateway));
-    }
+		// Ecommpay merchant bundle.
+		wp_enqueue_script(
+			'ecommpay_merchant_js',
+			sprintf( '%s/shared/merchant.js', $url ),
+			[],
+			null
+		);
+		wp_enqueue_style(
+			'ecommpay_merchant_css',
+			sprintf( '%s/shared/merchant.css', $url ),
+			[],
+			null
+		);
 
-    /**
-     * <h2>Returns form data for ECOMMPAY Payment Page.</h2>
-     *
-     * @param Ecp_Gateway_Order $order <p>Order for payment.</p>
-     * @param Ecp_Gateway $gateway
-     * @since 2.0.0
-     * @return array <p>Form data.</p>
-     */
-    private function get_form_data(Ecp_Gateway_Order $order, $gateway)
-    {
-        $return_url = esc_url_raw(add_query_arg('utm_nooverride', '1', $gateway->get_return_url($order)));
-        $info = apply_filters('ecp_create_payment_info', $order);
+		// Woocommerce Ecommpay Plugin frontend
+		wp_enqueue_script(
+			'ecommpay_checkout_script',
+			ecp_js_url( 'checkout.js' ),
+			[ 'jquery' ],
+			ecp_version()
+		);
+		wp_enqueue_script(
+			'ecommpay_frontend_helpers_script',
+			ecp_js_url( 'frontend-helpers.js' ),
+			[ 'jquery' ],
+			ecp_version()
+		);
 
-        // General options
-        $values = apply_filters('ecp_create_payment_data', $order);
-        $values['baseUrl'] = $this->endpoint;
+		wp_localize_script(
+			'ecommpay_checkout_script',
+			'ECP',
+			[
+				'ajax_url'   => admin_url( "admin-ajax.php" ),
+				'origin_url' => $url,
+				'order_id'   => $order_id,
+			]
+		);
 
-        // Set payment information
-        foreach ($info as $key => $value) {
-            $values['payment_' . $key] = $value;
-        }
+		wp_enqueue_style( 'ecommpay_loader_css', ecp_css_url( 'loader.css' ) );
+	}
 
-        // Set Payment Page Language
-        $values = apply_filters('ecp_append_language_code', $values);
-        // Set Additional data: Customer and Billing data, Receipt etc
-        $values = apply_filters('ecp_append_additional_variables', $values, $order);
-        // Set merchant success url with additional options
-        $values = apply_filters('ecp_append_merchant_success_url', $values, $return_url);
-        // Set merchant fail url with additional options
-        $values = apply_filters('ecp_append_merchant_fail_url', $values, $return_url);
-        // Set merchant return url with additional options
-        $values = apply_filters('ecp_append_merchant_return_url', $values, esc_url_raw($order->get_checkout_payment_url()));
-        // Set merchant callback url
-        $values = apply_filters('ecp_append_merchant_callback_url', $values);
-        // Set merchant success url with additional options
-        $values = apply_filters('ecp_append_redirect_url', $values, $return_url);
-        // Set arguments by current payment gateway
-        $values = apply_filters('ecp_append_gateway_arguments_' . $gateway->id, $values, $order);
-        // Set environment versions
-        $values = apply_filters('ecp_append_versions', $values);
-        // Set ECOMMPAY internal interface type
-        $values = apply_filters('ecp_append_interface_type', $values, true);
+	/**
+	 * <h2>Returns the ECOMMPAY Payment page URL.</h2>
+	 *
+	 * @return string <p>Payment Page URL.</p>
+	 * @since 2.0.0
+	 */
+	public function get_url() {
+		return $this->endpoint;
+	}
 
-        // Clean arguments and return
-        return apply_filters('ecp_payment_page_clean_parameters', $values);
-    }
+	public function include_new_checkout_scripts() {
+		global $wp;
 
-    /**
-     * <h2>Returns the ECOMMPAY Payment Page protocol name.</h2>
-     *
-     * @since 2.0.0
-     * @return string <p>ECOMMPAY Payment Page protocol name.</b>
-     */
-    private function get_protocol()
-    {
-        $proto = getenv('ECP_PROTO');
+		try {
+			if ( isset ( $wp->query_vars['order-pay'] ) && absint( $wp->query_vars['order-pay'] ) > 0 ) {
+				$order_id = absint( $wp->query_vars['order-pay'] ); // The order ID
+			} else {
+				$order_id = is_wc_endpoint_url( 'order-pay' );
+			}
+		} catch ( Exception $e ) {
+			$order_id = 0;
+		}
 
-        return is_string($proto) ? $proto : self::PROTOCOL;
-    }
+		$url = ecp_payment_page()->get_url();
 
-    /**
-     * <h2>Returns the ECOMMPAY Payment Page host name.</h2>
-     *
-     * @since 2.0.0
-     * @return string <p>ECOMMPAY Payment Page host name.</p>
-     */
-    private function get_host()
-    {
-        $host = getenv('ECP_PAYMENTPAGE_HOST');
+		// Ecommpay merchant bundle.
+		wp_enqueue_script(
+			'ecommpay_merchant_js',
+			sprintf( '%s/shared/merchant.js', $url ),
+			[],
+			null
+		);
+		wp_enqueue_style(
+			'ecommpay_merchant_css',
+			sprintf( '%s/shared/merchant.css', $url ),
+			[],
+			null
+		);
 
-        return is_string($host) ? $host : self::HOST;
-    }
+		$script_name = 'wc-ecommpay-blocks-integration';
+		wp_register_script(
+			$script_name,
+			plugins_url( 'build/index.js', ECP_PLUGIN_PATH ),
+			[
+				'jquery',
+				'wc-blocks-registry',
+				'wc-settings',
+				'wp-element',
+				'wp-html-entities',
+				'wp-i18n',
+			],
+			ecp_version(),
+			true
+		);
+		if ( function_exists( 'wp_set_script_translations' ) ) {
+			wp_set_script_translations( $script_name );
+		}
+		wp_enqueue_script( $script_name );
 
-    private function get_data_for_payment_form()
-    {
-        if (wc_get_var($_GET['pay_for_order'], '') != "" && wc_get_var($_GET['key'], '') != "") {
-            $order_key = wc_get_var($_GET['key'], '');
-            $order_id = wc_get_order_id_by_order_key($order_key);
-            $order = ecp_get_order($order_id);
-            $payment_currency = $order->get_currency();
-            $payment_amount = ecp_price_multiply($order->get_total(), $order->get_currency());
-            $order->set_payment_system(Ecp_Gateway_Operation_Status::AWAITING_CUSTOMER);
-        } else {
-            $payment_currency = get_woocommerce_currency();
-            $payment_amount = ecp_price_multiply(WC()->cart->total, $payment_currency);
-        }
+		$gateways          = ( new WC_Payment_Gateways() )->get_available_payment_gateways();
+		$filtered_gateways = array_keys( array_filter( $gateways, function ( $gateway ) {
+			return strpos( $gateway->id, 'ecommpay-' ) === 0 && $gateway->enabled === "yes";
+		} ) );
 
-        $data = [
-            'mode' => $payment_amount > 0 ? 'purchase' : 'card_verify',
-            'payment_amount' => $payment_amount,
-            'payment_currency' => $payment_currency,
-            'project_id' => ecommpay()->get_project_id(),
-            'payment_id' => uniqid('wp_'),
-            'force_payment_method' => 'card',
-            'target_element' => 'ecommpay-iframe-embedded',
-            'frame_mode' => 'iframe',
-            'merchant_callback_url' => ecp_callback_url(),
-            'interface_type' => '{"id":18}',
-            'payment_methods_options' => "{\"additional_data\":{\"embedded_mode\":true}}",
-        ];
-        $data = $this->append_recurring_total_form_cart($data);
-        if (isset ($order)) {
-            $data = apply_filters('ecp_append_receipt_data', $data, $order, true);
-            $data = apply_filters('ecp_append_customer_id', $data, $order);
-        } else {
-            $data = $this->append_receipt_data_from_cart($data);
-            if (WC()->cart->get_customer()->id) {
-                $data['customer_id'] = WC()->cart->get_customer()->id;
-            }
-        }
+		wp_localize_script(
+			$script_name,
+			'ECP',
+			[
+				'ajax_url'      => admin_url( "admin-ajax.php" ),
+				'origin_url'    => $url,
+				'order_id'      => $order_id,
+				'gateways'      => $filtered_gateways,
+				'ecp_pay_nonce' => wp_create_nonce( 'woocommerce-process_checkout' ),
+			]
+		);
+	}
 
-        $data = apply_filters('ecp_append_language_code', $data);
+	/**
+	 * <h2></h2>
+	 *
+	 * @param string $content
+	 *
+	 * @return string
+	 * @since 2.0.0
+	 */
+	public function append_iframe_container( $content ) {
+		if ( ! is_checkout() ) {
+			return $content;
+		}
 
-        ecp_get_log()->debug(__(json_encode($data), 'woo-ecommpay'));
+		return '<div id="ecommpay-loader"><div class="lds-ecommpay"><div></div><div></div><div></div></div></div>'
+		       . '<div id="ecommpay-iframe"></div><div id="woocommerce_ecommpay_checkout_page">'
+		       . '<div id="ecommpay-overlay-loader" class="blockUI blockOverlay ecommpay-loader-overlay" style="display: none;"></div>'
+		       . $content . "</div>";
+	}
 
-        $data = Ecp_Gateway_Signer::get_instance()->sign($data);
-        wp_send_json($data);
-    }
+	/**
+	 * <h2>Returns ECOMMPAY request form data for an order.</h2>
+	 *
+	 * @param Ecp_Gateway_Order $order <p>Order object.</p>
+	 *
+	 * @return array <p>Settings for the ECOMMPAY payment page.</p>
+	 * </p>
+	 * @since 2.0.0
+	 */
+	public function get_request_url( $order, $gateway ): array {
+		return apply_filters( 'ecp_append_signature', $this->get_form_data( $order, $gateway ) );
+	}
 
-    private function append_recurring_total_form_cart($data)
-    {
-        if (class_exists('WC_Subscriptions_Cart') && WC_Subscriptions_Cart::cart_contains_subscription()) {
-            $data['recurring'] = '{"register":true,"type":"U"}';
-            $data['recurring_register'] = 1;
-        }
-        return $data;
-    }
+	/**
+	 * <h2>Returns form data for ECOMMPAY Payment Page.</h2>
+	 *
+	 * @param Ecp_Gateway_Order $order <p>Order for payment.</p>
+	 * @param Ecp_Gateway $gateway
+	 *
+	 * @return array <p>Form data.</p>
+	 * @since 2.0.0
+	 */
+	private function get_form_data( $order, Ecp_Gateway $gateway ): array {
+		$return_url = esc_url_raw( add_query_arg( 'utm_nooverride', '1', $gateway->get_return_url( $order ) ) );
+		$info       = apply_filters( 'ecp_create_payment_info', $order );
 
-    private function append_receipt_data_from_cart($data)
-    {
-        $cart = WC()->cart;
-        $totalTax = abs($cart->get_totals()['total_tax']);
-        $totalPrice = abs(floatval($cart->get_totals()['total']));
-        $receipt = $totalTax > 0
-            ? [
-                // Item positions.
-                'positions' => $this->get_positions($cart),
-                // Total tax amount per payment.
-                'total_tax_amount' => ecp_price_multiply($totalTax, get_woocommerce_currency()),
-                'common_tax' => round($totalTax * 100 / ($totalPrice - $totalTax), 2),
-            ]
-            : [
-                // Item positions.
-                'positions' => $this->get_positions($cart)
-            ];
-        $data['receipt_data'] = base64_encode(json_encode($receipt));
-        return $data;
-    }
+		// General options
+		$values            = apply_filters( 'ecp_create_payment_data', $order );
+		$values['baseUrl'] = $this->endpoint;
 
-    private function get_positions($cart)
-    {
-        $positions = [];
-        foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
-            $positions[] = $this->get_receipt_position($cart_item, get_woocommerce_currency());
-        }
-        return $positions;
-    }
-    private function get_receipt_position($item, $currency)
-    {
-        $product = $item['data'];
-        $quantity = abs($item['quantity']);
+		// Set payment information
+		foreach ( $info as $key => $value ) {
+			$values[ 'payment_' . $key ] = $value;
+		}
 
-        $price = abs((float) $product->get_price() * (float) $item['quantity']);
-        $description = esc_attr($product->name);
-        $data = [
-            // Required. Amount of the positions.
-            'amount' => ecp_price_multiply($price, $currency),
-        ];
-        if ($quantity > 0) {
-            // Quantity of the goods or services. Multiple of: 0.000001.
-            $data['quantity'] = $quantity;
-        }
-        if (strlen($description) > 0) {
-            // Goods or services description. >= 1 characters<= 255 characters.
-            $data['description'] = $this->limit_length($description, 255);
-        }
+		// Set Payment Page Language
+		$values = apply_filters( 'ecp_append_language_code', $values );
+		// Set Additional data: Customer and Billing data, Receipt etc
+		$values = apply_filters( 'ecp_append_additional_variables', $values, $order );
+		// Set merchant success url with additional options
+		$values = apply_filters( 'ecp_append_merchant_success_url', $values, $return_url );
+		// Set merchant fail url with additional options
+		$values = apply_filters( 'ecp_append_merchant_fail_url', $values, $return_url );
+		// Set merchant return url with additional options
+		$values = apply_filters( 'ecp_append_merchant_return_url', $values, esc_url_raw( $order->get_checkout_payment_url() ) );
+		// Set merchant callback url
+		$values = apply_filters( 'ecp_append_merchant_callback_url', $values );
+		// Set merchant success url with additional options
+		$values = apply_filters( 'ecp_append_redirect_url', $values, $return_url );
+		// Set arguments by current payment gateway
+		$values = apply_filters( 'ecp_append_gateway_arguments_' . $gateway->id, $values, $order );
+		// Set environment versions
+		$values = apply_filters( 'ecp_append_versions', $values );
+		// Set ECOMMPAY internal interface type
+		$values = apply_filters( 'ecp_append_interface_type', $values, true );
 
-        $totalTax = abs($item['line_tax']);
+		// Clean arguments and return
+		return apply_filters( 'ecp_payment_page_clean_parameters', $values );
+	}
 
-        if ($totalTax > 0) {
-            // Tax percentage for the position. Multiple of: 0.01.
-            $data['tax'] = round($totalTax * 100 / $price, 2);
-            // Tax amount for the position.
-            $data['tax_amount'] = ecp_price_multiply($totalTax, $currency);
-        }
-        return $data;
-    }
+	public function wc_custom_redirect_after_purchase() {
+		if ( ! is_wc_endpoint_url( 'order-received' ) ) {
+			return;
+		}
+		global $wp;
+		// If order_id is defined
+		if ( isset ( $wp->query_vars['order-received'] ) && absint( $wp->query_vars['order-received'] ) > 0 ):
+			$order_key = wc_get_var( $_GET['key'], '' );
+			$order_id  = wc_get_order_id_by_order_key( $order_key );
+			$order     = ecp_get_order( $order_id );
 
-    private function limit_length($string, $limit = 127)
-    {
-        $str_limit = $limit - 3;
-
-        if (function_exists('mb_strimwidth')) {
-            return mb_strlen($string) > $limit
-                ? mb_strimwidth($string, 0, $str_limit) . '...'
-                : $string;
-        }
-
-        return strlen($string) > $limit
-            ? substr($string, 0, $str_limit) . '...'
-            : $string;
-    }
-
-    public function wc_custom_redirect_after_purchase()
-    {
-        if (!is_wc_endpoint_url('order-received'))
-            return;
-        global $wp;
-        // If order_id is defined
-        if (isset ($wp->query_vars['order-received']) && absint($wp->query_vars['order-received']) > 0):
-            $order_key = wc_get_var($_GET['key'], '');
-            $order_id = wc_get_order_id_by_order_key($order_key);
-            $order = ecp_get_order($order_id);
-
-            ?>
+			?>
             <script type="text/javascript">
                 // order-receive page status (ty page or failed)
-                var order_is_failed = <?= ($order->get_status() == 'failed') ? 'true' : 'false' ?>;
+                var order_is_failed = <?= ( $order->get_status() == 'failed' ) ? 'true' : 'false' ?>;
                 let result = {};
 
                 function get_status() {
                     jQuery.ajax({
                         type: 'POST',
-                        url: '<?= admin_url("admin-ajax.php") ?>' + window.location.search,
-                        data: [{ 'name': 'action', 'value': 'get_payment_status' }],
+                        url: '<?= admin_url( "admin-ajax.php" ) ?>' + window.location.search,
+                        data: [{'name': 'action', 'value': 'get_payment_status'}],
                         dataType: 'json',
                         success: function (response) {
                             result = response;
                         },
-                        error: function (jqXHR, textStatus, errorThrown) {
+                        error: function () {
                             console.log('Error while getting order complete status');
                         }
                     });
@@ -566,48 +524,98 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry
                 get_status();
 
             </script>
-            <?php
-        endif;
-    }
+		<?php
+		endif;
+	}
 
-    private function get_payment_status()
-    {
-        $order_key = wc_get_var($_GET['key'], '');
-        $order_id = wc_get_order_id_by_order_key($order_key);
-        $order = ecp_get_order($order_id);
-        $status = $order->get_ecp_status();
-        $statuses = [
-            Ecp_Gateway_Payment_Status::SUCCESS,
-            Ecp_Gateway_Payment_Status::DECLINE,
-            Ecp_Gateway_Payment_Status::EXPIRED,
-            Ecp_Gateway_Payment_Status::INTERNAL_ERROR,
-            Ecp_Gateway_Payment_Status::EXTERNAL_ERROR,
-            Ecp_Gateway_Payment_Status::AWAITING_CONFIRMATION,
-            Ecp_Gateway_Payment_Status::AWAITING_CUSTOMER
-        ];
-        $data = [
-            'callback_received' => in_array($status, $statuses) ? true : false,
-            'status' => in_array($status, [Ecp_Gateway_Payment_Status::SUCCESS, Ecp_Gateway_Payment_Status::AWAITING_CONFIRMATION]) ? true : false,
-        ];
-        wp_send_json($data);
-    }
+	/**
+	 * @inheritDoc
+	 * @return void
+	 * @since 2.0.0
+	 */
+	protected function init() {
+		$this->endpoint = sprintf( '%s://%s', $this->get_protocol(), $this->get_host() );
 
-    private function check_cart_amount($query_amount)
-    {
-        $query_amount = (int) $query_amount;
-        $cart_amount = ecp_price_multiply(WC()->cart->total, get_woocommerce_currency());
-        wp_send_json(['amount_is_equal' => ($query_amount === $cart_amount)]);
-    }
+		// register hooks for AJAX requests
+		add_action( 'wp_ajax_ecommpay_process', [ $this, 'ajax_process' ] ); // Authorised user
+		add_action( 'wp_ajax_ecommpay_break', [ $this, 'ajax_process' ] ); // Authorised user
+		add_action( 'wp_ajax_nopriv_ecommpay_process', [ $this, 'ajax_process' ] ); // Non-authorised user: Guest access
+		add_action( 'wp_ajax_nopriv_ecommpay_break', [ $this, 'ajax_process' ] ); // Non-authorised user: Guest access
+		add_action( 'wp_ajax_get_data_for_payment_form', [ $this, 'ajax_process' ] ); // Authorised user
+		add_action( 'wp_ajax_nopriv_get_data_for_payment_form', [
+			$this,
+			'ajax_process'
+		] ); // Non-authorised user: Guest access
+		add_action( 'wp_ajax_get_payment_status', [ $this, 'ajax_process' ] ); // Authorised user
+		add_action( 'wp_ajax_nopriv_get_payment_status', [
+			$this,
+			'ajax_process'
+		] ); // Non-authorised user: Guest access
+		add_action( 'wp_ajax_check_cart_amount', [ $this, 'ajax_process' ] ); // Authorised user
+		add_action( 'wp_ajax_nopriv_check_cart_amount', [
+			$this,
+			'ajax_process'
+		] ); // Non-authorised user: Guest access
+		add_action( 'wp_ajax_add_payment_id_to_order', [ $this, 'ajax_process' ] ); // Authorised user
+		add_action( 'wp_ajax_nopriv_add_payment_id_to_order', [
+			$this,
+			'ajax_process'
+		] ); // Non-authorised user: Guest access
 
-    private function add_payment_id_to_order()
-    {
-        $order_id = wc_get_var($_REQUEST['order_id'], 0);
-        $payment_id = wc_get_var($_REQUEST['payment_id'], '');
-        $meta_id = wc_add_order_item_meta($order_id, 'payment_id', $payment_id, true);
-        if ($meta_id) {
-            wp_send_json(['status' => 'success']);
-        } else {
-            wp_send_json(['status' => 'error']);
-        }
-    }
+		// register hooks for display payment form on checkout page
+		add_action( 'woocommerce_before_checkout_form', [ $this, 'include_frontend_scripts' ] );
+
+		// register hooks for display payment form on payment page
+		add_action( 'before_woocommerce_pay', [ $this, 'include_frontend_scripts' ] );
+
+		// register hooks for display payment form on block-based checkout page
+		add_action( 'woocommerce_blocks_enqueue_checkout_block_scripts_before', [
+			$this,
+			'include_new_checkout_scripts'
+		] );
+		add_action( 'enqueue_block_editor_assets', [ $this, 'include_new_checkout_scripts' ] );
+
+		// register hooks for additional container on checkout pages
+		add_filter( 'the_content', [ $this, 'append_iframe_container' ] );
+
+		add_action( 'wp_head', [ $this, 'wc_custom_redirect_after_purchase' ] );
+	}
+
+	/**
+	 * <h2>Returns the ECOMMPAY Payment Page protocol name.</h2>
+	 *
+	 * @return string <p>ECOMMPAY Payment Page protocol name.</b>
+	 * @since 2.0.0
+	 */
+	private function get_protocol() {
+		$proto = getenv( 'ECP_PROTO' );
+
+		return is_string( $proto ) ? $proto : self::PROTOCOL;
+	}
+
+	/**
+	 * <h2>Returns the ECOMMPAY Payment Page host name.</h2>
+	 *
+	 * @return string <p>ECOMMPAY Payment Page host name.</p>
+	 * @since 2.0.0
+	 */
+	private function get_host() {
+		$host = getenv( 'ECP_PAYMENTPAGE_HOST' );
+
+		return is_string( $host ) ? $host : self::HOST;
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	private function add_payment_id_to_order() {
+		$order_id   = wc_get_var( $_REQUEST['order_id'], 0 );
+		$payment_id = wc_get_var( $_REQUEST['payment_id'], '' );
+		$meta_id    = wc_add_order_item_meta( $order_id, 'payment_id', $payment_id, true );
+		if ( $meta_id ) {
+			wp_send_json( [ 'status' => 'success' ] );
+		} else {
+			wp_send_json( [ 'status' => 'error' ] );
+		}
+	}
 }

@@ -142,3 +142,40 @@ function woocommerce_ecommpay_ajax_flush_runtime_errors()
 }
 
 add_action('wp_ajax_woocommerce_ecommpay_flush_runtime_errors', 'woocommerce_ecommpay_ajax_flush_runtime_errors');
+function check_before_ecommpay_plugin_update() {
+	add_action( 'current_screen', function ( $screen ) {
+		// Minimum requirements
+		$required_wc_version  = '8.2';
+		$required_php_version = '7.4';
+		$required_wp_version  = '6.2';
+		// Check if we're on the Plugins page
+		if ( $screen && $screen->id !== 'plugins' ) {
+			return;
+		}
+
+		// Check if WooCommerce is installed and active
+		if ( ! defined( 'WC_VERSION' ) ) {
+			return;
+		}
+
+		// Check WordPress, PHP, and WooCommerce versions
+		if ( version_compare( get_bloginfo( 'version' ), $required_wp_version, '<' )
+		     || version_compare( PHP_VERSION, $required_php_version, '<' )
+		     || version_compare( WC_VERSION, $required_wc_version, '<' ) ) {
+			add_action( 'admin_notices', function () use ( $required_wp_version, $required_php_version, $required_wc_version ) {
+				$ecommpay_domain = 'woo-ecommpay';
+				$woo_website     = 'https://woocommerce.com/document/update-php-wordpress/';
+				echo '<div class="notice notice-error"><p>';
+				echo sprintf(
+					__( 'Before updating the Ecommpay Payments plugin, please ensure that your WordPress version '
+					    . 'is at least %1$s, your PHP version is at least %2$s, and your WooCommerce version is at least %3$s to avoid compatibility issues. '
+					    . 'More details: <a href="%4$s" target="_blank">Click here</a>', $ecommpay_domain ),
+					$required_wp_version, $required_php_version, $required_wc_version, $woo_website
+				);
+				echo '</p></div>';
+			} );
+		}
+	} );
+}
+
+add_action( 'admin_menu', 'check_before_ecommpay_plugin_update' );

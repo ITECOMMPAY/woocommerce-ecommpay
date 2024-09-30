@@ -13,20 +13,16 @@
  * @var ?string $payment_id
  * @var ?string $logo
  * @var ?string $amount
- * @var bool $is_test
  */
 
 ?>
 <ul class="order_actions">
-    <?php if (isset ($status) && !empty ($status)): ?>
+	<?php if ( ! empty ( $status ) ): ?>
         <li class="wide ecp-meta-box-header">
             <p class="ecp-full-width">
                 <img class="ecp-pm-logo" src="<?php echo esc_attr($logo); ?>" alt="" title="" />
                 <mark class="ecp-payment-status status-<?php echo esc_html($status); ?> right">
                     <span>
-                        <?php if ($is_test): ?>
-                            <?php esc_html_e('Test', 'woo-ecommpay'); ?>
-                        <?php endif; ?>
                         <?php echo esc_html(Ecp_Gateway_Payment_Status::get_status_name($status)); ?>
                     </span>
                 </mark>
@@ -35,14 +31,7 @@
     <?php endif; ?>
 
     <li class="wide">
-        <?php if ($is_test): ?>
-            <p class="ecp-full-width is_test">
-                <strong>
-                    <?php esc_html_e('Test payment', 'woo-ecommpay'); ?>
-                </strong>
-            </p>
-        <?php endif; ?>
-        <?php if (isset ($payment_id) && !empty ($payment_id)): ?>
+	    <?php if ( ! empty ( $payment_id ) ): ?>
             <p class="ecp-full-width">
                 <small>
                     <strong>
@@ -53,7 +42,7 @@
             </p>
         <?php endif; ?>
 
-        <?php if (isset ($payment_method) && !empty ($payment_method)): ?>
+	    <?php if ( ! empty ( $payment_method ) ): ?>
             <p class="ecp-full-width">
                 <small>
                     <strong>
@@ -64,7 +53,7 @@
             </p>
         <?php endif; ?>
 
-        <?php if (isset ($operation_type) && !empty ($operation_type)): ?>
+	    <?php if ( ! empty ( $operation_type ) ): ?>
             <p class="ecp-full-width">
                 <small>
                     <strong>
@@ -75,7 +64,7 @@
             </p>
         <?php endif; ?>
 
-        <?php if (isset ($operation_code) && !empty ($operation_code)): ?>
+	    <?php if ( ! empty ( $operation_code ) ): ?>
             <p class="ecp-full-width">
                 <small>
                     <strong>
@@ -96,7 +85,7 @@
             </p>
         <?php endif; ?>
 
-        <?php if (isset ($operation_message) && !empty ($operation_message)): ?>
+	    <?php if ( ! empty ( $operation_message ) ): ?>
             <p class="ecp-full-width">
                 <small>
                     <strong>
@@ -111,7 +100,7 @@
             </p>
         <?php endif; ?>
 
-        <?php if (isset ($transaction_order_id) && !empty ($transaction_order_id)): ?>
+	    <?php if ( ! empty ( $transaction_order_id ) ): ?>
             <p class="ecp-full-width">
                 <small>
                     <strong>

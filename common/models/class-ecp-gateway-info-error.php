@@ -1,6 +1,6 @@
 <?php
 
-defined('ABSPATH') || exit;
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Ecp_Gateway_Info_Error
@@ -12,97 +12,91 @@ defined('ABSPATH') || exit;
  * @package  Ecp_Gateway/Info
  * @category Class
  */
-class Ecp_Gateway_Info_Error extends Ecp_Gateway_Json
-{
-    // region Constants
+class Ecp_Gateway_Info_Error extends Ecp_Gateway_Json {
 
-    /**
-     * Label for unified error code
-     */
-    const FIELD_CODE = 'code';
 
-    /**
-     * Label for message that explains the cause of the error.
-     */
-    const FIELD_MESSAGE = 'message';
+	/**
+	 * Label for unified error code
+	 */
+	const FIELD_CODE = 'code';
 
-    /**
-     * Label for parameter or object name in the request that is missing or where the error is found
-     */
-    const FIELD_NAME = 'field';
+	/**
+	 * Label for message that explains the cause of the error.
+	 */
+	const FIELD_MESSAGE = 'message';
 
-    /**
-     * Label for description of the error cause.
-     */
-    const FIELD_DESCRIPTION = 'description';
+	/**
+	 * Label for parameter or object name in the request that is missing or where the error is found
+	 */
+	const FIELD_NAME = 'field';
 
-    //endregion
+	/**
+	 * Label for description of the error cause.
+	 */
+	const FIELD_DESCRIPTION = 'description';
 
-    /**
-     * <h2>Returns the unified error code.</h2>
-     *
-     * @return ?int
-     */
-    public function get_code()
-    {
-        if ($this->try_get_int($code, self::FIELD_CODE)) {
-            return $code;
-        }
+	//endregion
 
-        return null;
-    }
+	/**
+	 * <h2>Returns the unified error code.</h2>
+	 *
+	 * @return ?int
+	 */
+	public function get_code() {
+		if ( $this->try_get_int( $code, self::FIELD_CODE ) ) {
+			return $code;
+		}
 
-    /**
-     * <h2>Returns the message that explains the cause of the error.</h2>
-     *
-     * @return ?string
-     */
-    public function get_message()
-    {
-        if ($this->try_get_string($message, self::FIELD_MESSAGE)) {
-            return $message;
-        }
+		return null;
+	}
 
-        return null;
-    }
+	/**
+	 * <h2>Returns the message that explains the cause of the error.</h2>
+	 *
+	 * @return ?string
+	 */
+	public function get_message() {
+		if ( $this->try_get_string( $message, self::FIELD_MESSAGE ) ) {
+			return $message;
+		}
 
-    /**
-     * <h2>Returns the parameter or object name in the request that is missing or where the error is found.</h2>
-     *
-     * @return ?string
-     */
-    public function get_field()
-    {
-        if ($this->try_get_string($field, self::FIELD_NAME)) {
-            return $field;
-        }
+		return null;
+	}
 
-        return null;
-    }
+	/**
+	 * <h2>Returns the parameter or object name in the request that is missing or where the error is found.</h2>
+	 *
+	 * @return ?string
+	 */
+	public function get_field() {
+		if ( $this->try_get_string( $field, self::FIELD_NAME ) ) {
+			return $field;
+		}
 
-    /**
-     * <h2>Returns description of the error cause.</h2>
-     *
-     * @return ?string
-     */
-    public function get_description()
-    {
-        if ($this->try_get_string($constraint, self::FIELD_DESCRIPTION)) {
-            return $constraint;
-        }
+		return null;
+	}
 
-        return null;
-    }
+	/**
+	 * <h2>Returns description of the error cause.</h2>
+	 *
+	 * @return ?string
+	 */
+	public function get_description() {
+		if ( $this->try_get_string( $constraint, self::FIELD_DESCRIPTION ) ) {
+			return $constraint;
+		}
 
-    /**
-     * @inheritDoc
-     */
-    protected function unpackRules()
-    {
-        return [
-            self::FIELD_CODE => function ($value) {
-                return (int) $value;
-            },
-        ];
-    }
+		return null;
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	protected function unpackRules() {
+		return [
+			self::FIELD_CODE => function ( $value ) {
+				return (int) $value;
+			},
+		];
+	}
 }

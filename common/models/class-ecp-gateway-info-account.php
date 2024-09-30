@@ -1,6 +1,6 @@
 <?php
 
-defined('ABSPATH') || exit;
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Ecp_Gateway_Info_Account
@@ -12,132 +12,124 @@ defined('ABSPATH') || exit;
  * @package  Ecp_Gateway/Info
  * @category Class
  */
-class Ecp_Gateway_Info_Account extends Ecp_Gateway_Json
-{
-    // region Constants
+class Ecp_Gateway_Info_Account extends Ecp_Gateway_Json {
 
-    /**
-     * Label for masked bank card or other account number.
-     */
-    const FIELD_NUMBER = 'number';
 
-    /**
-     * Label for type of the customer bank card or the mobile operator which is used to perform a payment.
-     */
-    const FIELD_TYPE = 'type';
+	/**
+	 * Label for masked bank card or other account number.
+	 */
+	const FIELD_NUMBER = 'number';
 
-    /**
-     * Label for cardholder name.
-     */
-    const FIELD_CARDHOLDER = 'card_holder';
+	/**
+	 * Label for type of the customer bank card or the mobile operator which is used to perform a payment.
+	 */
+	const FIELD_TYPE = 'type';
 
-    /**
-     * Label for card expiration month.
-     */
-    const FIELD_EXPIRY_MONTH = 'expiry_month';
+	/**
+	 * Label for cardholder name.
+	 */
+	const FIELD_CARDHOLDER = 'card_holder';
 
-    /**
-     * Label for card expiration year.
-     */
-    const FIELD_EXPIRY_YEAR = 'expiry_year';
+	/**
+	 * Label for card expiration month.
+	 */
+	const FIELD_EXPIRY_MONTH = 'expiry_month';
 
-    // endregion
+	/**
+	 * Label for card expiration year.
+	 */
+	const FIELD_EXPIRY_YEAR = 'expiry_year';
 
-    /**
-     * <h2>Returns the masked bank card or other account number.</h2>
-     *
-     * @return string
-     */
-    public function get_number()
-    {
-        $this->try_get_string($number, self::FIELD_NUMBER);
-        return $number;
-    }
 
-    /**
-     * <h2>Returns the type of the customer bank card or the mobile operator which is used to perform a payment.</h2>
-     *
-     * @return ?string
-     */
-    public function get_type()
-    {
-        if ($this->try_get_string($type, self::FIELD_TYPE)) {
-            return $type;
-        }
+	/**
+	 * <h2>Returns the masked bank card or other account number.</h2>
+	 *
+	 * @return string
+	 */
+	public function get_number() {
+		$this->try_get_string( $number, self::FIELD_NUMBER );
 
-        return null;
-    }
+		return $number;
+	}
 
-    /**
-     * <h2>Returns the cardholder name.</h2>
-     *
-     * @return ?string
-     */
-    public function get_cardholder()
-    {
-        if ($this->try_get_string($cardholder, self::FIELD_CARDHOLDER)) {
-            return $cardholder;
-        }
+	/**
+	 * <h2>Returns the type of the customer bank card or the mobile operator which is used to perform a payment.</h2>
+	 *
+	 * @return ?string
+	 */
+	public function get_type() {
+		if ( $this->try_get_string( $type, self::FIELD_TYPE ) ) {
+			return $type;
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    /**
-     * <h2>Return the card expiration month.</h2>
-     *
-     * @return ?int
-     */
-    public function get_expiry_month()
-    {
-        if ($this->try_get_int($month, self::FIELD_EXPIRY_MONTH)) {
-            return $month;
-        }
+	/**
+	 * <h2>Returns the cardholder name.</h2>
+	 *
+	 * @return ?string
+	 */
+	public function get_cardholder() {
+		if ( $this->try_get_string( $cardholder, self::FIELD_CARDHOLDER ) ) {
+			return $cardholder;
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    /**
-     * <h2>Return the card expiration year.</h2>
-     *
-     * @return ?int
-     */
-    public function get_expiry_year()
-    {
-        if ($this->try_get_int($year, self::FIELD_EXPIRY_YEAR)) {
-            return $year;
-        }
+	/**
+	 * <h2>Return the card expiration date.</h2>
+	 *
+	 * @return ?DateTime
+	 */
+	public function get_expiry() {
+		$month = $this->get_expiry_month();
+		$year  = $this->get_expiry_year();
 
-        return null;
-    }
+		if ( ! $month || ! $year ) {
+			return null;
+		}
 
-    /**
-     * <h2>Return the card expiration date.</h2>
-     *
-     * @return ?DateTime
-     */
-    public function get_expiry()
-    {
-        $month = $this->get_expiry_month();
-        $year = $this->get_expiry_year();
+		return ( new DateTime() )
+			->setTime( 0, 0 )
+			->setDate( $year, $month, 1 );
+	}
 
-        if (!$month || !$year) {
-            return null;
-        }
+	/**
+	 * <h2>Return the card expiration month.</h2>
+	 *
+	 * @return ?int
+	 */
+	public function get_expiry_month() {
+		if ( $this->try_get_int( $month, self::FIELD_EXPIRY_MONTH ) ) {
+			return $month;
+		}
 
-        return (new DateTime())
-            ->setTime(0, 0)
-            ->setDate($year, $month, 1);
-    }
+		return null;
+	}
 
-    protected function unpackRules()
-    {
-        return [
-            self::FIELD_EXPIRY_MONTH => function ($value) {
-                return (int) $value;
-            },
-            self::FIELD_EXPIRY_YEAR => function ($value) {
-                return (int) $value;
-            }
-        ];
-    }
+	/**
+	 * <h2>Return the card expiration year.</h2>
+	 *
+	 * @return ?int
+	 */
+	public function get_expiry_year() {
+		if ( $this->try_get_int( $year, self::FIELD_EXPIRY_YEAR ) ) {
+			return $year;
+		}
+
+		return null;
+	}
+
+	protected function unpackRules() {
+		return [
+			self::FIELD_EXPIRY_MONTH => function ( $value ) {
+				return (int) $value;
+			},
+			self::FIELD_EXPIRY_YEAR  => function ( $value ) {
+				return (int) $value;
+			}
+		];
+	}
 }
