@@ -36,11 +36,9 @@ function ecp_subscription_is_resubscribe($order)
  * Checks if Woocommerce Subscriptions is enabled or not
  * @return bool
  */
-function ecp_subscription_is_active()
-{
+function ecp_subscription_is_active(): bool {
     return class_exists('WC_Subscriptions') && WC_Subscriptions::$name = 'subscription';
 }
-
 
 /**
  * Convenience wrapper for wcs_get_subscriptions_for_renewal_order

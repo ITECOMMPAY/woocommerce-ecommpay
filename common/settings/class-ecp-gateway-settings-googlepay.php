@@ -17,7 +17,7 @@ class Ecp_Gateway_Settings_Googlepay extends Ecp_Gateway_Settings {
 	/**
 	 * Internal identifier
 	 */
-	const ID = 'ecommpay-google-pay';
+	public const ID = 'ecommpay-google-pay';
 
 	/**
 	 * Shop section identifier

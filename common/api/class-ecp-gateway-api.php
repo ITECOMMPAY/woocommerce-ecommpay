@@ -41,13 +41,16 @@ class Ecp_Gateway_API {
 
 	protected const STATUS_API_ENDPOINT = 'status';
 
+	public const CAPTURE_ENDPOINT = 'capture';
+	public const CANCEL_ENDPOINT = 'cancel';
+
 	/**
 	 * <h2>The API url.</h2>
 	 *
 	 * @var string
 	 * @since 2.0.0
 	 */
-	private $api_url;
+	private string $api_url;
 
 	/**
 	 * <h2>Request headers.</h2>
@@ -55,7 +58,7 @@ class Ecp_Gateway_API {
 	 * @var string[]
 	 * @since 2.0.0
 	 */
-	private $headers;
+	private array $headers;
 
 
 	/**
@@ -155,26 +158,41 @@ class Ecp_Gateway_API {
 	 * @since 2.0.0
 	 */
 	private function execute( string $request_type, string $path, array $form = [] ): array {
+		$full_path = $this->get_url( $path );
+
+		ecp_debug( 'Started API request.', [
+			'type' => $request_type,
+			'path' => $full_path,
+			'form' => $form
+		] );
+
 		switch ( $request_type ) {
 			case 'GET':
-				$response = wp_remote_get( $this->get_url( $path ), $this->get_args( $form ) );
+				$response = wp_remote_get( $full_path, $this->get_args( $form ) );
 				break;
 			case 'HEAD':
-				$response = wp_remote_head( $this->get_url( $path ), $this->get_args( $form ) );
+				$response = wp_remote_head( $full_path, $this->get_args( $form ) );
 				break;
 			default:
-				$response = wp_remote_post( $this->get_url( $path ), $this->get_args( $form ) );
+				$response = wp_remote_post( $full_path, $this->get_args( $form ) );
 				break;
 		}
 
-		$data   = wp_remote_retrieve_body( $response );
-		$status = intval( wp_remote_retrieve_response_code( $response ) );
+		$response_data = wp_remote_retrieve_body( $response );
+		$status_code   = intval( wp_remote_retrieve_response_code( $response ) );
 
-		// Log request
-		$this->log( $request_type, $form, $data, $status, $path );
+		$response_data = json_decode( $response_data, true );
 
-		$result = $status === 200
-			? json_decode( $data, true )
+		if ( $response_data === null ) {
+			$response_data = [
+				'json_parse_error' => json_last_error_msg()
+			];
+		}
+
+		ecp_debug( 'API request executed. Status code: ' . $status_code . '. Response:', $response_data );
+
+		$result = $status_code === 200
+			? $response_data
 			: [
 				Ecp_Gateway_Info_Status::FIELD_ERRORS => [
 					[
@@ -183,17 +201,18 @@ class Ecp_Gateway_API {
 				]
 			];
 
-		if ( $result !== null && ! is_bool( $result ) ) {
+		if ( is_array( $result ) ) {
 			return $result;
 		}
 
-		ecp_get_log()->warning(
+		ecp_warn(
 			_x( 'JSON parse data with error: ', 'Log information', 'woo-ecommpay' ),
 			json_last_error_msg()
 		);
-		ecp_get_log()->info(
+
+		ecp_info(
 			_x( 'JSON source string data: ', 'Log information', 'woo-ecommpay' ),
-			$data
+			$response_data
 		);
 
 		return [];
@@ -207,7 +226,7 @@ class Ecp_Gateway_API {
 	 * @return string <p>Current object.</p>
 	 * @since 2.0.0
 	 */
-	private function get_url( $params ) {
+	private function get_url( string $params ): string {
 		return $this->api_url . '/' . trim( $params, '/' );
 	}
 
@@ -238,25 +257,6 @@ class Ecp_Gateway_API {
 		return $args;
 	}
 
-	/**
-	 * <h2>Logs result of execution.<h2>
-	 *
-	 * @param string $request_type <p>Request type.</p>
-	 * @param array $request_data <p>Form data as array.</p>
-	 * @param string $response_data <p>Response raw data.</p>
-	 *
-	 * @return void
-	 * @since 2.0.0
-	 */
-	private function log( $request_type, $request_data, $response_data, $response_code, $path ) {
-		ecp_get_log()->debug( __( '~ START => [API Execution process]', 'woo-ecommpay' ) );
-		ecp_get_log()->debug( __( 'Request URL:', 'woo-ecommpay' ), $this->get_url( $path ) );
-		ecp_get_log()->debug( __( 'Request type:', 'woo-ecommpay' ), $request_type );
-		ecp_get_log()->debug( __( 'Form data:', 'woo-ecommpay' ), json_encode( $request_data ) );
-		ecp_get_log()->debug( __( 'Response code:', 'woo-ecommpay' ), $response_code );
-		ecp_get_log()->debug( __( 'Response raw:', 'woo-ecommpay' ), $response_data );
-		ecp_get_log()->debug( __( '[API Execution process] => END ~', 'woo-ecommpay' ) );
-	}
 
 	/**
 	 * <h2>Performs an API POST request.</h2>
@@ -280,7 +280,7 @@ class Ecp_Gateway_API {
 	 * @return array
 	 * @since 3.0.0
 	 */
-	protected function create_general_section( $data ): array {
+	protected function create_general_section( array $data ): array {
 		return [
 			Ecp_Gateway_Signer::GENERAL => $data
 		];

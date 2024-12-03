@@ -17,14 +17,14 @@ class Ecp_Form extends Ecp_Gateway_Registry
      * Setting fields
      * @var ?array
      */
-    private $settings;
+	private ?array $settings;
 
     /**
      * Setting pages.
      *
      * @var Ecp_Gateway_Settings[]
      */
-    private $tabs = [];
+	private array $tabs = [];
 
     /**
      * @inheritDoc
@@ -35,6 +35,8 @@ class Ecp_Form extends Ecp_Gateway_Registry
 
 	    add_action( 'ecp_html_render_field_section_start', [ $this, 'render_fieldset_start' ] );
 	    add_action( 'ecp_html_render_field_section_end', [ $this, 'render_fieldset_end' ] );
+	    add_action( 'ecp_html_render_field_section_description', [ $this, 'render_field_description' ] );
+
 	    add_action( 'ecp_html_render_field_toggle_start', [ $this, 'render_toggle_start' ] );
 	    add_action( 'ecp_html_render_field_toggle_end', [ $this, 'render_toggle_end' ] );
 	    add_action( 'ecp_html_render_field_text', [ $this, 'render_field_input' ] );
@@ -64,6 +66,8 @@ class Ecp_Form extends Ecp_Gateway_Registry
         if (empty ($this->tabs)) {
             $tabs = [
                 new Ecp_Gateway_Settings_General(),
+	            new EcpGatewaySettingsProducts(),
+	            new EcpGatewaySettingsSubscriptions(),
                 new Ecp_Gateway_Settings_Card(),
                 new Ecp_Gateway_Settings_Applepay(),
                 new Ecp_Gateway_Settings_Googlepay(),
@@ -97,7 +101,7 @@ class Ecp_Form extends Ecp_Gateway_Registry
         do_action('ecp_settings_save_' . $current_tab);
         do_action('ecp_update_options_' . $current_tab);
         do_action('ecp_update_options');
-        wp_schedule_single_event(time(), 'ecp_flush_rewrite_rules');
+	    wp_schedule_single_event( time(), 'ecp_flush_rewrite_rules' );
         do_action('ecp_settings_saved');
 
         ecp_get_log()->info('Plugin settings successfully saved. Section:', $current_tab);
@@ -106,9 +110,9 @@ class Ecp_Form extends Ecp_Gateway_Registry
     private function get_section()
     {
         $current_tab = $_REQUEST['section'];
-        if (wc_get_var($_REQUEST['sub']) === Ecp_Gateway_Settings_General::ID) {
-            $current_tab = Ecp_Gateway_Settings_General::ID;
-        }
+	    if ( ! empty( wc_get_var( $_REQUEST['sub'] ) ) ) {
+		    $current_tab = $_REQUEST['sub'];
+	    }
 
         return $current_tab;
     }
@@ -116,7 +120,7 @@ class Ecp_Form extends Ecp_Gateway_Registry
     /**
      * Display settings page.
      */
-    public function output($tab = null)
+	public function output()
     {
         $current_tab = $this->get_section();
 	    $suffix = '';
@@ -158,7 +162,7 @@ class Ecp_Form extends Ecp_Gateway_Registry
      *
      * @param Ecp_Gateway_Settings $options Opens array to output.
      */
-    public function output_fields($options)
+	public function output_fields( Ecp_Gateway_Settings $options )
     {
         foreach ($options->get_settings() as $value) {
             if (!isset ($value['type'])) {
@@ -364,15 +368,18 @@ class Ecp_Form extends Ecp_Gateway_Registry
      * @since 2.0.3
      * @return array
      */
-    public function get_default_settings()
-    {
+	public function get_default_settings(): array {
         $data = [];
 
         // Prepare all data
         foreach ($this->tabs as $tab) {
             $part = [];
 
-            foreach (apply_filters('woocommerce_settings_api_form_fields_' . $tab->get_id(), array_map([$this, 'set_defaults'], apply_filters('ecp_get_settings_' . $tab->get_id(), []))) as $value) {
+	        foreach (
+		        apply_filters( 'woocommerce_settings_api_form_fields_' . $tab->get_id(),
+			        array_map( [ $this, 'set_defaults' ],
+				        apply_filters( 'ecp_get_settings_' . $tab->get_id(), [] ) ) ) as $value
+	        ) {
                 $default = $this->get_field_default($value);
 
                 if (!empty ($default)) {
@@ -392,8 +399,7 @@ class Ecp_Form extends Ecp_Gateway_Registry
      * @since 2.0.3
      * @return array of options
      */
-    public function get_all_form_fields()
-    {
+	public function get_all_form_fields(): array {
         $fields = [];
 
         foreach ($this->tabs as $tab) {
@@ -506,7 +512,11 @@ class Ecp_Form extends Ecp_Gateway_Registry
         ecp_get_view('fields/html-form-fieldset-end.php', $value);
     }
 
-    // Toggle block start.
+	public function render_field_description( $value ) {
+		ecp_get_view( 'fields/html-form-field-section-description.php', $value );
+	}
+
+	// Toggle block start.
     public function render_toggle_start($value)
     {
         ecp_get_view('fields/html-form-toggle-start.php', $value);
@@ -638,8 +648,7 @@ class Ecp_Form extends Ecp_Gateway_Registry
         return $value;
     }
 
-    private function get_custom_attributes($value)
-    {
+	private function get_custom_attributes( $value ): array {
         // Custom attribute handling.
         $custom_attributes = [];
 
@@ -679,9 +688,10 @@ class Ecp_Form extends Ecp_Gateway_Registry
      * Plugins can call this when implementing their own custom settings types.
      *
      * @param array $value The form field value array.
+     *
      * @return string The tip as a formatted string.
      */
-    private function get_tooltip($value)
+	private function get_tooltip( array $value )
     {
         if (true === $value[Ecp_Gateway_Settings::FIELD_TIP]) {
             return $value[Ecp_Gateway_Settings::FIELD_DESC];
@@ -698,10 +708,10 @@ class Ecp_Form extends Ecp_Gateway_Registry
      * Returns based form field array from setting options.
      *
      * @param array $value Setting options
+     *
      * @return array Form field as array
      */
-    private function get_general_rendering_options($value, $gateway)
-    {
+	private function get_general_rendering_options( array $value, $gateway ): array {
         return [
             'id' => $value[Ecp_Gateway_Settings::FIELD_ID],
             'type' => $value[Ecp_Gateway_Settings::FIELD_TYPE],

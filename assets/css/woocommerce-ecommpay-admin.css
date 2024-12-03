@@ -161,8 +161,8 @@ li.ecp-meta-box-header .ecp-full-width {
 }
 
 .ecp-payment-status.status-awaiting-capture {
-  background: #c6e1c6;
-  color: #5b841b;
+  background: #f8dda7;
+  color: #573b00;
 }
 
 .ecp-payment-status span {

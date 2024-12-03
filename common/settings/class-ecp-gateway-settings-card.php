@@ -17,7 +17,7 @@ class Ecp_Gateway_Settings_Card extends Ecp_Gateway_Settings {
 	/**
 	 * Internal identifier
 	 */
-	const ID = 'ecommpay-card';
+	public const ID = 'ecommpay-card';
 
 	/**
 	 * Card settings section identifier

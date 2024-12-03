@@ -1,5 +1,7 @@
 <?php
 
+use common\helpers\WCOrderStatus;
+
 defined( 'ABSPATH' ) || exit;
 
 /**

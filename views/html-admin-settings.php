@@ -25,9 +25,9 @@ if ( ! $tab_exists ) {
 ?>
 <div class="wrap ecp">
     <nav class="nav-tab-wrapper wpm-nav-tab-wrapper ecp-relative">
-		<?php foreach ( $tabs as $slug => $data ): ?>
-            <a href="<?php echo esc_url_raw( ecp_settings_page_url( $slug ) ); ?>"
-               class="nav-tab <?php echo $current_tab === $slug ? 'nav-tab-active' : ''; ?>">
+	    <?php foreach ( $tabs as $slug => $data ): ?>
+            <a href="<?php echo esc_url_raw( $data['disabled'] ? '#' : ecp_settings_page_url( $slug ) ); ?>"
+               class="nav-tab<?php echo( $current_tab === $slug ? ' nav-tab-active' : '' ); ?>">
 				<?php echo esc_html( $data['label'] ); ?>
             </a>
 		<?php endforeach; ?>

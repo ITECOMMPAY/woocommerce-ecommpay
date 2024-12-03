@@ -11,6 +11,9 @@ defined( 'ABSPATH' ) || exit;
  * @category Class
  */
 class Ecp_Gateway_Module_Admin_UI extends Ecp_Gateway_Registry {
+	public const ACTION_BUTTON_CLASS = 'ecp-action-button';
+	public const WP_REFUND_BUTTON_SELECTOR = '.button.refund-items';
+
 	/**
 	 * <h2>Adds a new "Payment" column to "Orders" list.</h2>
 	 *
@@ -162,7 +165,8 @@ class Ecp_Gateway_Module_Admin_UI extends Ecp_Gateway_Registry {
 		} else {
 			$status = $order->get_ecp_status();
 		}
-
+		ecp_get_log()->debug($order->get_id());
+		ecp_get_log()->debug($status);
 		ecp_get_view( 'html-order-table-payment-data.php', [
 			'payment_status'      => $status,
 		] );
@@ -515,6 +519,8 @@ class Ecp_Gateway_Module_Admin_UI extends Ecp_Gateway_Registry {
 		add_action( 'wp_ajax_ecommpay_empty_logs', [ $this, 'ajax_clear_log' ] );
 		add_action( 'wp_ajax_ecommpay_flush_cache', [ $this, 'ajax_flush_payment_cache' ] );
 
+		$this->addOrdersPageColumnsFilters();
+
 		// Add filters only if setting parameter "ecommpay_orders_transaction_info" is on
 		if ( ecp_is_enabled( Ecp_Gateway_Settings_General::OPTION_TRANSACTION_INFO ) ) {
 			// For legacy order storage
@@ -532,5 +538,66 @@ class Ecp_Gateway_Module_Admin_UI extends Ecp_Gateway_Registry {
 				'add_column_contents_to_order_list'
 			], 999, 2 );
 		}
+	}
+
+	private function addOrdersPageColumnsFilters() {
+		add_action( 'woocommerce_order_list_table_restrict_manage_orders', [ $this, 'ecp_payment_status_filter' ] );
+		add_filter( 'woocommerce_order_list_table_prepare_items_query_args', [
+			$this,
+			'ecp_payment_status_filter_query'
+		] );
+
+		add_action( 'woocommerce_order_item_add_action_buttons', [ $this, 'ecp_add_order_buttons' ] );
+	}
+
+	function ecp_payment_status_filter( $post_type ) {
+		if ( 'shop_order' !== $post_type ) {
+			return;
+		}
+
+		global $wpdb;
+
+		$statuses = $wpdb->get_col( "SELECT DISTINCT {$wpdb->prefix}wc_orders_meta.meta_value
+				FROM {$wpdb->prefix}wc_orders_meta
+				WHERE {$wpdb->prefix}wc_orders_meta.meta_key = '_payment_status'"
+		);
+
+		if ( empty( $statuses ) ) {
+			$statuses = [];
+		}
+
+
+		$statuses = array_combine( $statuses,
+			array_map(
+				function ( $status ) {
+					return Ecp_Gateway_Payment_Status::get_status_name( $status );
+				},
+				$statuses
+			)
+		);
+
+		$selected_value = $_GET['_payment_status'] ?? '';
+
+		asort( $statuses );
+
+		ecp_get_view(
+			'admin/sections/html-filter.php', [ 'statuses' => $statuses, 'selected_value' => $selected_value ]
+		);
+	}
+
+	function ecp_payment_status_filter_query( $query_args ): array {
+		if ( ! empty( $_GET['_payment_status'] ) ) {
+			$query_args['meta_query'][] = [
+				'key'     => '_payment_status',
+				'value'   => sanitize_text_field( $_GET['_payment_status'] ),
+				'compare' => '='
+			];
+		}
+
+		return $query_args;
+	}
+
+	function ecp_add_order_buttons( $order ) {
+		ecp_get_view( 'admin/sections/html-buttons.php', [ 'order' => $order, ] );
 	}
 }

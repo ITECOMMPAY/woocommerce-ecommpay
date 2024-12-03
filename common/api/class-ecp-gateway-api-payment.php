@@ -11,6 +11,12 @@ defined( 'ABSPATH' ) || exit;
  * @category Class
  */
 class Ecp_Gateway_API_Payment extends Ecp_Gateway_API {
+	private const CARD_ENDPOINT_PART = 'card';
+
+	private const APPLE_PAY_ENDPOINT_PART = 'applepay';
+
+	private const GOOGLE_PAY_ENDPOINT_PART = 'googlepay';
+
 	/**
 	 * <h2>Payment Gate2025 API constructor.</h2>
 	 *
@@ -29,10 +35,10 @@ class Ecp_Gateway_API_Payment extends Ecp_Gateway_API {
 	 * @since 2.0.0
 	 */
 	public function status( Ecp_Gateway_Order $order ): Ecp_Gateway_Info_Status {
-		ecp_get_log()->info( __( 'Run check payment status API process.', 'woo-ecommpay' ) );
-		ecp_get_log()->debug( __( 'Order ID:', 'woo-ecommpay' ), $order->get_id() );
-		ecp_get_log()->debug( __( 'Current payment status:', 'woo-ecommpay' ), $order->get_ecp_status() );
-		ecp_get_log()->debug( __( 'Payment method:', 'woo-ecommpay' ), $order->get_payment_system() );
+		ecp_get_log()->info( ecpTr( 'Run check payment status API process.' ) );
+		ecp_debug( ecpTr( 'Order ID:' ), $order->get_id() );
+		ecp_debug( ecpTr( 'Current payment status:' ), $order->get_ecp_status() );
+		ecp_debug( ecpTr( 'Payment method:' ), $order->get_payment_system() );
 
 		if ( $order->get_ecp_status() === Ecp_Gateway_Payment_Status::INITIAL ) {
 			return new Ecp_Gateway_Info_Status();
@@ -46,7 +52,7 @@ class Ecp_Gateway_API_Payment extends Ecp_Gateway_API {
 			)
 		);
 
-		ecp_get_log()->info( __( 'Check payment status process completed.', 'woo-ecommpay' ) );
+		ecp_get_log()->info( ecpTr( 'Check payment status process completed.' ) );
 
 		return $response;
 	}
@@ -54,12 +60,12 @@ class Ecp_Gateway_API_Payment extends Ecp_Gateway_API {
 	/**
 	 * <h2>Returns the underlying form data for the status request.</h2>
 	 *
-	 * @param ECP_Gateway_Order_Extension $order <p>Order with payment.</p>
+	 * @param Ecp_Gateway_Order $order <p>Order with payment.</p>
 	 *
 	 * @return array[] <p>Basic form-data.</p>
 	 * @since 3.0.0
 	 */
-	private function create_status_request_form_data( $order ): array {
+	private function create_status_request_form_data( Ecp_Gateway_Order $order ): array {
 		ecp_get_log()->info( __( 'Create form data for status request.', 'woo-ecommpay' ) );
 		$data                = $this->create_general_section(
 			apply_filters(
@@ -81,9 +87,9 @@ class Ecp_Gateway_API_Payment extends Ecp_Gateway_API {
 	 * @return Ecp_Gateway_Info_Response
 	 */
 	public function refund( Ecp_Gateway_Refund $refund, Ecp_Gateway_Order $order ): ?Ecp_Gateway_Info_Response {
-		ecp_get_log()->info( __( 'Run refund payment API process.', 'woo-ecommpay' ) );
-		ecp_get_log()->debug( __( 'Refund ID:', 'woo-ecommpay' ), $refund->get_id() );
-		ecp_get_log()->debug( __( 'Order ID:', 'woo-ecommpay' ), $order->get_id() );
+		ecp_info( ecpTr( 'Run refund payment API process.' ) );
+		ecp_debug( ecpTr( 'Refund ID:' ), $refund->get_id() );
+		ecp_debug( ecpTr( 'Order ID:' ), $order->get_id() );
 
 		// Create form data
 		$data = $this->create_refund_request_form_data( $refund, $order );
@@ -108,8 +114,32 @@ class Ecp_Gateway_API_Payment extends Ecp_Gateway_API {
 
 		$response = new Ecp_Gateway_Info_Response( $response );
 
-		ecp_get_log()->info( __( 'Refund payment process completed.', 'woo-ecommpay' ) );
+		ecp_info( ecpTr( 'Refund payment process completed.' ) );
 
+		return $response;
+	}
+
+	public function cancel( Ecp_Gateway_Order $order ): Ecp_Gateway_Info_Response {
+		ecp_info( 'Run cancel payment API process.' );
+		ecp_debug( 'Order ID: ', $order->get_id() );
+		$data = $this->create_general_request_form_data( $order );
+		$url      = $this->getMethodEndpoint( $order->get_payment_method(), Ecp_Gateway_API::CANCEL_ENDPOINT );
+		$response = $this->post( $url, apply_filters( 'ecp_append_signature', $data ) );
+		$response = new Ecp_Gateway_Info_Response( $response );
+		$order->set_transaction_order_id( $response->get_request_id(), 'cancel' );
+		ecp_info( 'Cancel payment process completed.' );
+		return $response;
+	}
+
+	public function capture( Ecp_Gateway_Order $order ): Ecp_Gateway_Info_Response {
+		ecp_info( 'Run capture payment API process.' );
+		ecp_debug( 'Order ID: ' . $order->get_id() );
+		$data = $this->create_general_request_form_data( $order );
+		$url      = $this->getMethodEndpoint( $order->get_payment_method(), Ecp_Gateway_API::CAPTURE_ENDPOINT );
+		$response = $this->post( $url, apply_filters( 'ecp_append_signature', $data ) );
+		$response = new Ecp_Gateway_Info_Response( $response );
+		$order->set_transaction_order_id( $response->get_request_id(), 'capture' );
+		ecp_info( 'Capture payment process completed.' );
 		return $response;
 	}
 
@@ -133,5 +163,36 @@ class Ecp_Gateway_API_Payment extends Ecp_Gateway_API {
 		$data = apply_filters( 'ecp_append_payment_section', $data, $refund );
 
 		return apply_filters( 'ecp_append_interface_type', $data );
+	}
+
+	final public function create_general_request_form_data( Ecp_Gateway_Order $order ): array {
+		ecp_get_log()->info( __( 'Create general form data for request.', 'woo-ecommpay' ) );
+		$data = $this->create_general_section(
+			apply_filters(
+				'ecp_append_merchant_callback_url',
+				apply_filters( 'ecp_create_payment_data', $order )
+			)
+		);
+		$data = apply_filters( 'ecp_append_payment_section', $data, $order );
+
+		return apply_filters( 'ecp_append_interface_type', $data );
+	}
+
+	/**
+	 * @param string $paymentMethod
+	 * @param string $operation
+	 *
+	 * @return string
+	 */
+	function getMethodEndpoint( string $paymentMethod, string $operation ): string {
+		$pm_endpoints_map = [
+			Ecp_Gateway_Settings_Card::ID      => self::CARD_ENDPOINT_PART,
+			Ecp_Gateway_Settings_Applepay::ID  => self::APPLE_PAY_ENDPOINT_PART,
+			Ecp_Gateway_Settings_Googlepay::ID => self::GOOGLE_PAY_ENDPOINT_PART,
+		];
+
+		$mappedMethod = $pm_endpoints_map[ $paymentMethod ] ?? $paymentMethod;
+
+		return sprintf( '%s/%s', $mappedMethod, $operation );
 	}
 }

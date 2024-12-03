@@ -1,15 +1,11 @@
 <?php
 
+use common\modules\EcpModuleAuth;
+use common\modules\EcpModuleCancel;
+use common\modules\EcpModuleCapture;
+
 final class Ecp_Core extends WC_Settings_API
 {
-    /**
-     * <h2>Global prefix for internal actions.</h2>
-     *
-     * @var string
-     * @since 2.0.0
-     */
-    const CMS_PREFIX = 'wp_ecp';
-
     /**
      * <h2>Identifier for interface type.</h2>
      *
@@ -25,7 +21,7 @@ final class Ecp_Core extends WC_Settings_API
      * @var string
      * @since 2.0.0
      */
-    const WC_ECP_VERSION = '3.5.0';
+    const WC_ECP_VERSION = '4.0.0';
 
 
 	/**
@@ -74,8 +70,8 @@ final class Ecp_Core extends WC_Settings_API
      * @since 2.0.0
      */
 	public static function add_action_links( $links ): array {
-        return array_merge([
-            '<a href="' . ecp_settings_page_url() . '">' . __('Settings', 'woo-ecommpay') . '</a>',
+		return array_merge( [
+			'<a href="' . ecp_settings_page_url() . '">' . __( 'Settings', 'woo-ecommpay' ) . '</a>',
         ], $links);
     }
 
@@ -94,8 +90,7 @@ final class Ecp_Core extends WC_Settings_API
      * @return array
      * @since 1.0.0
      */
-    public function get_interface_type()
-    {
+	public function get_interface_type(): array {
         return [
             'id' => self::INTERFACE_TYPE,
         ];
@@ -112,6 +107,9 @@ final class Ecp_Core extends WC_Settings_API
         Ecp_Gateway_Module_Admin_UI::get_instance();
         Ecp_Gateway_Module_Payment_Page::get_instance();
         Ecp_Gateway_Module_Refund::get_instance();
+	    EcpModuleAuth::get_instance();
+	    EcpModuleCapture::get_instance();
+	    EcpModuleCancel::get_instance();
         Ecp_Gateway_API_Protocol::get_instance();
 
         $this->set_payment_methods();
@@ -175,7 +173,7 @@ final class Ecp_Core extends WC_Settings_API
         echo '<h2>ECOMMPAY';
         wc_back_link(__('Return to payments', 'woocommerce'), admin_url('admin.php?page=wc-settings&tab=checkout'));
         echo '</h2>';
-        $this->settings()->output($this->id);
+	    $this->settings()->output();
     }
 
     /**
@@ -199,16 +197,14 @@ final class Ecp_Core extends WC_Settings_API
         return $this->form;
     }
 
-    public function get_payment_methods()
-    {
+	public function get_payment_methods(): ?array {
         if (empty ($this->methods)) {
             $this->set_payment_methods();
         }
         return $this->methods;
     }
 
-    public function get_payment_classnames()
-    {
+	public function get_payment_classnames(): array {
         return self::$classes;
     }
 
@@ -234,8 +230,7 @@ final class Ecp_Core extends WC_Settings_API
      * @return bool
      * @since 3.0.0
      */
-    public function update_option($key, $value = '')
-    {
+	public function update_option( $key, $value = '' ): bool {
         if (empty ($this->settings)) {
             $this->init_settings();
         }
@@ -264,15 +259,13 @@ final class Ecp_Core extends WC_Settings_API
             $form_fields = $this->get_form_fields();
             $settings[$key] = isset ($form_fields[$key]) ? $this->get_field_default($form_fields[$key]) : '';
         }
-
-        return !is_null($default) && '' === $settings[$key]
-            ? $default
-            : $settings[$key];
+		
+	    return ! is_null( $default ) && in_array( $settings[ $key ], [ '', 'no' ] ) ? $default : $settings[ $key ];
     }
 
     public function get_general_option($key, $default = null)
     {
-        return $this->get_pm_option(Ecp_Gateway_Settings_General::ID, $key, $default);
+	    return $this->get_pm_option( Ecp_Gateway_Settings_General::ID, $key, $default );
     }
 
     /**
@@ -305,48 +298,6 @@ final class Ecp_Core extends WC_Settings_API
             default:
                 return $classname;
         }
-    }
-
-
-	/**
-     * <h2>Parse update notice from readme file.</h2>
-     *
-     * @param string $content
-     * @return string
-     * @since 3.0.0
-     */
-    private function parse_update_notice($content)
-    {
-        // Output Upgrade Notice
-        $matches = null;
-        $regexp = '~==\s*Upgrade Notice\s*==\s*=\s*(.*)\s*=(.*)(=\s*'
-            . preg_quote(self::WC_ECP_VERSION, '/') . '\s*=|$)~Uis';
-        $upgrade_notice = '';
-
-        if (preg_match($regexp, $content, $matches)) {
-            $version = trim($matches[1]);
-            $notices = (array) preg_split('~[\r\n]+~', trim($matches[2]));
-
-            if (version_compare(self::WC_ECP_VERSION, $version, '<')) {
-
-                $upgrade_notice .= '<div class="wc_plugin_upgrade_notice">';
-
-                foreach ($notices as $line) {
-                    /** @noinspection HtmlUnknownTarget */
-                    $upgrade_notice .= wp_kses_post(
-                        preg_replace(
-                            '~\[([^]]*)]\(([^)]*)\)~',
-                            '<a href="${2}">${1}</a>',
-                            $line
-                        )
-                    );
-                }
-
-                $upgrade_notice .= '</div> ';
-            }
-        }
-
-        return wp_kses_post($upgrade_notice);
     }
 
     /**

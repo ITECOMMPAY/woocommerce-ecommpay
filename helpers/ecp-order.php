@@ -133,7 +133,19 @@ function ecp_callback_url( $post_id = null ): string {
 
 	$args = apply_filters( 'woocommerce_ecommpay_callback_args', $args, $post_id );
 
-	return apply_filters( 'woocommerce_ecommpay_callback_url', add_query_arg( $args, home_url( '/' ) ), $args, $post_id );
+	$callback_url = home_url( '/' );
+
+	try {
+		// For testing purposes
+		$docker_url = getenv_docker( 'WORDPRESS_CALLBACK_URL', '' );
+		if ( ! empty( $docker_url ) ) {
+			$callback_url = $docker_url;
+		}
+	} catch ( Exception $e ) {
+	}
+
+
+	return apply_filters( 'woocommerce_ecommpay_callback_url', add_query_arg( $args, $callback_url ), $args, $post_id );
 }
 
 /**

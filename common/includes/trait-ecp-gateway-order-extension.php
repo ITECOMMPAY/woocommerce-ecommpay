@@ -43,9 +43,10 @@ trait ECP_Gateway_Order_Extension
      * Sets payment status.
      *
      * @param string $status
+     *
      * @return void
      */
-    public function set_ecp_status($status)
+	public function set_ecp_payment_status( string $status )
     {
         $this->set_ecp_meta('_payment_status', $status);
     }
@@ -111,18 +112,67 @@ trait ECP_Gateway_Order_Extension
         return $this->get_ecp_meta('transaction_id');
     }
 
-    public function get_transaction_order_id($context = 'view')
-    {
-        return $this->get_ecp_meta('_ecommpay_request_id', true, $context);
-    }
+	/**
+	 * @param string $context
+	 * @param string|null $operation
+	 *
+	 * @return string
+	 */
+	public function get_transaction_order_id( string $context = 'view', string $operation = '' ): string {
+		return $this->get_ecp_meta( '_ecommpay' . $this->add_op_code_prefix( $operation ) . '_request_id', true, $context );
+	}
 
-    /**
+	/**
+	 * Set the transaction order ID on an order
+	 *
+	 * @param string $transaction_order_id
+	 * @param string|null $operation
+	 *
+	 * @return void
+	 */
+	public function set_transaction_order_id( string $transaction_order_id, string $operation = '' ) {
+		$this->set_ecp_meta( '_ecommpay' . $this->add_op_code_prefix( $operation ) . '_request_id', $transaction_order_id );
+	}
+
+	/**
+	 * Adds _ prefix to the operation code
+	 *
+	 * @param string $operation
+	 *
+	 * @return string
+	 */
+	private function add_op_code_prefix( string $operation = '' ): string {
+		return ( ! empty( $operation ) ) ? '_' . $operation : '';
+	}
+
+
+	/**
+	 * @param string $context
+	 * @param string $operation
+	 *
+	 * @return string
+	 */
+	public function get_operation_status( string $context = 'view', string $operation = '' ): string {
+		return $this->get_ecp_meta( '_ecommpay_operation' . $this->add_op_code_prefix( $operation ) . '_status', true, $context );
+	}
+
+	/**
+	 * @param string $status
+	 * @param string $operation
+	 *
+	 * @return void
+	 */
+	public function set_operation_status( string $status, string $operation = '' ) {
+		$this->set_ecp_meta( '_ecommpay_operation' . $this->add_op_code_prefix( $operation ) . '_status', $status );
+	}
+
+
+	/**
      * Increase the amount of payment attempts done
      *
      * @return int
      */
-    public function get_failed_ecommpay_payment_count()
-    {
+	public function get_failed_ecommpay_payment_count(): int {
         $count = $this->get_ecp_meta(self::META_FAILED_PAYMENT_COUNT);
 
         if (!empty ($count)) {

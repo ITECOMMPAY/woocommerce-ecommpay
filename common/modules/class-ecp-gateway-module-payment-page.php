@@ -121,14 +121,19 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry {
 			'target_element'          => 'ecommpay-iframe-embedded',
 			'frame_mode'              => 'iframe',
 			'merchant_callback_url'   => ecp_callback_url(),
-			'interface_type'          => '{"id":18}',
 			'payment_methods_options' => "{\"additional_data\":{\"embedded_mode\":true}}",
 		];
+
+		$data = apply_filters( 'ecp_append_interface_type', $data, true );
+
 		$data = $this->append_recurring_total_form_cart( $data );
+
 		if ( isset ( $order ) ) {
+			$data = apply_filters( 'ecp_append_card_operation_type', $data, $order );
 			$data = apply_filters( 'ecp_append_receipt_data', $data, $order, true );
 			$data = apply_filters( 'ecp_append_customer_id', $data, $order );
 		} else {
+			$data = apply_filters( 'ecp_append_card_operation_type', $data );
 			$data = $this->append_receipt_data_from_cart( $data );
 			if ( WC()->cart->get_customer()->id ) {
 				$data['customer_id'] = WC()->cart->get_customer()->id;
@@ -137,7 +142,7 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry {
 
 		$data = apply_filters( 'ecp_append_language_code', $data );
 
-		ecp_get_log()->debug( __( json_encode( $data ), 'woo-ecommpay' ) );
+		ecp_debug( 'Payment page data: ', $data );
 
 		$data = Ecp_Gateway_Signer::get_instance()->sign( $data );
 		wp_send_json( $data );
@@ -450,26 +455,17 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry {
 			$values[ 'payment_' . $key ] = $value;
 		}
 
-		// Set Payment Page Language
 		$values = apply_filters( 'ecp_append_language_code', $values );
-		// Set Additional data: Customer and Billing data, Receipt etc
 		$values = apply_filters( 'ecp_append_additional_variables', $values, $order );
-		// Set merchant success url with additional options
 		$values = apply_filters( 'ecp_append_merchant_success_url', $values, $return_url );
-		// Set merchant fail url with additional options
 		$values = apply_filters( 'ecp_append_merchant_fail_url', $values, $return_url );
-		// Set merchant return url with additional options
 		$values = apply_filters( 'ecp_append_merchant_return_url', $values, esc_url_raw( $order->get_checkout_payment_url() ) );
-		// Set merchant callback url
 		$values = apply_filters( 'ecp_append_merchant_callback_url', $values );
-		// Set merchant success url with additional options
 		$values = apply_filters( 'ecp_append_redirect_url', $values, $return_url );
-		// Set arguments by current payment gateway
 		$values = apply_filters( 'ecp_append_gateway_arguments_' . $gateway->id, $values, $order );
-		// Set environment versions
 		$values = apply_filters( 'ecp_append_versions', $values );
-		// Set ECOMMPAY internal interface type
 		$values = apply_filters( 'ecp_append_interface_type', $values, true );
+		$values = apply_filters( 'ecp_append_card_operation_type', $values, $order );
 
 		// Clean arguments and return
 		return apply_filters( 'ecp_payment_page_clean_parameters', $values );
@@ -587,7 +583,7 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry {
 	 * @return string <p>ECOMMPAY Payment Page protocol name.</b>
 	 * @since 2.0.0
 	 */
-	private function get_protocol() {
+	private function get_protocol(): string {
 		$proto = getenv( 'ECP_PROTO' );
 
 		return is_string( $proto ) ? $proto : self::PROTOCOL;
@@ -599,23 +595,9 @@ class Ecp_Gateway_Module_Payment_Page extends Ecp_Gateway_Registry {
 	 * @return string <p>ECOMMPAY Payment Page host name.</p>
 	 * @since 2.0.0
 	 */
-	private function get_host() {
+	private function get_host(): string {
 		$host = getenv( 'ECP_PAYMENTPAGE_HOST' );
 
 		return is_string( $host ) ? $host : self::HOST;
-	}
-
-	/**
-	 * @throws Exception
-	 */
-	private function add_payment_id_to_order() {
-		$order_id   = wc_get_var( $_REQUEST['order_id'], 0 );
-		$payment_id = wc_get_var( $_REQUEST['payment_id'], '' );
-		$meta_id    = wc_add_order_item_meta( $order_id, 'payment_id', $payment_id, true );
-		if ( $meta_id ) {
-			wp_send_json( [ 'status' => 'success' ] );
-		} else {
-			wp_send_json( [ 'status' => 'error' ] );
-		}
 	}
 }

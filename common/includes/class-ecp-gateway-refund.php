@@ -25,7 +25,7 @@ class Ecp_Gateway_Refund extends OrderRefund {
 	 * @uses Ecp_Gateway_Refund::set_is_test()
 	 * @uses Ecp_Gateway_Refund::get_id()
 	 * @uses Ecp_Gateway_Refund::set_payment_id()
-	 * @uses Ecp_Gateway_Refund::set_ecp_status()
+	 * @uses Ecp_Gateway_Refund::set_ecp_payment_status()
 	 * @uses Ecp_Gateway_Order::get_refund_attempts_count()
 	 * @uses Ecp_Gateway_Order::increase_refund_attempts_count()
 	 */
@@ -37,7 +37,7 @@ class Ecp_Gateway_Refund extends OrderRefund {
 		$order->save();
 
 		$this->set_payment_id( $id );
-		$this->set_ecp_status( 'initial' );
+		$this->set_ecp_payment_status( 'initial' );
 		$this->save();
 
 		ecp_get_log()->debug( __( 'New refund payment identifier created:', 'woo-ecommpay' ), $id );
@@ -53,7 +53,7 @@ class Ecp_Gateway_Refund extends OrderRefund {
 	 * @return array Details of change
 	 * @since 2.0.0
 	 */
-	public function set_ecp_status( $status, $note = '' ): array {
+	public function set_ecp_payment_status( string $status, string $note = '' ): array {
 		ecp_get_log()->debug( __( 'Transition refund ECOMMPAY status', 'woo-ecommpay' ) );
 
 		$old = $this->get_ecp_status();
@@ -175,7 +175,7 @@ class Ecp_Gateway_Refund extends OrderRefund {
 	 *
 	 * @return bool <b>TRUE</b> on status changed or <b>FALSE</b> otherwise.
 	 * @since 2.0.0
-	 * @uses Ecp_Gateway_Refund::set_ecp_status()
+	 * @uses Ecp_Gateway_Refund::set_ecp_payment_status()
 	 * @uses Ecp_Gateway_Refund::add_comment()
 	 */
 	public function update_status( string $new_status, string $note = '' ): bool {
@@ -188,7 +188,7 @@ class Ecp_Gateway_Refund extends OrderRefund {
 		}
 
 		try {
-			$this->set_ecp_status( $new_status, $note );
+			$this->set_ecp_payment_status( $new_status, $note );
 			$this->save();
 		} catch ( Exception $e ) {
 			ecp_get_log()->error(

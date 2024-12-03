@@ -158,7 +158,7 @@ class Ecp_Gateway_Payment {
 			return;
 		}
 
-		$this->order->set_ecp_status( $this->status_transition->get_new() );
+		$this->order->set_ecp_payment_status( $this->status_transition->get_new() );
 		$this->order->maybe_set_date_paid();
 		ecp_get_log()->debug( __( 'The payment status has settled.', 'woo-ecommpay' ) );
 	}
@@ -550,32 +550,6 @@ class Ecp_Gateway_Payment {
 	}
 
 	/**
-	 * <h2>Returns the last operation by type.</h2>
-	 *
-	 * @param string $type <p>
-	 * Possible values:<br/>
-	 *      - {@see Ecp_Gateway_Operation_Type::SALE} Payment operation<br/>
-	 *      - {@see Ecp_Gateway_Operation_Type::REVERSAL} Reversal operation<br/>
-	 *      - {@see Ecp_Gateway_Operation_Type::REFUND} Refund operation<br/>
-	 *      - {@see Ecp_Gateway_Operation_Type::RECURRING} Recurring operation<br/>
-	 *      - {@see Ecp_Gateway_Operation_Type::RECURRING_UPDATE} Update recurring operation<br/>
-	 *      - {@see Ecp_Gateway_Operation_Type::RECURRING_CANCEL} Cancel recurring operation<br/>
-	 * </p>
-	 *
-	 * @return ?Ecp_Gateway_Info_Operation Operation if exists or <b>NULL</b> otherwise.
-	 * @since 2.0.0
-	 */
-	public function get_last_operation_of_type( string $type ): ?Ecp_Gateway_Info_Operation {
-		foreach ( array_reverse( $this->operations ) as $operation ) {
-			if ( $operation->get_type() === $type ) {
-				return $operation;
-			}
-		}
-
-		return null;
-	}
-
-	/**
 	 * <h2>Returns the operation by ECOMMPAY request identifier.</h2>
 	 *
 	 * @param string $request_id
@@ -601,35 +575,6 @@ class Ecp_Gateway_Payment {
 		ecp_get_log()->info( __( 'Not found required operation information.', 'woo-ecommpay' ) );
 
 		return null;
-	}
-
-	/**
-	 * Check if the action we are about to perform is allowed according to the current transaction state.
-	 *
-	 * @param $action
-	 *
-	 * @return boolean
-	 * @since 2.0.0
-	 */
-	public function is_action_allowed( $action ): bool {
-		$allowed_states = [
-			'refund'       => [
-				Ecp_Gateway_Payment_Status::PARTIALLY_REFUNDED,
-				Ecp_Gateway_Payment_Status::PARTIALLY_REVERSED,
-				Ecp_Gateway_Payment_Status::SUCCESS
-			],
-			'renew'        => [
-				Ecp_Gateway_Payment_Status::AWAITING_CAPTURE,
-			],
-			'recurring'    => [
-				'subscribe'
-			],
-			'subscription' => [
-				'success'
-			]
-		];
-
-		return in_array( $this->get_info()->get_status(), $allowed_states[ $action ] );
 	}
 
 	/**
@@ -660,7 +605,7 @@ class Ecp_Gateway_Payment {
 	 * @return static Current payment object.
 	 * @since 2.0.0
 	 */
-	public function set_info( Ecp_Gateway_Info_Payment $info ) {
+	public function set_info( Ecp_Gateway_Info_Payment $info ): Ecp_Gateway_Payment {
 		$this->info = $info;
 		$this->set_status( $info->get_status() );
 

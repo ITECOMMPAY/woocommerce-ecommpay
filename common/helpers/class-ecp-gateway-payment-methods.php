@@ -23,27 +23,6 @@ class Ecp_Gateway_Payment_Methods {
 	];
 
 	/**
-	 * <h2>Returns list of fully supported payment methods.</h2>
-	 * @return string[] <p>
-	 * List of payment method:<br/>
-	 *      - Key: Payment method code;<br/>
-	 *      - Value: Payment method name;<br/>
-	 * </p>
-	 */
-	public static function get_method_names() {
-		return self::$payment_methods;
-	}
-
-	/**
-	 * <h2>Returns codes for fully supported payment methods</h2>
-	 *
-	 * @return string[]
-	 */
-	public static function get_method_codes() {
-		return array_keys( self::$payment_methods );
-	}
-
-	/**
 	 * <h2>Returns payment method code by name.</h2>
 	 *
 	 * @param string $method_name

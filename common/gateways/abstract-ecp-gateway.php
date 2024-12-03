@@ -165,7 +165,7 @@ abstract class Ecp_Gateway extends WC_Payment_Gateway {
 		echo '<h2>' . esc_html( $this->get_method_title() );
 		wc_back_link( __( 'Return to payments', 'woocommerce' ), admin_url( 'admin.php?page=wc-settings&tab=checkout' ) );
 		echo '</h2>';
-		Ecp_Form::get_instance()->output( $this->id );
+		Ecp_Form::get_instance()->output();
 	}
 
 	/**

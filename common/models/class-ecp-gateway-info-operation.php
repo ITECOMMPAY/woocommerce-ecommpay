@@ -103,6 +103,7 @@ class Ecp_Gateway_Info_Operation extends Ecp_Gateway_Json {
 
 	/**
 	 * <h2>Returns the operation type.</h2>
+	 * Example: capture/cancel
 	 *
 	 * @return string
 	 */

@@ -242,18 +242,18 @@ final class Ecp_Gateway_Signer extends Ecp_Gateway_Registry {
 	 * </p>
 	 * @since 2.0.0
 	 */
-	public function sign( $data ) {
+	public function sign( array $data ): array {
 		$signature = $this->get_signature( $data );
 
-		switch ( true ) {
-			case array_key_exists( self::GENERAL, $data ):
-				ecp_get_log()->debug( __( 'Append signature to general data', 'woo-ecommpay' ) );
-				$data[ self::GENERAL ][ self::NAME ] = $signature;
-				break;
-			default:
-				ecp_get_log()->debug( __( 'Append signature to body data', 'woo-ecommpay' ) );
-				$data[ self::NAME ] = $signature;
+		if ( array_key_exists( self::GENERAL, $data ) ) {
+			ecp_debug( 'Adding signature to general data...' );
+			$data[ self::GENERAL ][ self::NAME ] = $signature;
+		} else {
+			ecp_debug( 'Adding signature to body data...' );
+			$data[ self::NAME ] = $signature;
 		}
+
+		ecp_debug( 'Signature added ✅' );
 
 		return $data;
 	}

@@ -50,6 +50,8 @@ abstract class Ecp_Gateway_Settings {
 
 	const TYPE_START = 'section_start';
 	const TYPE_END = 'section_end';
+	const TYPE_DESCRIPTION = 'section_description';
+
 	const TYPE_TOGGLE_START = 'toggle_start';
 	const TYPE_TOGGLE_END = 'toggle_end';
 	const TYPE_CHECKBOX = 'checkbox';
@@ -59,26 +61,34 @@ abstract class Ecp_Gateway_Settings {
 	const TYPE_AREA = 'textarea';
 	const TYPE_DROPDOWN = 'select';
 	const TYPE_MULTI_SELECT = 'multiselect';
-
+	public const SETTINGS_TABS = [
+		Ecp_Gateway_Settings_General::ID,
+		EcpGatewaySettingsProducts::ID,
+		EcpGatewaySettingsSubscriptions::ID
+	];
 
 	/**
 	 * Setting page identifier.
 	 *
 	 * @var string
 	 */
-	protected $id = '';
+	protected string $id = '';
 
 	/**
 	 * Setting page label.
 	 *
 	 * @var string
 	 */
-	protected $label = '';
+	protected string $label = '';
 
 	/**
 	 * @var ?string
 	 */
-	protected $icon = null;
+	protected ?string $icon = null;
+
+	protected ?string $context = '';
+	protected bool $visible = true;
+	protected bool $disabled = false;
 
 	/**
 	 * Constructor.
@@ -93,7 +103,7 @@ abstract class Ecp_Gateway_Settings {
 	 * Get settings page ID.
 	 * @return string
 	 */
-	public function get_id() {
+	public function get_id(): string {
 		return $this->id;
 	}
 
@@ -101,7 +111,7 @@ abstract class Ecp_Gateway_Settings {
 	 * Get settings page label.
 	 * @return string
 	 */
-	public function get_label() {
+	public function get_label(): string {
 		return $this->label;
 	}
 
@@ -112,10 +122,12 @@ abstract class Ecp_Gateway_Settings {
 	 *
 	 * @return array
 	 */
-	public function add_settings_tab( $pages ) {
+	public function add_settings_tab( array $pages ): array {
 		$pages[ $this->id ] = [
 			'label' => $this->label,
-			'icon'  => $this->icon
+			'icon'     => $this->icon,
+			'visible'  => $this->visible,
+			'disabled' => $this->disabled,
 		];
 
 		return $pages;
@@ -126,7 +138,7 @@ abstract class Ecp_Gateway_Settings {
 	 *
 	 * @return array
 	 */
-	public function get_settings() {
+	public function get_settings(): array {
 		return apply_filters( 'ecp_get_settings_' . $this->id, [] );
 	}
 
@@ -150,5 +162,9 @@ abstract class Ecp_Gateway_Settings {
 		ecp_get_log()->debug( 'Run saving plugin settings. Section:', $this->id );
 
 		ecommpay()->settings()->save_fields( $this );
+	}
+
+	protected function fieldText( string $text ): ?string {
+		return ecpL( $text, $this->context );
 	}
 }

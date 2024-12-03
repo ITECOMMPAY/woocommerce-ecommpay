@@ -298,7 +298,7 @@ class Ecp_Gateway_Module_Refund extends Ecp_Gateway_Registry {
 			$this->complete_update_payment( $payment, $callback );
 		}
 
-		$order->set_ecp_status( $callback->get_payment()->get_status() );
+		$order->set_ecp_payment_status( $callback->get_payment()->get_status() );
 
 		ecp_get_log()->info( __( 'Order update completed:', 'woo-ecommpay' ), $order->get_id() );
 	}

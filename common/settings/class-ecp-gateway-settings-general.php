@@ -22,6 +22,8 @@ class Ecp_Gateway_Settings_General extends Ecp_Gateway_Settings {
 	const OPTION_TRANSACTION_INFO = 'orders_transaction_info';
 	const OPTION_AUTO_COMPETE_ORDER = 'complete_order';
     const OPTION_CUSTOM_VARIABLES = 'custom_variables';
+	public const PURCHASE_TYPE = 'purchase_type';
+	public const AUTOMATIC_CANCELLATION = 'automatic_cancellation';
 
 	// ECOMMPAY Custom variables data
 	const CUSTOM_RECEIPT_DATA = 'receipt_data';
@@ -36,11 +38,13 @@ class Ecp_Gateway_Settings_General extends Ecp_Gateway_Settings {
 	const LANG_SPANISH = 'ES';
 	const LANG_RUSSIAN = 'RU';
 
+	public const PURCHASE_TYPE_SALE = 'sale';
+	public const PURCHASE_TYPE_AUTH = 'auth';
 
 	/**
 	 * Internal identifier
 	 */
-	const ID = 'general';
+	public const ID = 'general';
 
 	/**
 	 * General section identifier
@@ -111,6 +115,38 @@ class Ecp_Gateway_Settings_General extends Ecp_Gateway_Settings {
 				),
 			],
 			[
+				self::FIELD_ID      => self::PURCHASE_TYPE,
+				self::FIELD_TITLE   => _x( 'Purchase type', 'Settings payment form', 'woo-ecommpay' ),
+				self::FIELD_TYPE    => self::TYPE_DROPDOWN,
+				self::FIELD_TIP     => _x(
+					'A one-step purchase is a payment type that uses a single step to make an immediate transfer of funds from the customer to the merchant. '
+					. 'A two-step purchase is a payment type that uses two steps to make a transfer of funds from the customer to the merchant. '
+					. 'On the first step, upon a single Payment Page session, the purchase amount is held. '
+					. 'On the second step, this amount is either withdrawn (captured) or released (cancelled) by the merchant.',
+					'Settings payment form',
+					'woo-ecommpay'
+				),
+				self::FIELD_OPTIONS => [
+					self::PURCHASE_TYPE_SALE => _x( 'Sale (one-step purchase)', 'Purchase type', 'woo-ecommpay' ),
+					self::PURCHASE_TYPE_AUTH => _x( 'Auth (two-step purchase)', 'Purchase type', 'woo-ecommpay' ),
+				],
+				self::FIELD_DEFAULT => self::PURCHASE_TYPE_SALE,
+			],
+			[
+				self::FIELD_ID    => self::AUTOMATIC_CANCELLATION,
+				self::FIELD_TITLE => _x( 'Automatic cancellation of payments',
+					'Settings payment form', 'woo-ecommpay' ),
+				self::FIELD_TYPE  => self::TYPE_CHECKBOX,
+				self::FIELD_DESC  => _x(
+					'Enable',
+					'Settings payment form', 'woo-ecommpay'
+				),
+				self::FIELD_TIP   => _x(
+					'By enabling this, you can have payments cancelled automatically when cancelling related orders.',
+					'Settings payment form', 'woo-ecommpay'
+				)
+			],
+			[
 				self::FIELD_ID      => self::OPTION_LANGUAGE,
 				self::FIELD_TITLE   => _x( 'Language', 'Settings payment form', 'woo-ecommpay' ),
 				self::FIELD_TYPE    => self::TYPE_DROPDOWN,
@@ -126,13 +162,11 @@ class Ecp_Gateway_Settings_General extends Ecp_Gateway_Settings {
 				self::FIELD_ID   => self::SECTION_GENERAL,
 				self::FIELD_TYPE => self::TYPE_END,
 			],
-
 			[
 				self::FIELD_ID    => 'advanced',
 				self::FIELD_TITLE => _x( 'Advanced options', 'Settings general form', 'woo-ecommpay' ),
 				self::FIELD_TYPE  => self::TYPE_TOGGLE_START
 			],
-
 			[
 				self::FIELD_ID    => self::CACHING_OPTIONS,
 				self::FIELD_TITLE => _x( 'Transaction Cache', 'Settings section', 'woo-ecommpay' ),
@@ -257,7 +291,7 @@ class Ecp_Gateway_Settings_General extends Ecp_Gateway_Settings {
 	 *
 	 * @return array
 	 */
-	private function language_options() {
+	private function language_options(): array {
 		return [
 			self::LANG_BY_CUSTOMER  => _x( 'By Customer browser setting', 'Language', 'woo-ecommpay' ),
 			self::LANG_BY_WORDPRESS => _x( 'By WordPress', 'Language', 'woo-ecommpay' ),
@@ -277,7 +311,7 @@ class Ecp_Gateway_Settings_General extends Ecp_Gateway_Settings {
 	 *
 	 * @return array
 	 */
-	public function add_uninstall_setting( $settings ) {
+	public function add_uninstall_setting( $settings ): array {
 		if ( ! is_multisite() || ( is_main_site() ) ) {
 			$settings[] = [
 				self::FIELD_ID    => self::SECTION_UNINSTALL,

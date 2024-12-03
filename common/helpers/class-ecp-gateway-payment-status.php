@@ -16,157 +16,157 @@ class Ecp_Gateway_Payment_Status {
 	 * Internal initialization payment.
 	 * @internal
 	 */
-	const INITIAL = 'initial';
+	public const INITIAL = 'initial';
 
 	/**
 	 * Payment processing at Gate
 	 */
-	const PROCESSING = 'processing';
+	public const PROCESSING = 'processing';
 
 	/**
 	 * Awaiting approval from customer on Payment Page.
 	 */
-	const AWAITING_APPROVAL = 'awaiting approval';
+	public const AWAITING_APPROVAL = 'awaiting approval';
 
 	/**
 	 * Awaiting AVS-specific data from merchant for UK.
 	 */
-	const AWAITING_CLARIFY = 'awaiting clarify data';
+	public const AWAITING_CLARIFY = 'awaiting clarify data';
 
 	/**
 	 * Awaiting a request with the result of a 3-D Secure Verification
 	 */
-	const AWAITING_3DS = 'awaiting 3ds result';
+	public const AWAITING_3DS = 'awaiting 3ds result';
 
 	/**
 	 * Awaiting a merchant auth from customer.
 	 */
-	const AWAITING_MERCHANT_AUTH = 'awaiting merchant auth';
+	public const AWAITING_MERCHANT_AUTH = 'awaiting merchant auth';
 
 	/**
 	 * Awaiting customer return after redirect to an external provider system
 	 */
-	const AWAITING_REDIRECT = 'awaiting redirect result';
+	public const AWAITING_REDIRECT = 'awaiting redirect result';
 
 	/**
 	 * Awaiting customer actions, if the customer may perform additional attempts to make a payment
 	 */
-	const AWAITING_CUSTOMER_ACTION = 'awaiting customer action';
+	public const AWAITING_CUSTOMER_ACTION = 'awaiting customer action';
 
 	/**
 	 * Awaiting additional parameters from customer.
 	 */
-	const AWAITING_CLARIFICATION = 'awaiting clarification';
+	public const AWAITING_CLARIFICATION = 'awaiting clarification';
 
 	/**
 	 * Awaiting request for withdrawal of funds (capture) or cancellation of payment (cancel) from merchant.
 	 */
-	const AWAITING_CAPTURE = 'awaiting capture';
+	public const AWAITING_CAPTURE = 'awaiting capture';
 
 	/**
 	 * Payment processing at external payment system.
 	 */
-	const EXTERNAL_PROCESSING = 'external processing';
+	public const EXTERNAL_PROCESSING = 'external processing';
 
 	/**
 	 * Scheduled recurring than we wait other payments.
 	 */
-	const SCHEDULED_RECURRING_PROCESSING = 'scheduled recurring processing';
+	public const SCHEDULED_RECURRING_PROCESSING = 'scheduled recurring processing';
 
 	/**
 	 * Successful payment
 	 */
-	const SUCCESS = 'success';
+	public const SUCCESS = 'success';
 
 	/**
 	 * Partially paid transaction.
 	 */
-	const PARTIALLY_PAID = 'partially paid';
+	public const PARTIALLY_PAID = 'partially paid';
 
 	/**
 	 * Partially paid out transaction.
 	 */
-	const PARTIALLY_PAID_OUT = 'partially paid out';
+	public const PARTIALLY_PAID_OUT = 'partially paid out';
 
 	/**
 	 * Rejected payment
 	 */
-	const DECLINE = 'decline';
+	public const DECLINE = 'decline';
 
 	/**
 	 * An error occurred while reviewing data for payment processing
 	 */
-	const ERROR = 'error';
+	public const ERROR = 'error';
 
 	/**
 	 * Holding of funds (produced on authorization request) is cancelled
 	 */
-	const CANCELLED = 'cancelled';
+	public const CANCELLED = 'cancelled';
 
 	/**
 	 * Refund after a successful payment before closing of the business day
 	 */
-	const REVERSED = 'reversed';
+	public const REVERSED = 'reversed';
 
 	/**
 	 * Completed partial refund after a successful payment
 	 */
-	const PARTIALLY_REFUNDED = 'partially refunded';
+	public const PARTIALLY_REFUNDED = 'partially refunded';
 
 	/**
 	 * Completed partial reverse after a successful payment.
 	 */
-	const PARTIALLY_REVERSED = 'partially reversed';
+	public const PARTIALLY_REVERSED = 'partially reversed';
 
 	/**
 	 * Successfully completed the full refund after a successful payment
 	 */
-	const REFUNDED = 'refunded';
+	public const REFUNDED = 'refunded';
 
 	/**
 	 * Awaiting customer actions, if the customer may perform additional attempts to make a payment
 	 */
-	const AWAITING_CUSTOMER = 'awaiting customer';
+	public const AWAITING_CUSTOMER = 'awaiting customer';
 
 	/**
 	 * Fallen into internal error during its processing.
 	 */
-	const INTERNAL_ERROR = 'internal error';
+	public const INTERNAL_ERROR = 'internal error';
 
 	/**
 	 * Failed payment due to external payment system malfunction.
 	 */
-	const EXTERNAL_ERROR = 'external error';
+	public const EXTERNAL_ERROR = 'external error';
 
 	/**
 	 * Invoice email was sent to customer.
 	 */
-	const INVOICE_SENT = 'invoice sent';
+	public const INVOICE_SENT = 'invoice sent';
 
 	/**
 	 * Invoice was cancelled be merchant before customer paid for it.
 	 */
-	const INVOICE_CANCELLED = 'invoice cancelled';
+	public const INVOICE_CANCELLED = 'invoice cancelled';
 
 	/**
 	 * Initial state of invoice operation.
 	 */
-	const AWAITING_PAYMENT = 'awaiting payment';
+	public const AWAITING_PAYMENT = 'awaiting payment';
 
 	/**
 	 * Best before expired.
 	 */
-	const EXPIRED = 'expired';
+	public const EXPIRED = 'expired';
 
 	private const HTML_UNDEFINED = 'Undefined';
 
 	// Status when customer can try pay one more time using cascading.
-	const AWAITING_RETRY = 'awaiting retry';
-	const AWAITING_CLEARING = 'awaiting clearing';
-	const AWAITING_PARTIALLY_CLEARING = 'awaiting partially clearing';
-	const CLEARING_PROCESSING = 'clearing processing';
-	const AWAITING_CONFIRMATION = 'awaiting confirmation';
-	const DECLINE_RENEWAL = 'decline renewal';
+	public const AWAITING_RETRY = 'awaiting retry';
+	public const AWAITING_CLEARING = 'awaiting clearing';
+	public const AWAITING_PARTIALLY_CLEARING = 'awaiting partially clearing';
+	public const CLEARING_PROCESSING = 'clearing processing';
+	public const AWAITING_CONFIRMATION = 'awaiting confirmation';
+	public const DECLINE_RENEWAL = 'decline renewal';
 
 	private static $names;
 	private static $codes;

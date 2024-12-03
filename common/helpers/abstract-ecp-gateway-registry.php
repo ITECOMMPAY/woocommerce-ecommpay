@@ -23,7 +23,7 @@ abstract class Ecp_Gateway_Registry {
 	 * @var array
 	 * @since 2.0.0
 	 */
-	private static $instances;
+	private static array $instances;
 
 	/**
 	 * <h2>Closed constructor of base registry.</h2>
@@ -55,7 +55,7 @@ abstract class Ecp_Gateway_Registry {
 	 * @return static An instance of the current object.
 	 * @since 2.0.0
 	 */
-	final public static function get_instance() {
+	final public static function get_instance(): Ecp_Gateway_Registry {
 		$className = get_called_class();
 
 		return self::get_by_class( $className );
@@ -69,7 +69,7 @@ abstract class Ecp_Gateway_Registry {
 	 * @return static An instance of an object created by the class name.
 	 * @since 2.0.0
 	 */
-	final public static function get_by_class( $className ) {
+	final public static function get_by_class( string $className ): Ecp_Gateway_Registry {
 		if ( ! isset ( self::$instances[ $className ] ) ) {
 			self::$instances[ $className ] = new $className();
 		}

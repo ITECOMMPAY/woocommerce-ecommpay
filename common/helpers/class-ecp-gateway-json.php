@@ -424,11 +424,13 @@ class Ecp_Gateway_Json extends Ecp_Gateway_Array implements JsonSerializable {
 	protected function try_get_object( ?object &$value, string $path, ?object $default = self::EMPTY_OBJECT ): bool {
 		try {
 			$value = $this->get_object( $path );
+
+			return true;
 		} catch ( Ecp_Gateway_Exception $e ) {
 			$value = $default;
 		}
 
-		return true;
+		return false;
 	}
 
 

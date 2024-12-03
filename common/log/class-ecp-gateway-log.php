@@ -50,7 +50,7 @@ class Ecp_Gateway_Log extends Ecp_Gateway_Registry {
 	 * @var string[]
 	 * @since 2.0.0
 	 */
-	private $masked = [
+	private array $masked = [
 		'customer_first_name'                           => '***',
 		'customer_last_name'                            => '***',
 		'customer_address'                              => '***',
@@ -105,14 +105,18 @@ class Ecp_Gateway_Log extends Ecp_Gateway_Registry {
 	 * <h2>Adds a debug level message.</h2>
 	 * <p>Detailed debug information.</p>
 	 *
-	 * @param string $message <p>Message to log.</p>
+	 * @param string|array|object $message <p>Message to log.</p>
 	 * @param int|float|string|array $data [optional] <p>Additional log data. By default: none.</p>
 	 *
 	 * @return void
 	 * @since 2.0.0
 	 * @see Ecp_Gateway_Log::add
 	 */
-	public function debug( string $message, $data = null ) {
+	public function debug( $message, $data = null ) {
+		if ( is_array( $message ) || is_object( $message ) ) {
+			$data    = $message;
+			$message = gettype( $message ) . ' => ';
+		}
 		$this->add( $message, WC_Log_Levels::DEBUG, $data );
 	}
 
@@ -148,7 +152,10 @@ class Ecp_Gateway_Log extends Ecp_Gateway_Registry {
 			case is_null( $data ):
 				break;
 			case is_array( $data ):
-				$message .= ' ' . $this->print_r( $data );
+				$message .= ' ' . $this->print_secured_array( $data );
+				break;
+			case is_object( $data ):
+				$message .= ' ' . $this->print_secured_array( (array) $data );
 				break;
 			default:
 				$message .= ' ' . $this->print_s( $data );
@@ -159,7 +166,6 @@ class Ecp_Gateway_Log extends Ecp_Gateway_Registry {
 			$message,
 			[
 				'source'  => $this->domain,
-				'_legacy' => false,
 			]
 		);
 	}
@@ -198,8 +204,8 @@ class Ecp_Gateway_Log extends Ecp_Gateway_Registry {
 	 * @return string <p>Data as string with masked values if needed.</p>
 	 * @since 2.0.0
 	 */
-	private function print_r( array $data ) {
-		return wc_print_r( $this->mask( $data ), true );
+	private function print_secured_array( array $data ): string {
+		return json_encode( $this->mask( $data ), JSON_PRETTY_PRINT );
 	}
 
 	/**
@@ -210,7 +216,7 @@ class Ecp_Gateway_Log extends Ecp_Gateway_Registry {
 	 * @return array <p>Array with masked values.</p>
 	 * @since 2.0.0
 	 */
-	private function mask( array $data ) {
+	private function mask( array $data ): array {
 		foreach ( $data as $key => &$value ) {
 			if ( array_key_exists( $key, $this->masked ) ) {
 				$value = $this->masked[ $key ];
@@ -232,7 +238,7 @@ class Ecp_Gateway_Log extends Ecp_Gateway_Registry {
 	 * @return string <p>String with masked values if needed.</p>
 	 * @since 2.0.0
 	 */
-	private function print_s( $data ) {
+	private function print_s( string $data ): string {
 		if ( strpos( $data, '{' ) === 0 ) {
 			try {
 				return json_encode( $this->mask( json_decode( $data, true ) ) );

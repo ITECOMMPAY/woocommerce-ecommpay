@@ -29,6 +29,7 @@ require_once __DIR__ . '/helpers/class-ecp-gateway-payment-methods.php';        
 require_once __DIR__ . '/helpers/class-ecp-gateway-recurring-status.php';           // Internal recurring statuses
 require_once __DIR__ . '/helpers/class-ecp-gateway-recurring-types.php';            // Internal recurring types
 require_once __DIR__ . '/helpers/class-ecp-gateway-api-protocol.php';               // Internal API protocol
+require_once __DIR__ . '/helpers/WCOrderStatus.php';
 
 // Import log package
 require_once __DIR__ . '/log/class-ecp-gateway-log.php';
@@ -63,6 +64,9 @@ require_once __DIR__ . '/includes/class-ecp-gateway-payment-provider.php';      
 require_once __DIR__ . '/modules/class-ecp-gateway-module-admin-ui.php';            // Admin UI
 require_once __DIR__ . '/modules/class-ecp-gateway-module-payment-page.php';        // Payment Page
 require_once __DIR__ . '/modules/class-ecp-gateway-module-refund.php';              // Refund controller
+require_once __DIR__ . '/modules/EcpModuleAuth.php';
+require_once __DIR__ . '/modules/EcpModuleCancel.php';
+require_once __DIR__ . '/modules/EcpModuleCapture.php';
 require_once __DIR__ . '/modules/class-ecp-gateway-signer.php';                     // Signer
 
 // Import models
@@ -83,6 +87,8 @@ require_once __DIR__ . '/models/class-ecp-gateway-info-sum.php';                
 // Import settings
 require_once __DIR__ . '/settings/abstract-ecp-gateway-settings.php';               // Abstract settings
 require_once __DIR__ . '/settings/class-ecp-gateway-settings-general.php';          // General settings
+require_once __DIR__ . '/settings/EcpGatewaySettingsProducts.php';
+require_once __DIR__ . '/settings/EcpGatewaySettingsSubscriptions.php';
 require_once __DIR__ . '/settings/class-ecp-gateway-settings-card.php';             // Card settings
 require_once __DIR__ . '/settings/class-ecp-gateway-settings-paypal.php';           // PayPal settings
 require_once __DIR__ . '/settings/class-ecp-gateway-settings-paypal-paylater.php';  // PayPal PayLater settings

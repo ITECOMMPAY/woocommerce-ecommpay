@@ -25,7 +25,11 @@
 <?php if (!empty($title)): ?>
     <legend class="screen-reader-text"><span><?php echo esc_html($title); ?></span></legend>
 <?php endif; ?>
-
+<?php if ( $tooltip !== '' ): ?>
+    <span style="position: absolute;left: -20px;top: 14px;transform: translateX(-50%) translateY(-50%);">
+        <?php echo wc_help_tip( $tooltip ); ?>
+    </span>
+<?php endif; ?>
     <label for="<?php echo esc_attr($id); ?>">
         <input name="<?php echo esc_attr($id); ?>"
                id="<?php echo esc_attr($id); ?>"
@@ -36,12 +40,6 @@
             <?php echo ecp_custom_attributes($custom_attributes); ?>
         /> <?php if ($description !== ''): ?><?php echo wp_kses_post($description); ?><?php endif; ?>
     </label>
-    <?php if ($tooltip !== ''): ?>
-        <p class="description">
-            <?php echo wc_sanitize_tooltip($tooltip); ?>
-        </p>
-    <?php endif; ?>
-
 <?php if (isset($checkboxgroup) && 'end' !== $checkboxgroup): ?>
     </fieldset>
 <?php else: ?>

@@ -94,6 +94,7 @@ class Ecp_Gateway_API_Subscription extends Ecp_Gateway_API {
 
 		// Create form data
 		$data = apply_filters( 'ecp_create_general_data', $request_id );
+
 		// Run request
 		$response = new Ecp_Gateway_Info_Response(
 			$this->post(

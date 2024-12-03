@@ -5,8 +5,7 @@
  *
  * @return Ecp_Core
  */
-function ecommpay()
-{
+function ecommpay(): Ecp_Core {
     return Ecp_Core::get_instance();
 }
 
@@ -15,8 +14,7 @@ function ecommpay()
  *
  * @return string
  */
-function ecp_version()
-{
+function ecp_version(): string {
     return 'wc_ecp-' . Ecp_Core::WC_ECP_VERSION;
 }
 
@@ -97,12 +95,12 @@ function ecp_img_url($file_name)
  * @return string
  */
 function ecp_settings_page_url( string $sub = Ecp_Gateway_Settings_General::ID ): string {
-    if ($sub !== Ecp_Gateway_Settings_General::ID) {
-        return admin_url('admin.php?page=wc-settings&tab=checkout&section=' . esc_attr($sub));
-    }
+	if ( ! in_array( $sub, Ecp_Gateway_Settings::SETTINGS_TABS ) ) {
+		return admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . esc_attr( $sub ) );
+	}
 
     foreach (ecp_payment_methods() as $id => $method) {
-        return admin_url('admin.php?page=wc-settings&tab=checkout&section=' . $id . '&sub=general');
+	    return admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . $id . '&sub=' . esc_attr( $sub ) );
     }
 
 	return admin_url( 'admin.php?page=wc-settings&tab=checkout' );
@@ -174,27 +172,46 @@ function ecp_get_view($path, $args = [])
     }
 }
 
+const ECOMMPAY_LOCALE_DOMAIN = 'woo-ecommpay';
+
 /**
  * @return void
  */
 function ecp_load_i18n()
 {
     load_plugin_textdomain(
-        'woo-ecommpay',
+	    ECOMMPAY_LOCALE_DOMAIN,
         false,
         dirname(plugin_basename(__FILE__)) . DIRECTORY_SEPARATOR . 'languages'
     );
 }
 
 /**
+ * Translates text.
+ *
+ * @param string $text Text to translate.
+ * @param string $context Context information for the translators.
+ *
+ * @return string Translated text.
+ */
+function ecpL( string $text, string $context ): string {
+	return _x( $text, $context, ECOMMPAY_LOCALE_DOMAIN );
+}
+
+function ecpTr( string $text ): string {
+	return __( $text, ECOMMPAY_LOCALE_DOMAIN );
+}
+
+
+/**
  * Checks if a setting options is enabled by checking on yes/no data.
  *
  * @param string $key
+ * @param string $payment_method
  *
  * @return bool
  */
-function ecp_is_enabled($key, $payment_method = Ecp_Gateway_Settings_General::ID)
-{
+function ecp_is_enabled( string $key, string $payment_method = Ecp_Gateway_Settings_General::ID ): bool {
     return ecommpay()
         ->get_pm_option(
             $payment_method,
@@ -207,8 +224,7 @@ function ecp_is_enabled($key, $payment_method = Ecp_Gateway_Settings_General::ID
  * @return Ecp_Gateway[]
  * @since 3.0.0
  */
-function ecp_payment_methods()
-{
+function ecp_payment_methods(): array {
     return ecommpay()->get_payment_methods();
 }
 
@@ -216,8 +232,7 @@ function ecp_payment_methods()
  * @return string[]
  * @since 3.0.0
  */
-function ecp_payment_classnames()
-{
+function ecp_payment_classnames(): array {
     return ecommpay()->get_payment_classnames();
 }
 
@@ -225,8 +240,7 @@ function ecp_payment_classnames()
  * @return bool
  * @since 3.0.0
  */
-function ecp_has_available_methods()
-{
+function ecp_has_available_methods(): bool {
     foreach (ecp_payment_methods() as $id => $method) {
         if ($method->enabled) {
             return true;
@@ -269,10 +283,10 @@ function ecp_array_insert_after($needle, $haystack, $new_key, $new_value)
 
 /**
  * @param string $payment_type
+ *
  * @return string
  */
-function get_ecp_payment_method_icon($payment_type)
-{
+function get_ecp_payment_method_icon( string $payment_type ): string {
     $logos = [
         'card' => 'card.svg',
         'alipay' => 'alipay.svg',
@@ -310,6 +324,26 @@ function ecp_get_log(): Ecp_Gateway_Log {
     return Ecp_Gateway_Log::get_instance();
 }
 
+function ecp_debug( ...$args ) {
+	ecp_get_log()->debug( ...func_get_args() );
+}
+
+function ecp_info( ...$args ) {
+	ecp_get_log()->info( ...func_get_args() );
+}
+
+function ecp_warning() {
+	ecp_get_log()->warning( ...func_get_args() );
+}
+
+function ecp_warn( ...$args ) {
+	ecp_warning( ...$args );
+}
+
+function ecp_error( ...$args ) {
+	ecp_get_log()->error( ...func_get_args() );
+}
+
 /**
  * Returns ECOMMPAY Signer.
  *
@@ -317,21 +351,6 @@ function ecp_get_log(): Ecp_Gateway_Log {
  */
 function ecp_get_signer(): Ecp_Gateway_Signer {
     return Ecp_Gateway_Signer::get_instance();
-}
-
-/**
- * <h2>Appends a signature to the data.</h2>
- * @param array &$data <p>The data for signature.</p>
- * @since 2.0.0
- * @return void
- * @throws Ecp_Gateway_Signature_Exception <p>
- * When the key or value of one of the parameters contains the character
- * {@see Ecp_Gateway_Signer::VALUE_SEPARATOR} symbol.
- * </p>
- */
-function ecp_sign_request_data(array &$data)
-{
-    ecp_get_signer()->sign($data);
 }
 
 /**
@@ -344,8 +363,7 @@ function ecp_sign_request_data(array &$data)
  * {@see Ecp_Gateway_Signer::VALUE_SEPARATOR} symbol.
  * </p>
  */
-function ecp_check_signature(array $data)
-{
+function ecp_check_signature( array $data ): bool {
     return ecp_get_signer()->check($data);
 }
 

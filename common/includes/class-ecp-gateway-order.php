@@ -1,6 +1,7 @@
 <?php
 
 use Automattic\WooCommerce\Admin\Overrides\Order;
+use common\helpers\WCOrderStatus;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -61,7 +62,11 @@ class Ecp_Gateway_Order extends Order {
 
 			return current( $orders ) ? current( $orders )->get_id() : false;
 		} else {
-			return $wpdb->get_var( $wpdb->prepare( "SELECT DISTINCT ID FROM $wpdb->posts as posts LEFT JOIN $wpdb->postmeta as meta ON posts.ID = meta.post_id WHERE meta.meta_value = %s AND meta.meta_key = %s", $payment_id, '_payment_id' ) );
+			$query = "SELECT DISTINCT ID FROM $wpdb->posts as posts "
+			         . "LEFT JOIN $wpdb->postmeta as meta ON posts.ID = meta.post_id "
+			         . "WHERE meta.meta_value = %s AND meta.meta_key = %s";
+
+			return $wpdb->get_var( $wpdb->prepare( $query, $payment_id, '_payment_id' ) );
 		}
 	}
 
@@ -95,7 +100,7 @@ class Ecp_Gateway_Order extends Order {
 		}
 
 		$this->set_payment_id( $id );
-		$this->set_ecp_status( Ecp_Gateway_Payment_Status::INITIAL );
+		$this->set_ecp_payment_status( Ecp_Gateway_Payment_Status::INITIAL );
 		$this->save_meta_data();
 
 		ecp_get_log()->debug( __( 'New payment identifier created:', 'woo-ecommpay' ), $id );
@@ -148,20 +153,6 @@ class Ecp_Gateway_Order extends Order {
 		return $ecp_subscriptions;
 	}
 
-	public function get_transaction_order_id( $context = 'view' ): string {
-		return $this->get_ecp_meta( '_ecommpay_request_id', true, $context );
-	}
-
-	/**
-	 * Set the transaction order ID on an order
-	 *
-	 * @param string $transaction_order_id
-	 *
-	 * @return void
-	 */
-	public function set_transaction_order_id( string $transaction_order_id ) {
-		$this->set_ecp_meta( '_ecommpay_request_id', $transaction_order_id );
-	}
 
 	/**
 	 * <h2>Returns not processed refund object.</h2>

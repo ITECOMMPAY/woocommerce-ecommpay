@@ -1,5 +1,7 @@
 <?php
 
+use common\modules\EcpModuleCapture;
+
 class Ecp_Gateway_API_Protocol extends Ecp_Gateway_Registry {
 	/**
 	 * @param Ecp_Gateway_Order|Ecp_Gateway_Refund $order
@@ -310,12 +312,20 @@ class Ecp_Gateway_API_Protocol extends Ecp_Gateway_Registry {
 
 	/**
 	 * @param array $values
+	 * @param Ecp_Gateway_Order|null $order
 	 *
 	 * @return array
 	 * @since 3.0.0
 	 */
-	public function append_card_operation_type( array $values ): array {
-		$this->append_argument( 'card_operation_type', 'sale', $values );
+	public function append_card_operation_type( array $values, Ecp_Gateway_Order $order = null ): array {
+		$mode = ecommpay()->get_general_option( Ecp_Gateway_Settings_General::PURCHASE_TYPE,
+			Ecp_Gateway_Settings_General::PURCHASE_TYPE_SALE );
+
+		if ( $mode === Ecp_Gateway_Settings_General::PURCHASE_TYPE_AUTH && EcpModuleCapture::is_auto_capture_needed( $order ) ) {
+			$mode = Ecp_Gateway_Settings_General::PURCHASE_TYPE_SALE;
+		}
+
+		$this->append_argument( 'card_operation_type', $mode, $values );
 
 		return $values;
 	}
@@ -683,7 +693,7 @@ class Ecp_Gateway_API_Protocol extends Ecp_Gateway_Registry {
 	 * </p>
 	 * @since 2.0.0
 	 */
-	public function append_signature( array $data ) {
+	public function append_signature( array $data ): array {
 		return ecp_get_signer()->sign( $data );
 	}
 

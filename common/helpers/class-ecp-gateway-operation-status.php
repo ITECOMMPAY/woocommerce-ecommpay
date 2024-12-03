@@ -111,6 +111,7 @@ class Ecp_Gateway_Operation_Status {
 	 * Awaiting payment confirmation (Online-banking).
 	 */
 	const AWAITING_CONFIRMATION = 'awaiting confirmation';
+	public const AWAITING_CAPTURE = 'awaiting capture';
 
 	private static $names;
 

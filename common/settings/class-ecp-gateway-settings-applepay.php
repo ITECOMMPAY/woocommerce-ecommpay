@@ -17,7 +17,7 @@ class Ecp_Gateway_Settings_Applepay extends Ecp_Gateway_Settings {
 	/**
 	 * Internal identifier
 	 */
-	const ID = 'ecommpay-apple-pay';
+	public const ID = 'ecommpay-apple-pay';
 
 	/**
 	 * Shop section identifier
@@ -43,7 +43,7 @@ class Ecp_Gateway_Settings_Applepay extends Ecp_Gateway_Settings {
 	 *
 	 * @return array
 	 */
-	public function get_settings_apple_pay_methods() {
+	public function get_settings_apple_pay_methods(): array {
 		$settings = [
 			[
 				self::FIELD_ID    => self::APPLE_PAY_SETTINGS,
