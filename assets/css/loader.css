@@ -4,6 +4,7 @@
   width: 80px;
   height: 80px;
 }
+
 .lds-ecommpay div {
   display: inline-block;
   position: absolute;
@@ -12,14 +13,17 @@
   background: #5a5a5a;
   animation: lds-ecommpay 1.2s cubic-bezier(0, 0.5, 0.5, 1) infinite;
 }
+
 .lds-ecommpay div:nth-child(1) {
   left: 8px;
   animation-delay: -0.24s;
 }
+
 .lds-ecommpay div:nth-child(2) {
   left: 32px;
   animation-delay: -0.12s;
 }
+
 .lds-ecommpay div:nth-child(3) {
   left: 56px;
   animation-delay: 0s;

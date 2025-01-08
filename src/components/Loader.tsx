@@ -1,7 +1,7 @@
 // @ts-ignore
-import loader from "../../assets/img/loader.svg"
+import loader from '../../assets/img/loader.svg'
 // @ts-ignore
-import loaderDark from "../../assets/img/loader_dark.svg"
+import loaderDark from '../../assets/img/loader_dark.svg'
 
 interface IProps {
   darkMode?: boolean
@@ -13,7 +13,7 @@ function Loader(props: IProps) {
   return (
     <img
       style={{
-        display: "block",
+        display: 'block',
       }}
       src={darkMode ? loaderDark : loader}
       alt="Loading..."

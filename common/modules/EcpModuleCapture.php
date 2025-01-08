@@ -2,24 +2,27 @@
 
 namespace common\modules;
 
-use Ecp_Gateway_API_Exception;
-use Ecp_Gateway_API_Payment;
-use Ecp_Gateway_Order;
-use Ecp_Gateway_Registry;
-use EcpGatewaySettingsProducts;
-use EcpGatewaySettingsSubscriptions;
+defined( 'ABSPATH' ) || exit;
+
+use common\api\EcpGatewayAPIPayment;
+use common\exceptions\EcpGatewayAPIException;
+use common\helpers\EcpGatewayRegistry;
+use common\includes\EcpGatewayOrder;
+use common\settings\EcpSettingsProducts;
+use common\settings\EcpSettingsSubscriptions;
 use Exception;
 
-class EcpModuleCapture extends Ecp_Gateway_Registry {
+class EcpModuleCapture extends EcpGatewayRegistry {
 
 	private const SUBSCRIPTION_TYPE = 'subscription';
+	private const WP_AJAX_ECP_PROCESS_CAPTURE_ORDER = 'wp_ajax_ecp_process_capture_order';
 
-	protected function init() {
-		add_action( 'wp_ajax_ecp_process_capture_order', [ $this, 'process' ] );
+	protected function init(): void {
+		add_action( self::WP_AJAX_ECP_PROCESS_CAPTURE_ORDER, [ $this, 'process' ] );
 	}
 
 	/**
-	 * @throws Ecp_Gateway_API_Exception
+	 * @throws EcpGatewayAPIException
 	 * @throws Exception
 	 */
 	public function process( $order_id = null ): bool {
@@ -41,7 +44,7 @@ class EcpModuleCapture extends Ecp_Gateway_Registry {
 		$order = ecp_get_order( $order_id );
 
 		try {
-			$api     = new Ecp_Gateway_API_Payment();
+			$api = new EcpGatewayAPIPayment();
 			$payment = $api->capture( $order );
 
 			if ( $payment->get_request_id() === '' ) {
@@ -63,19 +66,19 @@ class EcpModuleCapture extends Ecp_Gateway_Registry {
 	/**
 	 * Validates if order contains only virtual or downloadable items
 	 *
-	 * @param Ecp_Gateway_Order|null $order
+	 * @param EcpGatewayOrder|null $order
 	 *
 	 * @return bool
 	 */
-	public static function is_auto_capture_needed( Ecp_Gateway_Order $order = null ): bool {
-		$products_section_id      = EcpGatewaySettingsProducts::ID;
-		$subscriptions_section_id = EcpGatewaySettingsSubscriptions::ID;
+	public static function is_auto_capture_needed( EcpGatewayOrder $order = null ): bool {
+		$products_section_id      = EcpSettingsProducts::ID;
+		$subscriptions_section_id = EcpSettingsSubscriptions::ID;
 
-		$virtualProductConfirmation           = ecommpay()->get_pm_option( $products_section_id, EcpGatewaySettingsProducts::OPTION_ID_VIRTUAL_PRODUCTS_CONFIRMATION, false );
-		$downloadableProductConfirmation      = ecommpay()->get_pm_option( $products_section_id, EcpGatewaySettingsProducts::OPTION_ID_DOWNLOADABLE_PRODUCTS_CONFIRMATION, false );
-		$virtualSubscriptionConfirmation      = ecommpay()->get_pm_option( $subscriptions_section_id, EcpGatewaySettingsSubscriptions::OPTION_ID_VIRTUAL_SUBSCRIPTIONS_CONFIRMATION, false );
-		$downloadableSubscriptionConfirmation = ecommpay()->get_pm_option( $subscriptions_section_id, EcpGatewaySettingsSubscriptions::OPTION_ID_DOWNLOADABLE_SUBSCRIPTIONS_CONFIRMATION, false );
-		$otherSubscriptionConfirmation        = ecommpay()->get_pm_option( $subscriptions_section_id, EcpGatewaySettingsSubscriptions::OPTION_ID_OTHER_SUBSCRIPTIONS_CONFIRMATION, false );
+		$virtualProductConfirmation           = ecommpay()->get_pm_option( $products_section_id, EcpSettingsProducts::OPTION_ID_VIRTUAL_PRODUCTS_CONFIRMATION, false );
+		$downloadableProductConfirmation      = ecommpay()->get_pm_option( $products_section_id, EcpSettingsProducts::OPTION_ID_DOWNLOADABLE_PRODUCTS_CONFIRMATION, false );
+		$virtualSubscriptionConfirmation      = ecommpay()->get_pm_option( $subscriptions_section_id, EcpSettingsSubscriptions::OPTION_ID_VIRTUAL_SUBSCRIPTIONS_CONFIRMATION, false );
+		$downloadableSubscriptionConfirmation = ecommpay()->get_pm_option( $subscriptions_section_id, EcpSettingsSubscriptions::OPTION_ID_DOWNLOADABLE_SUBSCRIPTIONS_CONFIRMATION, false );
+		$otherSubscriptionConfirmation        = ecommpay()->get_pm_option( $subscriptions_section_id, EcpSettingsSubscriptions::OPTION_ID_OTHER_SUBSCRIPTIONS_CONFIRMATION, false );
 
 		$iterable = $order ? $order->get_items() : WC()->cart->get_cart();
 
@@ -89,18 +92,18 @@ class EcpModuleCapture extends Ecp_Gateway_Registry {
 			}
 
 			if ( $product->is_type( self::SUBSCRIPTION_TYPE ) ) {
-				if ( !(
+				if ( ! (
 					( $product->is_virtual() && $virtualSubscriptionConfirmation ) ||
 					( $product->is_downloadable() && $downloadableSubscriptionConfirmation ) ||
-					( self::is_other_subscription($product) && $otherSubscriptionConfirmation )
-				) ){
+					( self::is_other_subscription( $product ) && $otherSubscriptionConfirmation )
+				) ) {
 					$is_auto_capture_needed = false;
 				}
 			} else {
-				if ( !(
+				if ( ! (
 					( $product->is_virtual() && $virtualProductConfirmation ) ||
 					( $product->is_downloadable() && $downloadableProductConfirmation )
-				) ){
+				) ) {
 					$is_auto_capture_needed = false;
 				}
 			}
@@ -109,8 +112,7 @@ class EcpModuleCapture extends Ecp_Gateway_Registry {
 		return $is_auto_capture_needed;
 	}
 
-	private static function is_other_subscription($product): bool
-	{
-		return !( $product->is_virtual() | $product->is_downloadable() );
+	private static function is_other_subscription( $product ): bool {
+		return ! ( $product->is_virtual() | $product->is_downloadable() );
 	}
 }

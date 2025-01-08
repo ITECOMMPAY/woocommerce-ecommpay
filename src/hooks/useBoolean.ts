@@ -1,4 +1,4 @@
-import { useCallback, useState } from "@wordpress/element"
+import { useCallback, useState } from '@wordpress/element'
 
 function useBoolean(initialValue: boolean) {
   const [value, setValue] = useState(initialValue)

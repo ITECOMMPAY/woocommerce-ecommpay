@@ -2,28 +2,29 @@
 
 namespace common\modules;
 
-use Ecp_Gateway_Registry;
-use Ecp_Gateway_Settings_Applepay;
-use Ecp_Gateway_Settings_Card;
-use Ecp_Gateway_Settings_General;
-use Ecp_Gateway_Settings_Googlepay;
+defined( 'ABSPATH' ) || exit;
 
-class EcpModuleAuth extends Ecp_Gateway_Registry {
-	protected function init() {
-		add_filter( 'woocommerce_available_payment_gateways', [ $this, 'filterPaymentMethodsAuthOnly' ] );
-	}
+use common\helpers\EcpGatewayRegistry;
+use common\includes\filters\EcpWCFilterList;
+use common\settings\EcpSettingsApplepay;
+use common\settings\EcpSettingsCard;
+use common\settings\EcpSettingsGeneral;
+use common\settings\EcpSettingsGooglepay;
+
+
+class EcpModuleAuth extends EcpGatewayRegistry {
 
 	public function filterPaymentMethodsAuthOnly( $available_gateways ): array {
-		$mode = ecommpay()->get_general_option( Ecp_Gateway_Settings_General::PURCHASE_TYPE,
-			Ecp_Gateway_Settings_General::PURCHASE_TYPE_SALE );
+		$mode = ecommpay()->get_general_option( EcpSettingsGeneral::PURCHASE_TYPE,
+			EcpSettingsGeneral::PURCHASE_TYPE_SALE );
 
-		$auth_mode_enabled = ( $mode === Ecp_Gateway_Settings_General::PURCHASE_TYPE_AUTH );
+		$auth_mode_enabled = ( $mode === EcpSettingsGeneral::PURCHASE_TYPE_AUTH );
 
 		if ( $auth_mode_enabled ) {
 			$supported_gateways = array(
-				Ecp_Gateway_Settings_Card::ID,
-				Ecp_Gateway_Settings_Googlepay::ID,
-				Ecp_Gateway_Settings_Applepay::ID
+				EcpSettingsCard::ID,
+				EcpSettingsGooglepay::ID,
+				EcpSettingsApplepay::ID
 			);
 
 			$ecp_methods = ecp_payment_methods();
@@ -36,5 +37,12 @@ class EcpModuleAuth extends Ecp_Gateway_Registry {
 		}
 
 		return $available_gateways;
+	}
+
+	protected function init(): void {
+		add_filter( EcpWCFilterList::WOOCOMMERCE_AVAILABLE_PAYMENT_GATEWAYS, [
+			$this,
+			'filterPaymentMethodsAuthOnly'
+		] );
 	}
 }

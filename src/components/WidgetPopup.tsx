@@ -1,18 +1,9 @@
-import {useCallback, useEffect} from "@wordpress/element"
-import useBack from "../hooks/useBack"
-import {PaymentMethodInterface} from "../woocommerce-types"
-
+import { useCallback, useEffect } from '@wordpress/element'
+import useBack from '../hooks/useBack'
+import { PaymentMethodInterface } from '../woocommerce-types'
 
 interface IProps extends PaymentMethodInterface {
   children: React.ReactNode
-}
-
-declare global {
-    interface Window {
-        ECP: any;
-        jQuery: any;
-        EPayWidget: any;
-    }
 }
 
 function WidgetPopup(props: IProps) {
@@ -27,14 +18,14 @@ function WidgetPopup(props: IProps) {
             onPaymentSuccess: () => {
               resolve({
                 type: props.emitResponse.responseTypes.SUCCESS,
-                redirectUrl: "",
+                redirectUrl: '',
               })
             },
             onPaymentFail: () => {
               resolve({
                 type: props.emitResponse.responseTypes.ERROR,
                 messageContext: props.emitResponse.noticeContexts.PAYMENTS,
-                message: "Payment failed",
+                message: 'Payment failed',
                 retry: true,
               })
             },
@@ -42,9 +33,8 @@ function WidgetPopup(props: IProps) {
               back()
               resolve({
                 type: props.emitResponse.responseTypes.ERROR,
-                messageContext:
-                  props.emitResponse.noticeContexts.CHECKOUT_ACTIONS,
-                message: "Payment cancelled",
+                messageContext: props.emitResponse.noticeContexts.CHECKOUT_ACTIONS,
+                message: 'Payment cancelled',
                 retry: true,
               })
             },
@@ -52,14 +42,13 @@ function WidgetPopup(props: IProps) {
               back()
               resolve({
                 type: props.emitResponse.responseTypes.ERROR,
-                messageContext:
-                  props.emitResponse.noticeContexts.CHECKOUT_ACTIONS,
-                message: "Payment cancelled",
+                messageContext: props.emitResponse.noticeContexts.CHECKOUT_ACTIONS,
+                message: 'Payment cancelled',
                 retry: true,
               })
             },
           },
-          "POST"
+          'POST'
         )
       })
     },
@@ -67,14 +56,11 @@ function WidgetPopup(props: IProps) {
   )
 
   useEffect(() => {
-    const unsubscribeCheckoutSuccess =
-      props.eventRegistration.onCheckoutSuccess(async (data: any) => {
-        window.ECP.order_id = data.orderId
-        const options = JSON.parse(
-          data.processingResponse.paymentDetails.optionsJson
-        )
-        return await runPopup(options)
-      }, 0)
+    const unsubscribeCheckoutSuccess = props.eventRegistration.onCheckoutSuccess(async (data: any) => {
+      window.ECP.order_id = data.orderId
+      const options = JSON.parse(data.processingResponse.paymentDetails.optionsJson)
+      return await runPopup(options)
+    }, 0)
 
     return () => {
       unsubscribeCheckoutSuccess()

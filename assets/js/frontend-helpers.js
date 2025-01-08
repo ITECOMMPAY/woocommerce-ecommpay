@@ -2,7 +2,7 @@ jQuery(document).ready(function () {
   /**
    * Wrapper available payment methods on checkout page
    */
-  var $paymentMethodsWrapper = document.querySelector("#payment")?.parentElement;
+  var $paymentMethodsWrapper = document.querySelector('#payment')?.parentElement
 
   if (!$paymentMethodsWrapper) {
     return
@@ -19,19 +19,14 @@ jQuery(document).ready(function () {
   })
 
   function setApplePayVisibilty() {
-    var $applePayMethod = jQuery(
-      ".wc_payment_method.payment_method_ecommpay-apple-pay"
-    )
+    var $applePayMethod = jQuery('.wc_payment_method.payment_method_ecommpay-apple-pay')
 
     if ($applePayMethod.length && isApplePayAllowed()) {
-      $applePayMethod.addClass("ecp-visible")
+      $applePayMethod.addClass('ecp-visible')
     }
   }
 
   function isApplePayAllowed() {
-    return (
-      Object.prototype.hasOwnProperty.call(window, "ApplePaySession") &&
-      ApplePaySession.canMakePayments()
-    )
+    return Object.prototype.hasOwnProperty.call(window, 'ApplePaySession') && ApplePaySession.canMakePayments()
   }
 })

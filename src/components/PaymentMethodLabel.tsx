@@ -1,13 +1,13 @@
-import { decodeEntities } from "@wordpress/html-entities"
+import { decodeEntities } from '@wordpress/html-entities'
 
 function PaymentMethodLabel(props: { data: any }) {
   return (
     <div
       style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: "10px",
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '10px',
       }}
     >
       {decodeEntities(props.data.title)}

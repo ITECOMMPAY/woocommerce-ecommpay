@@ -1,22 +1,23 @@
 <?php
 
 namespace common\modules;
+defined( 'ABSPATH' ) || exit;
 
-use Ecp_Gateway_API_Exception;
-use Ecp_Gateway_API_Payment;
-use Ecp_Gateway_Registry;
-use Ecp_Gateway_Settings_General;
+use common\api\EcpGatewayAPIPayment;
+use common\exceptions\EcpGatewayAPIException;
+use common\helpers\EcpGatewayRegistry;
 use Exception;
-use Ecp_Gateway_Payment_Status;
 
-class EcpModuleCancel extends Ecp_Gateway_Registry {
-	protected function init() {
-		add_action( 'wp_ajax_ecp_process_cancel_order', [ $this, 'process' ] );
-		add_action( 'woocommerce_order_status_cancelled', [ $this, 'auto_cancel_on_status_change' ] );
+class EcpModuleCancel extends EcpGatewayRegistry {
+
+	private const WP_AJAX_ECP_PROCESS_CANCEL_ORDER = 'wp_ajax_ecp_process_cancel_order';
+
+	protected function init(): void {
+		add_action( self::WP_AJAX_ECP_PROCESS_CANCEL_ORDER, [ $this, 'process' ] );
 	}
 
 	/**
-	 * @throws Ecp_Gateway_API_Exception
+	 * @throws EcpGatewayAPIException
 	 * @throws Exception
 	 */
 	public function process( $order_id = null, bool $hide_ajax_message = false ): bool {
@@ -40,7 +41,7 @@ class EcpModuleCancel extends Ecp_Gateway_Registry {
 		$order = ecp_get_order( $order_id );
 
 		try {
-			$api     = new Ecp_Gateway_API_Payment();
+			$api = new EcpGatewayAPIPayment();
 			$payment = $api->cancel( $order );
 
 			if ( $payment->get_request_id() === '' ) {
@@ -48,6 +49,7 @@ class EcpModuleCancel extends Ecp_Gateway_Registry {
 				if ( ! $hide_ajax_message ) {
 					wp_send_json_error( 'Cancellation request declined by ECOMMPAY gateway.', 418 );
 				}
+
 				return false;
 			}
 
@@ -61,23 +63,5 @@ class EcpModuleCancel extends Ecp_Gateway_Registry {
 			ecp_error( 'Cancellation unexpected error: ' . $e->getMessage() );
 			throw $e;
 		}
-	}
-
-	/**
-	 * @throws Ecp_Gateway_API_Exception
-	 */
-	public function auto_cancel_on_status_change( $order_id = null ): bool {
-
-		if ( ! ecommpay()->get_general_option( Ecp_Gateway_Settings_General::AUTOMATIC_CANCELLATION, false ) ) {
-			return false;
-		}
-
-		$order = ecp_get_order($order_id);
-
-		if ( $order->get_ecp_status() !== Ecp_Gateway_Payment_Status::AWAITING_CAPTURE) {
-			return false;
-		}
-
-		return $this->process( $order_id, true );
 	}
 }

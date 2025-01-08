@@ -1,35 +1,42 @@
 <?php
 
+defined( 'ABSPATH' ) || exit;
+
+
+use common\includes\EcpGatewayOrder;
+use common\includes\filters\EcpWCFilterList;
+use common\includes\EcpGatewaySubscription;
+
 /**
  * Checks if a subscription is up for renewal.
  * Ensures backwards compatibility.
  *
- * @param Ecp_Gateway_Order $order [description]
+ * @param EcpGatewayOrder $order [description]
+ *
  * @return bool
  */
-function ecp_subscription_is_renewal($order)
-{
-    if (function_exists('wcs_order_contains_renewal')) {
-        return wcs_order_contains_renewal($order);
-    }
+function ecp_subscription_is_renewal( EcpGatewayOrder $order ): bool {
+	if ( function_exists( 'wcs_order_contains_renewal' ) ) {
+		return wcs_order_contains_renewal( $order );
+	}
 
-    return false;
+	return false;
 }
 
 /**
  * Checks if a subscription is resubscribed.
  *
- * @param Ecp_Gateway_Order $order [description]
- * @since 2.1.0
+ * @param EcpGatewayOrder $order [description]
+ *
  * @return bool
+ * @since 2.1.0
  */
-function ecp_subscription_is_resubscribe($order)
-{
-    if (function_exists('wcs_order_contains_resubscribe')) {
-        return wcs_order_contains_resubscribe($order);
-    }
+function ecp_subscription_is_resubscribe( EcpGatewayOrder $order ): bool {
+	if ( function_exists( 'wcs_order_contains_resubscribe' ) ) {
+		return wcs_order_contains_resubscribe( $order );
+	}
 
-    return false;
+	return false;
 }
 
 /**
@@ -37,97 +44,87 @@ function ecp_subscription_is_resubscribe($order)
  * @return bool
  */
 function ecp_subscription_is_active(): bool {
-    return class_exists('WC_Subscriptions') && WC_Subscriptions::$name = 'subscription';
+	return class_exists( 'WC_Subscriptions' ) && WC_Subscriptions::$name = 'subscription';
 }
 
 /**
  * Convenience wrapper for wcs_get_subscriptions_for_renewal_order
  *
  * @param $order
- * @param bool - to return a single item or not
- * @return Ecp_Gateway_Subscription|Ecp_Gateway_Subscription[]
+ * @param bool $single - to return a single item or not
+ *
+ * @return EcpGatewaySubscription|EcpGatewaySubscription[]
  * @noinspection PhpUndefinedClassInspection
  */
-function ecp_get_subscriptions_for_renewal_order($order, $single = false)
-{
-    if (function_exists('wcs_get_subscriptions_for_renewal_order')) {
-        add_filter(
-            'woocommerce_order_class',
-            [ecommpay(), 'type_wrapper'],
-            101,
-            2
-        );
+function ecp_get_subscriptions_for_renewal_order( $order, bool $single = false ) {
+	if ( function_exists( 'wcs_get_subscriptions_for_renewal_order' ) ) {
+		add_filter(
+			EcpWCFilterList::WOOCOMMERCE_ORDER_CLASS,
+			[ ecommpay(), 'type_wrapper' ],
+			101,
+			2
+		);
 
-        $subscriptions = wcs_get_subscriptions_for_renewal_order($order);
+		$subscriptions = wcs_get_subscriptions_for_renewal_order( $order );
 
-        remove_filter(
-            'woocommerce_order_class',
-            [ecommpay(), 'type_wrapper'],
-            101
-        );
-        if ($single) {
-            return new Ecp_Gateway_Subscription(end($subscriptions)->get_id());
-        } else {
-            return array_map(
-                function ($subscription) {
-                    return new Ecp_Gateway_Subscription($subscription->get_id());
-                },
-                $subscriptions
-            );
-        }
-    }
+		remove_filter(
+			EcpWCFilterList::WOOCOMMERCE_ORDER_CLASS,
+			[ ecommpay(), 'type_wrapper' ],
+			101
+		);
+		if ( $single ) {
+			return new EcpGatewaySubscription( end( $subscriptions )->get_id() );
+		} else {
+			return array_map(
+				function ( $subscription ) {
+					return new EcpGatewaySubscription( $subscription->get_id() );
+				},
+				$subscriptions
+			);
+		}
+	}
 
-    return [];
+	return [];
 }
 
 /**
  * Convenience wrapper for wcs_get_subscriptions_for_renewal_order
  *
  * @param $order
- * @param bool - to return a single item or not
- * @return Ecp_Gateway_Subscription|Ecp_Gateway_Subscription[]
+ * @param bool $single - to return a single item or not
+ *
+ * @return false|WC_Subscription|WC_Subscription[]
  * @noinspection PhpUndefinedClassInspection
  */
-function ecp_get_subscriptions_for_resubscribe_order($order, $single = false)
-{
-    if (function_exists('wcs_get_subscriptions_for_resubscribe_order')) {
-        add_filter(
-            'woocommerce_order_class',
-            [ecommpay(), 'type_wrapper'],
-            101,
-            2
-        );
+function ecp_get_subscriptions_for_resubscribe_order( $order, bool $single = false ) {
+	if ( function_exists( 'wcs_get_subscriptions_for_resubscribe_order' ) ) {
+		add_filter(
+			EcpWCFilterList::WOOCOMMERCE_ORDER_CLASS,
+			[ ecommpay(), 'type_wrapper' ],
+			101,
+			2
+		);
 
-        $subscriptions = wcs_get_subscriptions_for_resubscribe_order($order);
+		$subscriptions = wcs_get_subscriptions_for_resubscribe_order( $order );
 
-        remove_filter(
-            'woocommerce_order_class',
-            [ecommpay(), 'type_wrapper'],
-            101
-        );
+		remove_filter(
+			EcpWCFilterList::WOOCOMMERCE_ORDER_CLASS,
+			[ ecommpay(), 'type_wrapper' ],
+			101
+		);
 
-        return $single ? end($subscriptions) : $subscriptions;
-    }
+		return $single ? end( $subscriptions ) : $subscriptions;
+	}
 
-    return [];
+	return [];
 }
 
-function ecp_get_subscription_statuses()
-{
-    if (function_exists('wcs_get_subscription_statuses')) {
-        return wcs_get_subscription_statuses();
-    }
+function ecp_get_subscription_status_name( $status ) {
+	if ( ! function_exists( 'wcs_get_subscription_status_name' ) ) {
+		return 'Unknown';
+	}
 
-    return [];
-}
-
-function ecp_get_subscription_status_name($status)
-{
-    if (!function_exists('wcs_get_subscription_status_name')) {
-        return 'Unknown';
-    }
-
-    return wcs_get_subscription_status_name($status);
+	return wcs_get_subscription_status_name( $status );
 }
 
 /**
@@ -138,70 +135,12 @@ function ecp_get_subscription_status_name($status)
  * @return WC_Subscription[]
  * @noinspection PhpUndefinedClassInspection
  */
-function ecp_get_subscriptions_for_order($order)
-{
-    if (function_exists('wcs_get_subscriptions_for_order')) {
-        return wcs_get_subscriptions_for_order($order);
-    }
+function ecp_get_subscriptions_for_order( $order ): array {
+	if ( function_exists( 'wcs_get_subscriptions_for_order' ) ) {
+		return wcs_get_subscriptions_for_order( $order );
+	}
 
-    return [];
-}
-
-/**
- * @param $id
- * @return WC_Subscription_Order|false
- * @noinspection PhpUndefinedClassInspection
- */
-function ecp_get_subscription($id)
-{
-    if (function_exists('wcs_get_subscription')) {
-        return wcs_get_subscription($id);
-    }
-
-    return false;
-}
-
-/**
- * @param Ecp_Gateway_Order $order The parent order
- *
- * @return bool
- */
-function ecp_get_subscription_id($order)
-{
-    $order_id = $order->get_id();
-
-    if (ecp_is_subscription($order_id)) {
-        return $order_id;
-    }
-
-    if ($order->contains_subscription()) {
-        // Find all subscriptions
-        $subscriptions = ecp_get_subscriptions_for_order($order_id);
-        // Get the last one and base the transaction on it.
-        $subscription = end($subscriptions);
-        // Fetch the post ID of the subscription, not the parent order.
-        return $subscription->get_id();
-    }
-
-    return false;
-}
-
-/**
- * Activates subscriptions on a parent order
- *
- * @param Ecp_Gateway_Order $order
- * @return false
- */
-function ecp_activate_subscriptions_for_order($order)
-{
-    if (
-        ecp_subscription_is_active()
-        && class_exists('WC_Subscriptions_Manager')
-    ) {
-        WC_Subscriptions_Manager::activate_subscriptions_for_order($order);
-    }
-
-    return false;
+	return [];
 }
 
 /**
@@ -209,48 +148,13 @@ function ecp_activate_subscriptions_for_order($order)
  * belongs to a post with the subscription post type ('shop_subscription')
  *
  * @param $subscription
+ *
  * @return bool
  */
-function ecp_is_subscription($subscription)
-{
-    if (function_exists('wcs_is_subscription')) {
-        return wcs_is_subscription($subscription);
-    }
+function ecp_is_subscription( $subscription ): bool {
+	if ( function_exists( 'wcs_is_subscription' ) ) {
+		return wcs_is_subscription( $subscription );
+	}
 
-    return false;
-}
-
-/**
- * Checks if the current cart has a switch product
- * @return bool
- */
-function ecp_cart_contains_switches()
-{
-    if (
-        class_exists('WC_Subscriptions_Switcher')
-        && method_exists('WC_Subscriptions_Switcher', 'cart_contains_switches')
-    ) {
-        return WC_Subscriptions_Switcher::cart_contains_switches() !== false;
-    }
-
-    return false;
-}
-
-function ecp_order_contains_switch($order)
-{
-    if (!function_exists('wcs_order_contains_switch')) {
-        return false;
-    }
-
-    return wcs_order_contains_switch($order);
-}
-
-function ecp_order_contains_subscription($order)
-{
-    if (!function_exists('wcs_order_contains_subscription')) {
-        ecp_get_log()->debug(__('The order does not contain subscription products', 'woo-ecp'));
-        return false;
-    }
-
-    return wcs_order_contains_subscription($order);
+	return false;
 }

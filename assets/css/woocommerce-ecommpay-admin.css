@@ -53,6 +53,7 @@ fieldset.ecp-fieldset {
   .ecp tr {
     border-bottom: 1px dashed #ccc;
   }
+
   .ecp tr:last-child {
     border-bottom: 0 none;
   }
@@ -63,9 +64,7 @@ fieldset.ecp-fieldset {
     float: right;
   }
 
-  .wp-list-table
-    tr:not(.inline-edit-row):not(.no-items)
-    td.column-ecommpay_payment_info::before {
+  .wp-list-table tr:not(.inline-edit-row):not(.no-items) td.column-ecommpay_payment_info::before {
     right: 6ch;
     width: 100%;
     left: inherit;
@@ -103,6 +102,7 @@ fieldset.ecp-fieldset legend {
 li.ecp-meta-box-header .ecp-full-width {
   line-height: 1;
 }
+
 .ecp-pm-logo {
   max-height: 2.2em;
 }
@@ -222,8 +222,9 @@ li.ecp-meta-box-header .ecp-full-width {
   margin-top: -1.5em;
   margin-left: -1em;
 }
+
 .lds-ecp:after {
-  content: " ";
+  content: ' ';
   display: block;
   border-radius: 50%;
   width: 0;
@@ -272,7 +273,7 @@ li.ecp-meta-box-header .ecp-full-width {
 
 .ecp-balance:after {
   clear: both;
-  content: "";
+  content: '';
   display: table;
 }
 
@@ -292,6 +293,7 @@ li.ecp-meta-box-header .ecp-full-width {
   width: 60%;
   border-right: 3px solid #fff;
 }
+
 .ecp-balance__amount {
   border-right: 0;
   width: 40%;
@@ -329,11 +331,13 @@ li.ecp-meta-box-header .ecp-full-width {
     -moz-transform: rotate(360deg);
   }
 }
+
 @-webkit-keyframes spin {
   100% {
     -webkit-transform: rotate(360deg);
   }
 }
+
 @keyframes spin {
   100% {
     -webkit-transform: rotate(360deg);

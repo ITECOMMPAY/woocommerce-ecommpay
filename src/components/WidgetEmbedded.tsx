@@ -1,50 +1,36 @@
-import {useCallback, useEffect} from "@wordpress/element"
-import {useDebouncedCallback} from "use-debounce"
-import getFieldsForGateway from "../helpers/getFieldsForGateway"
-import scrollToSelector from "../helpers/scrollToSelector"
-import useBack from "../hooks/useBack"
-import useBoolean from "../hooks/useBoolean"
-import {PaymentMethodInterface} from "../woocommerce-types"
-import OverlayLoader from "./OverlayLoader"
-
-declare global {
-  interface Window {
-    ECP: any;
-    jQuery: any;
-    EPayWidget: any
-  }
-}
+import { useCallback, useEffect } from '@wordpress/element'
+import { useDebouncedCallback } from 'use-debounce'
+import getFieldsForGateway from '../helpers/getFieldsForGateway'
+import scrollToSelector from '../helpers/scrollToSelector'
+import useBack from '../hooks/useBack'
+import useBoolean from '../hooks/useBoolean'
+import { PaymentMethodInterface } from '../woocommerce-types'
+import OverlayLoader from './OverlayLoader'
 
 function WidgetEmbedded(props: PaymentMethodInterface) {
-  const {
-    value: isOverlayLoading,
-    setTrue: showOverlayLoader,
-    setFalse: hideOverlayLoader,
-  } = useBoolean(false)
-  const { value: isClarificationRunning, setTrue: setClarificationRunning } =
-    useBoolean(false)
+  const { value: isOverlayLoading, setTrue: showOverlayLoader, setFalse: hideOverlayLoader } = useBoolean(false)
+  const { value: isClarificationRunning, setTrue: setClarificationRunning } = useBoolean(false)
   const { value: isWidgetLoading, setFalse: setWidgetLoaded } = useBoolean(true)
   const { back } = useBack()
 
-  const onEmbeddedModeRedirect3dsParentPage = useCallback((data: {
-    method: string;
-    url: string;
-    body: { [x: string]: string }
-  }) => {
-    const form = document.createElement("form")
-    form.setAttribute("method", data.method)
-    form.setAttribute("action", data.url)
-    form.setAttribute("style", "display:none;")
-    form.setAttribute("name", "3dsForm")
-    for (let k in data.body) {
-      const input = document.createElement("input")
-      input.name = k
-      input.value = data.body[k]
-      form.appendChild(input)
-    }
-    document.body.appendChild(form)
-    form.submit()
-  }, [])
+  const onEmbeddedModeRedirect3dsParentPage = useCallback(
+    (data: { method: string; url: string; body: { [x: string]: string } }) => {
+      const form = document.createElement('form')
+      form.setAttribute('method', data.method)
+      form.setAttribute('action', data.url)
+      form.setAttribute('style', 'display:none;')
+      form.setAttribute('name', '3dsForm')
+      for (let k in data.body) {
+        const input = document.createElement('input')
+        input.name = k
+        input.value = data.body[k]
+        form.appendChild(input)
+      }
+      document.body.appendChild(form)
+      form.submit()
+    },
+    []
+  )
 
   const onMessage = useCallback((event: { origin: any; data: string }) => {
     if (event.origin !== window.ECP.origin_url) {
@@ -54,17 +40,17 @@ function WidgetEmbedded(props: PaymentMethodInterface) {
     const data = JSON.parse(event.data)
 
     switch (data.message) {
-      case "epframe.show_clarification_page":
+      case 'epframe.show_clarification_page':
         return window.ECP.listeners.onShowClarificationPage()
-      case "epframe.embedded_mode.check_validation_response":
+      case 'epframe.embedded_mode.check_validation_response':
         return window.ECP.listeners.onEmbeddedModeCheckValidationResponse(data)
-      case "epframe.payment.success":
+      case 'epframe.payment.success':
         return window.ECP.listeners.onSuccess()
-      case "epframe.payment.fail":
+      case 'epframe.payment.fail':
         return window.ECP.listeners.onFail()
-      case "epframe.card.verify.success":
+      case 'epframe.card.verify.success':
         return window.ECP.listeners.onSuccess()
-      case "epframe.card.verify.fail":
+      case 'epframe.card.verify.fail':
         return window.ECP.listeners.onFail()
     }
   }, [])
@@ -78,26 +64,19 @@ function WidgetEmbedded(props: PaymentMethodInterface) {
           resolve({
             type: props.emitResponse.responseTypes.ERROR,
             messageContext: props.emitResponse.noticeContexts.PAYMENTS,
-            message: "Clarification required",
+            message: 'Clarification required',
           })
         },
         onEmbeddedModeCheckValidationResponse: (response: { data: { [s: string]: unknown } | ArrayLike<unknown> }) => {
-          scrollToSelector(
-            '[for="radio-control-wc-payment-method-options-ecommpay-card"]'
-          )
+          scrollToSelector('[for="radio-control-wc-payment-method-options-ecommpay-card"]')
 
           if (Object.keys(response.data).length !== 0) {
-            const uniqueErrors = Array.from(
-              new Set(Object.values(response.data))
-            )
+            const uniqueErrors = Array.from(new Set(Object.values(response.data)))
 
             resolve({
               type: props.emitResponse.responseTypes.ERROR,
               messageContext: props.emitResponse.noticeContexts.PAYMENTS,
-              message:
-                "<b>Validation failed:</b> <ul><li>" +
-                uniqueErrors.join("</li><li>") +
-                "</li></ul>",
+              message: '<b>Validation failed:</b> <ul><li>' + uniqueErrors.join('</li><li>') + '</li></ul>',
               retry: true,
             })
             return
@@ -105,7 +84,7 @@ function WidgetEmbedded(props: PaymentMethodInterface) {
 
           window.postMessage(
             JSON.stringify({
-              message: "epframe.embedded_mode.submit",
+              message: 'epframe.embedded_mode.submit',
               fields: getFieldsForGateway(options),
               from_another_domain: true,
             })
@@ -123,7 +102,7 @@ function WidgetEmbedded(props: PaymentMethodInterface) {
           resolve({
             type: props.emitResponse.responseTypes.FAIL,
             messageContext: props.emitResponse.noticeContexts.PAYMENTS,
-            message: "Payment failed",
+            message: 'Payment failed',
           })
         },
       }
@@ -131,7 +110,7 @@ function WidgetEmbedded(props: PaymentMethodInterface) {
       setTimeout(() => {
         window.postMessage(
           JSON.stringify({
-            message: "epframe.embedded_mode.check_validation",
+            message: 'epframe.embedded_mode.check_validation',
             from_another_domain: true,
           })
         )
@@ -142,23 +121,23 @@ function WidgetEmbedded(props: PaymentMethodInterface) {
   const runIframe = useDebouncedCallback(() => {
     const data = [
       {
-        name: "action",
-        value: "get_data_for_payment_form",
+        name: 'action',
+        value: 'get_data_for_payment_form',
       },
     ]
 
     if (window.ECP.order_id > 0) {
       data.push({
-        name: "order_id",
+        name: 'order_id',
         value: window.ECP.order_id,
       })
     }
 
     window.jQuery.ajax({
-      type: "POST",
-      url: window.ECP.ajax_url + "?" + window.location.href.split("?")[1],
+      type: 'POST',
+      url: window.ECP.ajax_url + '?' + window.location.href.split('?')[1],
       data,
-      dataType: "json",
+      dataType: 'json',
       success: function (paramsForEmbeddedPP: any) {
         window.ECP = {
           ...window.ECP,
@@ -175,7 +154,7 @@ function WidgetEmbedded(props: PaymentMethodInterface) {
           },
         }
 
-        window.EPayWidget.run(window.ECP.paramsForEmbeddedPP, "POST")
+        window.EPayWidget.run(window.ECP.paramsForEmbeddedPP, 'POST')
       },
       error: function (jqXHR: any, textStatus: any, errorThrown: any) {
         console.error(jqXHR, textStatus, errorThrown)
@@ -184,58 +163,69 @@ function WidgetEmbedded(props: PaymentMethodInterface) {
   }, 2000)
 
   useEffect(() => {
-    const unsubscribePaymentSetup = props.eventRegistration.onPaymentSetup(
-      async () => {
-        if (isClarificationRunning) {
-          window.postMessage(
-            JSON.stringify({
-              message: "epframe.embedded_mode.submit",
-              fields: {},
-              from_another_domain: true,
-            })
-          )
-        } else {
-          return {
-            type: props.emitResponse.responseTypes.SUCCESS,
-            meta: {
-              paymentMethodData: {
-                payment_id: window.ECP.paramsForEmbeddedPP.payment_id,
-              },
-            },
-          }
-        }
-      },
-      0
-    )
-
-    const unsubscribeCheckoutSuccess =
-      props.eventRegistration.onCheckoutSuccess(async (data: any) => {
-        window.ECP.order_id = data.orderId
-        const options = JSON.parse(
-          data.processingResponse.paymentDetails.optionsJson
+    const unsubscribePaymentSetup = props.eventRegistration.onPaymentSetup(async () => {
+      if (isClarificationRunning) {
+        window.postMessage(
+          JSON.stringify({
+            message: 'epframe.embedded_mode.submit',
+            fields: {},
+            from_another_domain: true,
+          })
         )
-
-        const nonDecimalCurrencies = ['BIF', 'CLP', 'DJF', 'GNF', 'ISK', 'JPY',
-          'KMF', 'KRW', 'PYG', 'RWF', 'UGX', 'UYI', 'VND', 'VUV', 'XAF', 'XOF', 'XPF'];
-        
-        const paymentPageAmount = options.payment_amount;
-        const divisorOrder = props.billing.currency.minorUnit - (nonDecimalCurrencies.includes(props.billing.currency.code) ? 0 : 2);
-        const cartTotal = Math.round(props.billing.cartTotal.value / Math.pow(10, divisorOrder))
-
-        const isAmountEqual = paymentPageAmount === cartTotal
-        const isCurrencyEqual = props.billing.currency.code === options.payment_currency
-
-        if (isAmountEqual && isCurrencyEqual) {
-          return await submitIframe(options)
-        } else {
-          return {
-            type: props.emitResponse.responseTypes.ERROR,
-            messageContext: props.emitResponse.noticeContexts.CHECKOUT,
-            message:
-              "Cart amount has changed, please refresh the page and try again",
-          }
+      } else {
+        return {
+          type: props.emitResponse.responseTypes.SUCCESS,
+          meta: {
+            paymentMethodData: {
+              payment_id: window.ECP.paramsForEmbeddedPP.payment_id,
+            },
+          },
         }
-      }, 0)
+      }
+    }, 0)
+
+    const unsubscribeCheckoutSuccess = props.eventRegistration.onCheckoutSuccess(async (data: any) => {
+      window.ECP.order_id = data.orderId
+      const options = JSON.parse(data.processingResponse.paymentDetails.optionsJson)
+
+      const nonDecimalCurrencies = [
+        'BIF',
+        'CLP',
+        'DJF',
+        'GNF',
+        'ISK',
+        'JPY',
+        'KMF',
+        'KRW',
+        'PYG',
+        'RWF',
+        'UGX',
+        'UYI',
+        'VND',
+        'VUV',
+        'XAF',
+        'XOF',
+        'XPF',
+      ]
+
+      const paymentPageAmount = options.payment_amount
+      const divisorOrder =
+        props.billing.currency.minorUnit - (nonDecimalCurrencies.includes(props.billing.currency.code) ? 0 : 2)
+      const cartTotal = Math.round(props.billing.cartTotal.value / Math.pow(10, divisorOrder))
+
+      const isAmountEqual = paymentPageAmount === cartTotal
+      const isCurrencyEqual = props.billing.currency.code === options.payment_currency
+
+      if (isAmountEqual && isCurrencyEqual) {
+        return await submitIframe(options)
+      } else {
+        return {
+          type: props.emitResponse.responseTypes.ERROR,
+          messageContext: props.emitResponse.noticeContexts.CHECKOUT,
+          message: 'Cart amount has changed, please refresh the page and try again',
+        }
+      }
+    }, 0)
 
     return () => {
       unsubscribePaymentSetup()
@@ -304,21 +294,21 @@ function WidgetEmbedded(props: PaymentMethodInterface) {
 
   useEffect(() => {
     window.ECP.listeners = {}
-    window.addEventListener("message", onMessage)
+    window.addEventListener('message', onMessage)
 
     return () => {
-      window.removeEventListener("message", onMessage)
+      window.removeEventListener('message', onMessage)
       window.ECP.listeners = {}
     }
   }, [onMessage])
 
   return (
     <>
-      {isWidgetLoading && "Loading..."}
+      {isWidgetLoading && 'Loading...'}
       <div
         id="ecommpay-iframe-embedded"
         style={{
-          height: isWidgetLoading ? "0" : "auto",
+          height: isWidgetLoading ? '0' : 'auto',
         }}
       />
       <OverlayLoader show={isOverlayLoading} />

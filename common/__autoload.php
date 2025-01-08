@@ -1,137 +1,144 @@
 <?php
+
+defined( 'ABSPATH' ) || exit;
+
+
 /**
  * <h2>Autoloader for ECOMMPAY Gateway.</h2>
  */
 
+require_once __DIR__ . '/../vendor/autoload.php';
+
 // Import external helpers
-require_once __DIR__ . '/../helpers/ecp-helper.php';                                // Base functions
-require_once __DIR__ . '/../helpers/ecp-order.php';                                 // Order functions
-require_once __DIR__ . '/../helpers/ecp-payment.php';                               // Payment functions
-require_once __DIR__ . '/../helpers/ecp-subscription.php';                          // Subscription functions
-require_once __DIR__ . '/../helpers/notices.php';                                   // Notice functions
-require_once __DIR__ . '/../helpers/permissions.php';                               // Permission functions
+require_once __DIR__ . '/../helpers/ecp-helper.php';
+require_once __DIR__ . '/../helpers/ecp-order.php';
+require_once __DIR__ . '/../helpers/ecp-payment.php';
+require_once __DIR__ . '/../helpers/ecp-subscription.php';
+require_once __DIR__ . '/../helpers/notices.php';
+require_once __DIR__ . '/../helpers/permissions.php';
 
 // Import interfaces
-require_once __DIR__ . '/interfaces/interface-ecp-gateway-serializer.php';
+require_once __DIR__ . '/interfaces/EcpGatewaySerializerInterface.php';
 
 // Import install package
-require_once __DIR__ . '/install/class-ecp-gateway-install.php';
+require_once __DIR__ . '/install/EcpGatewayInstall.php';
 
 // Import internal helpers
-require_once __DIR__ . '/helpers/abstract-ecp-gateway-registry.php';                // Abstract registry
-require_once __DIR__ . '/helpers/class-ecp-gateway-array.php';                      // Base array object
-require_once __DIR__ . '/helpers/class-ecp-gateway-json.php';                       // Base JSON object
-require_once __DIR__ . '/helpers/class-ecp-gateway-operation-status.php';           // Internal transaction statuses
-require_once __DIR__ . '/helpers/class-ecp-gateway-operation-types.php';            // Internal transaction types
-require_once __DIR__ . '/helpers/class-ecp-gateway-payment-status.php';             // Internal payment statuses
-require_once __DIR__ . '/helpers/class-ecp-gateway-payment-status-transition.php';  // Payment statuses transition
-require_once __DIR__ . '/helpers/class-ecp-gateway-payment-methods.php';            // Internal payment methods
-require_once __DIR__ . '/helpers/class-ecp-gateway-recurring-status.php';           // Internal recurring statuses
-require_once __DIR__ . '/helpers/class-ecp-gateway-recurring-types.php';            // Internal recurring types
-require_once __DIR__ . '/helpers/class-ecp-gateway-api-protocol.php';               // Internal API protocol
+require_once __DIR__ . '/helpers/EcpGatewayRegistry.php';
+require_once __DIR__ . '/helpers/EcpGatewayArray.php';
+require_once __DIR__ . '/helpers/EcpGatewayJson.php';
+require_once __DIR__ . '/helpers/EcpGatewayOperationStatus.php';
+require_once __DIR__ . '/helpers/EcpGatewayOperationType.php';
+require_once __DIR__ . '/helpers/EcpGatewayPaymentStatus.php';
+require_once __DIR__ . '/helpers/EcpGatewayPaymentStatusTransition.php';
+require_once __DIR__ . '/helpers/EcpGatewayPaymentMethods.php';
+require_once __DIR__ . '/helpers/EcpGatewayRecurringStatus.php';
+require_once __DIR__ . '/helpers/EcpGatewayRecurringTypes.php';
+require_once __DIR__ . '/helpers/EcpGatewayAPIProtocol.php';
 require_once __DIR__ . '/helpers/WCOrderStatus.php';
 
 // Import log package
-require_once __DIR__ . '/log/class-ecp-gateway-log.php';
+require_once __DIR__ . '/log/EcpGatewayLog.php';
 
 // Import exception package
-require_once __DIR__ . '/exceptions/abstract-ecp-gateway-exception.php';
-require_once __DIR__ . '/exceptions/class-ecp-gateway-error.php';
-require_once __DIR__ . '/exceptions/class-ecp-gateway-error-exception.php';
-require_once __DIR__ . '/exceptions/class-ecp-gateway-api-exception.php';
-require_once __DIR__ . '/exceptions/class-ecp-gateway-duplicate-exception.php';
-require_once __DIR__ . '/exceptions/class-ecp-gateway-invalid-argument-exception.php';
-require_once __DIR__ . '/exceptions/class-ecp-gateway-key-not-found-exception.php';
-require_once __DIR__ . '/exceptions/class-ecp-gateway-logic-exception.php';
-require_once __DIR__ . '/exceptions/class-ecp-gateway-not-available-exception.php';
-require_once __DIR__ . '/exceptions/class-ecp-gateway-not-implemented-exception.php';
-require_once __DIR__ . '/exceptions/class-ecp-gateway-signature-exception.php';
+require_once __DIR__ . '/exceptions/EcpGatewayError.php';
+require_once __DIR__ . '/exceptions/EcpGatewayException.php';
+require_once __DIR__ . '/exceptions/EcpGatewayDuplicateException.php';
+require_once __DIR__ . '/exceptions/EcpGatewayErrorException.php';
+require_once __DIR__ . '/exceptions/EcpGatewayAPIException.php';
+require_once __DIR__ . '/exceptions/EcpGatewayDuplicateException.php';
+require_once __DIR__ . '/exceptions/EcpGatewayInvalidArgumentException.php';
+require_once __DIR__ . '/exceptions/EcpGatewayKeyNotFoundException.php';
+require_once __DIR__ . '/exceptions/EcpGatewayLogicException.php';
+require_once __DIR__ . '/exceptions/EcpGatewayNotAvailableException.php';
+require_once __DIR__ . '/exceptions/EcpGatewayNotImplementedException.php';
+require_once __DIR__ . '/exceptions/EcpGatewaySignatureException.php';
 
 // Import API package
-require_once __DIR__ . '/api/class-ecp-gateway-api.php';                            // Base API
-require_once __DIR__ . '/api/class-ecp-gateway-api-payment.php';                    // Payment API
+require_once __DIR__ . '/api/EcpGatewayAPI.php';
+require_once __DIR__ . '/api/EcpGatewayAPIPayment.php';
 
 // Import includes
-require_once __DIR__ . '/includes/trait-ecp-gateway-order-extension.php';           // Trait order extension
-require_once __DIR__ . '/includes/class-ecp-gateway-callbacks.php';                 // Callback handler
-require_once __DIR__ . '/includes/class-ecp-gateway-form-handler.php';              // Form handler
-require_once __DIR__ . '/includes/class-ecp-gateway-order.php';                     // Order wrapper
-require_once __DIR__ . '/includes/class-ecp-gateway-payment.php';                   // Payment object
-require_once __DIR__ . '/includes/class-ecp-gateway-refund.php';                    // Refund wrapper
-require_once __DIR__ . '/includes/class-ecp-gateway-payment-provider.php';          // Payment provider
+require_once __DIR__ . '/includes/EcpGatewayOrderExtension.php';
+require_once __DIR__ . '/includes/EcpCallbacksHandler.php';
+require_once __DIR__ . '/includes/EcpGatewayFormHandler.php';
+require_once __DIR__ . '/includes/EcpGatewayOrder.php';
+require_once __DIR__ . '/includes/EcpGatewayPayment.php';
+require_once __DIR__ . '/includes/EcpGatewayRefund.php';
+require_once __DIR__ . '/includes/EcpGatewayPaymentProvider.php';
+
 
 // Import modules
-require_once __DIR__ . '/modules/class-ecp-gateway-module-admin-ui.php';            // Admin UI
-require_once __DIR__ . '/modules/class-ecp-gateway-module-payment-page.php';        // Payment Page
-require_once __DIR__ . '/modules/class-ecp-gateway-module-refund.php';              // Refund controller
+require_once __DIR__ . '/modules/EcpModuleAdminUI.php';
+require_once __DIR__ . '/modules/EcpModulePaymentPage.php';
+require_once __DIR__ . '/modules/EcpModuleRefund.php';
 require_once __DIR__ . '/modules/EcpModuleAuth.php';
 require_once __DIR__ . '/modules/EcpModuleCancel.php';
 require_once __DIR__ . '/modules/EcpModuleCapture.php';
-require_once __DIR__ . '/modules/class-ecp-gateway-signer.php';                     // Signer
+require_once __DIR__ . '/modules/EcpSigner.php';
 
 // Import models
-require_once __DIR__ . '/models/class-ecp-gateway-info-account.php';                // Account data
-require_once __DIR__ . '/models/class-ecp-gateway-info-acs.php';                    // ACS data
-require_once __DIR__ . '/models/class-ecp-gateway-info-billing.php';                // Billing data
-require_once __DIR__ . '/models/class-ecp-gateway-info-callback.php';               // Callback data
-require_once __DIR__ . '/models/class-ecp-gateway-info-customer.php';               // Customer data
-require_once __DIR__ . '/models/class-ecp-gateway-info-error.php';                  // Error data
-require_once __DIR__ . '/models/class-ecp-gateway-info-operation.php';              // Transaction data
-require_once __DIR__ . '/models/class-ecp-gateway-info-operation-fee.php';          // Transaction fee data
-require_once __DIR__ . '/models/class-ecp-gateway-info-payment.php';                // Payment data
-require_once __DIR__ . '/models/class-ecp-gateway-info-provider.php';               // Provider data
-require_once __DIR__ . '/models/class-ecp-gateway-info-response.php';               // Response data
-require_once __DIR__ . '/models/class-ecp-gateway-info-status.php';                 // Status data
-require_once __DIR__ . '/models/class-ecp-gateway-info-sum.php';                    // Amount data
+require_once __DIR__ . '/models/EcpGatewayInfoAccount.php';
+require_once __DIR__ . '/models/EcpGatewayInfoACS.php';
+require_once __DIR__ . '/models/EcpGatewayInfoBilling.php';
+require_once __DIR__ . '/models/EcpGatewayInfoCallback.php';
+require_once __DIR__ . '/models/EcpGatewayInfoCustomer.php';
+require_once __DIR__ . '/models/EcpGatewayInfoError.php';
+require_once __DIR__ . '/models/EcpGatewayInfoOperation.php';
+require_once __DIR__ . '/models/EcpGatewayInfoOperationFee.php';
+require_once __DIR__ . '/models/EcpGatewayInfoPayment.php';
+require_once __DIR__ . '/models/EcpGatewayInfoProvider.php';
+require_once __DIR__ . '/models/EcpGatewayInfoResponse.php';
+require_once __DIR__ . '/models/EcpGatewayInfoStatus.php';
+require_once __DIR__ . '/models/EcpGatewayInfoSum.php';
 
 // Import settings
-require_once __DIR__ . '/settings/abstract-ecp-gateway-settings.php';               // Abstract settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-general.php';          // General settings
-require_once __DIR__ . '/settings/EcpGatewaySettingsProducts.php';
-require_once __DIR__ . '/settings/EcpGatewaySettingsSubscriptions.php';
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-card.php';             // Card settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-paypal.php';           // PayPal settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-paypal-paylater.php';  // PayPal PayLater settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-klarna.php';           // Klarna settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-giropay.php';          // Giropay settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-sofort.php';           // Sofort settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-blik.php';             // Blik settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-ideal.php';            // iDEAL settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-banks.php';            // Banks settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-applepay.php';         // Apple Pay settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-more.php';             // More payments settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-googlepay.php';        // GooglePay settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-brazil.php';           // Brazil online banks settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-directdebit-bacs.php'; // Direct Debit BACS settings
-require_once __DIR__ . '/settings/class-ecp-gateway-settings-directdebit-sepa.php'; // Direct Debit SEPA settings
-require_once __DIR__ . '/settings/class-ecp-form.php';                              // Settings main page
+require_once __DIR__ . '/settings/EcpSettings.php';
+require_once __DIR__ . '/settings/EcpSettingsGeneral.php';
+require_once __DIR__ . '/settings/EcpSettingsProducts.php';
+require_once __DIR__ . '/settings/EcpSettingsSubscriptions.php';
+require_once __DIR__ . '/settings/EcpSettingsCard.php';
+require_once __DIR__ . '/settings/EcpSettingsPayPal.php';
+require_once __DIR__ . '/settings/EcpSettingsPayPalPayLater.php';
+require_once __DIR__ . '/settings/EcpSettingsKlarna.php';
+require_once __DIR__ . '/settings/EcpSettingsGiropay.php';
+require_once __DIR__ . '/settings/EcpSettingsSofort.php';
+require_once __DIR__ . '/settings/EcpSettingsBlik.php';
+require_once __DIR__ . '/settings/EcpSettingsIdeal.php';
+require_once __DIR__ . '/settings/EcpSettingsBanks.php';
+require_once __DIR__ . '/settings/EcpSettingsApplepay.php';
+require_once __DIR__ . '/settings/EcpSettingsMore.php';
+require_once __DIR__ . '/settings/EcpSettingsGooglepay.php';
+require_once __DIR__ . '/settings/EcpSettingsBrazilOnline_Banks.php';
+require_once __DIR__ . '/settings/EcpSettingsDirectDebitBACS.php';
+require_once __DIR__ . '/settings/EcpSettingsDirectDebitSEPA.php';
+require_once __DIR__ . '/settings/forms/EcpForm.php';
 
 if ( ecp_subscription_is_active() ) {
-	require_once __DIR__ . '/api/class-ecp-gateway-api-subscription.php';               // Subscription API
-	require_once __DIR__ . '/includes/class-ecp-gateway-subscription.php';              // Subscription wrapper
-	require_once __DIR__ . '/modules/class-ecp-gateway-module-subscription.php';        // Subscription controller
-	require_once __DIR__ . '/models/class-ecp-gateway-info-recurring.php';              // Recurring data
+	require_once __DIR__ . '/api/EcpGatewayAPISubscription.php';
+	require_once __DIR__ . '/includes/EcpGatewaySubscription.php';
+	require_once __DIR__ . '/modules/EcpModuleSubscription.php';
+	require_once __DIR__ . '/models/EcpGatewayInfoRecurring.php';
 }
 
 // Import main class
-require_once __DIR__ . '/class-ecp-core.php';                                            // Core
-require_once __DIR__ . '/gateways/abstract-ecp-gateway.php';                             // Abstract Gateway
-require_once __DIR__ . '/gateways/class-ecp-gateway-card.php';                           // Card Gateway
-require_once __DIR__ . '/gateways/class-ecp-gateway-paypal.php';                         // PayPal Gateway
-require_once __DIR__ . '/gateways/class-ecp-gateway-paypal-paylater.php';                // PayPal PayLater Gateway
-require_once __DIR__ . '/gateways/class-ecp-gateway-klarna.php';                         // Klarna Gateway
-require_once __DIR__ . '/gateways/class-ecp-gateway-giropay.php';                        // Giropay Gateway
-require_once __DIR__ . '/gateways/class-ecp-gateway-sofort.php';                         // Sofort Gateway
-require_once __DIR__ . '/gateways/class-ecp-gateway-blik.php';                           // Blik Gateway
-require_once __DIR__ . '/gateways/class-ecp-gateway-ideal.php';                          // iDEAL Gateway
-require_once __DIR__ . '/gateways/class-ecp-gateway-banks.php';                          // Banks Gateway
-require_once __DIR__ . '/gateways/class-ecp-gateway-googlepay.php';                      // Banks Gateway
-require_once __DIR__ . '/gateways/class-ecp-gateway-applepay.php';                       // Apple Pay Gateway
-require_once __DIR__ . '/gateways/class-ecp-gateway-more.php';                           // More PM Gateway
-require_once __DIR__ . '/gateways/class-ecp-gateway-brazil.php';                         // Brazil online banks Gateway
-require_once __DIR__ . '/gateways/class-ecp-gateway-directdebit-bacs.php';               // Direct Debit BACS Gateway
-require_once __DIR__ . '/gateways/class-ecp-gateway-directdebit-sepa.php';               // Direct Debit SEPA Gateway
+require_once __DIR__ . '/EcpCore.php';
+require_once __DIR__ . '/gateways/EcpGateway.php';
+require_once __DIR__ . '/gateways/EcpCard.php';
+require_once __DIR__ . '/gateways/EcpPayPal.php';
+require_once __DIR__ . '/gateways/EcpPayPalPayLater.php';
+require_once __DIR__ . '/gateways/EcpKlarna.php';
+require_once __DIR__ . '/gateways/EcpGiropay.php';
+require_once __DIR__ . '/gateways/EcpSofort.php';
+require_once __DIR__ . '/gateways/EcpBlik.php';
+require_once __DIR__ . '/gateways/EcpIdeal.php';
+require_once __DIR__ . '/gateways/EcpBanks.php';
+require_once __DIR__ . '/gateways/EcpGooglepay.php';
+require_once __DIR__ . '/gateways/EcpApplepay.php';
+require_once __DIR__ . '/gateways/EcpMore.php';
+require_once __DIR__ . '/gateways/EcpBrazilOnlineBanks.php';
+require_once __DIR__ . '/gateways/EcpDirectDebitBACS.php';
+require_once __DIR__ . '/gateways/EcpDirectDebitSEPA.php';
 
 
-// Import payment method class for checkout blocks
-require_once __DIR__ . '/includes/class-ecp-gateway-blocks-support.php';
+require_once __DIR__ . '/includes/EcpGatewayBlocksSupport.php';

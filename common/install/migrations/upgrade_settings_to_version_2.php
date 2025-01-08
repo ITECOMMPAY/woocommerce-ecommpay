@@ -1,19 +1,24 @@
 <?php
 
+use common\install\EcpGatewayInstall;
+use common\settings\EcpSettings;
+use common\settings\EcpSettingsGeneral;
+use common\settings\forms\EcpForm;
+
 ecp_get_log()->emergency( 'Run update settings to version 2.0.3' );
 
 // Previous plugin settings
-$prev_settings = get_option( Ecp_Gateway_Install::SETTINGS_NAME, null );
+$prev_settings = get_option( EcpGatewayInstall::SETTINGS_NAME, null );
 // New default settings
-$form_fields = Ecp_Form::get_instance()->get_default_settings();
+$form_fields = EcpForm::get_instance()->get_default_settings();
 $all_fields  = array_column(
-	Ecp_Form::get_instance()->get_all_form_fields(),
-	Ecp_Gateway_Settings::FIELD_ID
+	EcpForm::get_instance()->get_all_form_fields(),
+	EcpSettings::FIELD_ID
 );
 $map         = [
-	'mode'       => Ecp_Gateway_Settings::OPTION_MODE,
-	'project_id' => Ecp_Gateway_Settings_General::OPTION_PROJECT_ID,
-	'salt'       => Ecp_Gateway_Settings_General::OPTION_SECRET_KEY,
+	'mode'       => EcpSettings::OPTION_MODE,
+	'project_id' => EcpSettingsGeneral::OPTION_PROJECT_ID,
+	'salt'       => EcpSettingsGeneral::OPTION_SECRET_KEY,
 	'test' => 'test',
 ];
 
@@ -32,4 +37,4 @@ foreach ( $prev_settings as $key => $value ) {
 $settings = array_merge( $form_fields, $prev_settings );
 
 // Update plugin settings
-update_option( Ecp_Gateway_Install::SETTINGS_NAME, $settings );
+update_option( EcpGatewayInstall::SETTINGS_NAME, $settings );

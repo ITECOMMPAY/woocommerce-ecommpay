@@ -1,10 +1,10 @@
-import { useEffect, useState } from "@wordpress/element"
+import { useEffect, useState } from '@wordpress/element'
 
 function useDelayUnmount(isMounted: boolean, delayTime: number) {
   const [shouldRender, setShouldRender] = useState(false)
 
   useEffect(() => {
-    let timeoutId: number
+    let timeoutId: ReturnType<typeof setTimeout>
 
     if (isMounted && !shouldRender) {
       setShouldRender(true)

@@ -1,6 +1,13 @@
 <?php
 
+defined( 'ABSPATH' ) || exit;
+
+
 use Automattic\WooCommerce\Utilities\OrderUtil;
+use common\includes\EcpGatewayOrder;
+use common\includes\EcpGatewayRefund;
+use common\includes\EcpGatewaySubscription;
+use common\includes\filters\EcpWCFilterList;
 
 const NON_DECIMAL_CURRENCIES = [
 	'BIF',
@@ -22,7 +29,7 @@ const NON_DECIMAL_CURRENCIES = [
 	'XPF',
 ];
 
-function ecp_HPOS_enabled() {
+function ecp_HPOS_enabled(): bool {
 	if ( ! class_exists( 'Automattic\WooCommerce\Utilities\OrderUtil' ) ) {
 		return false;
 	}
@@ -131,21 +138,12 @@ function ecp_callback_url( $post_id = null ): string {
 		$args['order_post_id'] = $post_id;
 	}
 
-	$args = apply_filters( 'woocommerce_ecommpay_callback_args', $args, $post_id );
+	$args = apply_filters( EcpWCFilterList::WOOCOMMERCE_ECOMMPAY_CALLBACK_ARGS, $args, $post_id );
 
-	$callback_url = home_url( '/' );
+	// For testing purposes
+	$callback_url = getenv( 'WORDPRESS_CALLBACK_URL' ) ?: home_url( '/' );
 
-	try {
-		// For testing purposes
-		$docker_url = getenv_docker( 'WORDPRESS_CALLBACK_URL', '' );
-		if ( ! empty( $docker_url ) ) {
-			$callback_url = $docker_url;
-		}
-	} catch ( Exception $e ) {
-	}
-
-
-	return apply_filters( 'woocommerce_ecommpay_callback_url', add_query_arg( $args, $callback_url ), $args, $post_id );
+	return apply_filters( EcpWCFilterList::WOOCOMMERCE_ECOMMPAY_CALLBACK_URL, add_query_arg( $args, $callback_url ), $args, $post_id );
 }
 
 /**
@@ -153,7 +151,7 @@ function ecp_callback_url( $post_id = null ): string {
  *
  * @param $order
  *
- * @return Ecp_Gateway_Order|Ecp_Gateway_Refund|Ecp_Gateway_Subscription
+ * @return EcpGatewayOrder|EcpGatewayRefund|EcpGatewaySubscription
  */
 function ecp_get_order( $order ) {
 	$types    = [ 'shop_order', 'shop_order_refund', 'shop_subscription' ];
@@ -167,11 +165,11 @@ function ecp_get_order( $order ) {
 
 	switch ( $order_type ) {
 		case 'shop_order':
-			return new Ecp_Gateway_Order( $order );
+			return new EcpGatewayOrder( $order );
 		case 'shop_order_refund':
-			return new Ecp_Gateway_Refund( $order );
+			return new EcpGatewayRefund( $order );
 		case 'shop_subscription':
-			return new Ecp_Gateway_Subscription( $order );
+			return new EcpGatewaySubscription( $order );
 	}
 
 	return null;
@@ -193,7 +191,7 @@ function ecp_get_order_type( $order ): ?string {
  *
  * @param array $params
  *
- * @return Ecp_Gateway_Order[]
+ * @return EcpGatewayOrder[]
  * @throws Exception
  */
 function ecp_get_orders( array $params ): array {
@@ -215,14 +213,14 @@ function ecp_get_orders( array $params ): array {
 /**
  * Returns ECOMMPAY refund.
  *
- * @param WC_Order_Refund $refund
+ * @param WC_Order_Refund|null $refund
  *
- * @return ?Ecp_Gateway_Refund
+ * @return ?EcpGatewayRefund
  */
-function ecp_get_refund( $refund = null ): ?Ecp_Gateway_Refund {
+function ecp_get_refund( WC_Order_Refund $refund = null ): ?EcpGatewayRefund {
 	if ( $refund === null ) {
 		return null;
 	}
 
-	return new Ecp_Gateway_Refund( $refund->get_id() );
+	return new EcpGatewayRefund( $refund->get_id() );
 }

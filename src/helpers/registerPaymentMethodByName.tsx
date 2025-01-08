@@ -1,7 +1,8 @@
-import { decodeEntities } from "@wordpress/html-entities"
-import PaymentMethodContent from "../components/PaymentMethodContent"
-import PaymentMethodLabel from "../components/PaymentMethodLabel"
-import { PAYMENT_METHODS } from "../constants/paymentMethods"
+import { decodeEntities } from '@wordpress/html-entities'
+import PaymentMethodContent from '../components/PaymentMethodContent'
+import PaymentMethodLabel from '../components/PaymentMethodLabel'
+import { PAYMENT_METHODS } from '../constants/paymentMethods'
+
 const { getSetting } = window.wc.wcSettings
 const { registerPaymentMethod } = window.wc.wcBlocksRegistry
 
@@ -15,10 +16,7 @@ export const registerPaymentMethodByName = (name: string) => {
   const canMakePayment = () => {
     switch (name) {
       case PAYMENT_METHODS.APPLE_PAY:
-        return (
-          Object.prototype.hasOwnProperty.call(window, "ApplePaySession") &&
-          ApplePaySession.canMakePayments()
-        )
+        return Object.prototype.hasOwnProperty.call(window, 'ApplePaySession') && ApplePaySession.canMakePayments()
       default:
         return true
     }

@@ -1,27 +1,35 @@
 <?php
 
+defined( 'ABSPATH' ) || exit;
+
+
+use common\helpers\EcpGatewayOperationType;
+use common\helpers\EcpGatewayPaymentStatus;
+use common\includes\filters\EcpFiltersList;
+
 /**
  * Get all ECOMMPAY payment statuses.
  *
  * @return array
  * @since  2.0.0
- * @used-by Ecp_Gateway_Payment::set_status
+ * @used-by EcpGatewayPayment::set_status
  */
 function ecp_get_payment_statuses(): array {
-    $payment_statuses = Ecp_Gateway_Payment_Status::get_status_names();
-    return apply_filters('ecp_payment_statuses', $payment_statuses);
+	$payment_statuses = EcpGatewayPaymentStatus::get_status_names();
+
+	return apply_filters( EcpFiltersList::ECP_PAYMENT_STATUSES, $payment_statuses );
 }
 
 /**
  * Get the nice name for a payment status.
  *
- * @param  string $status Status.
+ * @param string $status Status.
  *
  * @return string
  * @since  2.0.0
  */
 function ecp_get_payment_status_name( string $status ): string {
-    return Ecp_Gateway_Payment_Status::get_status_name($status);
+	return EcpGatewayPaymentStatus::get_status_name( $status );
 }
 
 /**
@@ -33,17 +41,17 @@ function ecp_get_payment_status_name( string $status ): string {
  * @since  2.0.0
  */
 function ecp_is_payment_status( string $maybe_status ): bool {
-    return array_key_exists($maybe_status, ecp_get_payment_statuses());
+	return array_key_exists( $maybe_status, ecp_get_payment_statuses() );
 }
 
 /**
  * Get the nice name for an operation type.
  *
- * @param  string $status Status.
+ * @param string $status Status.
  *
  * @return string
  * @since  2.0.0
  */
 function ecp_get_operation_type_name( string $status ): string {
-    return Ecp_Gateway_Operation_Type::get_status_name($status);
+	return EcpGatewayOperationType::get_status_name( $status );
 }
