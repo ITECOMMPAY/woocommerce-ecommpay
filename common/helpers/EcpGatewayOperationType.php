@@ -17,102 +17,102 @@ class EcpGatewayOperationType extends EcpAbstractApiObject {
 	/**
 	 * Single-message purchase
 	 */
-	const SALE = 'sale';
+	public const SALE = 'sale';
 
 	/**
 	 * Purchase again using previously registered recurring.
 	 */
-	const RECURRING = 'recurring';
+	public const RECURRING = 'recurring';
 
 	/**
 	 * Recurring update in payment system.
 	 */
-	const RECURRING_UPDATE = 'recurring update';
+	public const RECURRING_UPDATE = 'recurring update';
 
 	/**
 	 * Recurring cancel in payment system.
 	 */
-	const RECURRING_CANCEL = 'recurring cancel';
+	public const RECURRING_CANCEL = 'recurring cancel';
 
 	/**
 	 * First step of double-message purchase - hold.
 	 */
-	const AUTH = 'auth';
+	public const AUTH = 'auth';
 
 	/**
 	 * Second step of double-message purchase - confirmation.
 	 */
-	const CAPTURE = 'capture';
+	public const CAPTURE = 'capture';
 
 	/**
 	 * Void previously held double-message transaction.
 	 */
-	const CANCEL = 'cancel';
+	public const CANCEL = 'cancel';
 
 	/**
 	 * Revert purchase.
 	 */
-	const REVERSAL = 'reversal';
+	public const REVERSAL = 'reversal';
 
 	/**
 	 * Refund back purchase.
 	 */
-	const REFUND = 'refund';
+	public const REFUND = 'refund';
 
 	/**
 	 * Revert of the refund operation.
 	 */
-	const REFUND_REVERSE = 'refund reverse';
+	public const REFUND_REVERSE = 'refund reverse';
 
 	/**
 	 * Operation for manual change transaction status.
 	 */
-	const MANUAL_CHANGE = 'manual change';
+	public const MANUAL_CHANGE = 'manual change';
 
 	/**
 	 * Operation for account verification
 	 */
-	const ACCOUNT_VERIFICATION = 'account verification';
+	public const ACCOUNT_VERIFICATION = 'account verification';
 
 	/**
 	 * Create cash voucher for OrangeData.
 	 */
-	const CREATE_CASH_VOUCHER = 'create_cash_voucher';
+	public const CREATE_CASH_VOUCHER = 'create_cash_voucher';
 
 	/**
 	 * Operation of taking commission.
 	 */
-	const COMMISSION = 'commission';
+	public const COMMISSION = 'commission';
 
 	/**
 	 * Operation for pre-confirm incremental.
 	 */
-	const INCREMENTAL = 'incremental';
+	public const INCREMENTAL = 'incremental';
 
 	/**
 	 * Invoice operation - first part of invoice transaction.
 	 */
-	const INVOICE = 'invoice';
+	public const INVOICE = 'invoice';
 
 	/**
 	 * Customer initiated action.
 	 */
-	const CUSTOMER_ACTION = 'customer action';
+	public const CUSTOMER_ACTION = 'customer action';
 
 	/**
 	 * Payment confirmation operation.
 	 */
-	const PAYMENT_CONFIRMATION = 'payment confirmation';
+	public const PAYMENT_CONFIRMATION = 'payment confirmation';
 
 	/**
 	 * Capture settlement operation.
 	 */
-	const CAPTURE_SETTLEMENT = 'capture settlement';
+	public const CAPTURE_SETTLEMENT = 'capture settlement';
 
 	/**
 	 * Contract registration operation for Direct Debit
 	 */
-	const CONTRACT_REGISTRATION = 'contract registration';
+	public const CONTRACT_REGISTRATION = 'contract registration';
 
 	private const HTML_UNDEFINED = 'Undefined';
 

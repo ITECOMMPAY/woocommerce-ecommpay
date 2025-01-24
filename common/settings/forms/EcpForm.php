@@ -460,14 +460,6 @@ class EcpForm extends EcpGatewayRegistry {
 			$this,
 			'render_field_single_select_country'
 		] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_MULTI_SELECT_COUNTRY, [
-			$this,
-			'render_field_multi_select_country'
-		] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_RELATIVE_DATE_SELECTOR, [
-			$this,
-			'render_field_relative_date_selector'
-		] );
 		add_action( EcpFiltersList::WP_ADMIN_NOTICES_FILTER, [ $this, 'admin_notice_settings' ] );
 
 		$this->ecp_tab_manager->init_tabs();

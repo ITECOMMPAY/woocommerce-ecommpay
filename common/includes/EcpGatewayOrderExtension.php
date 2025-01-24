@@ -2,6 +2,8 @@
 
 namespace common\includes;
 
+use common\EcpCore;
+
 trait EcpGatewayOrderExtension {
 	/**
 	 * Sets payment identifier.
@@ -231,7 +233,7 @@ trait EcpGatewayOrderExtension {
 			return true;
 		}
 
-		return $pm === 'ecommpay';
+		return $pm === EcpCore::ECOMMPAY_PAYMENT_METHOD;
 	}
 
 	public function get_currency_uppercase(): string {

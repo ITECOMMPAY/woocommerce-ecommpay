@@ -70,6 +70,9 @@ abstract class EcpSettings {
 		EcpSettingsSubscriptions::ID
 	];
 	public const CHECKBOXGROUP = 'checkboxgroup';
+	public const TYPE_MULTI_SELECT_COUNTRIES = 'multi_select_countries';
+	public const TYPE_IMAGE_WIDTH = 'image_width';
+	public const TYPE_RELATIVE_DATE_SELECTOR = 'relative_date_selector';
 
 	/**
 	 * Setting page identifier.

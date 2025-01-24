@@ -27,22 +27,25 @@ defined( 'ABSPATH' ) || exit;
 class EcpGatewayOrder extends Order {
 	use EcpGatewayOrderExtension;
 
+	/**
+	 * Mark in order metadata for counting failed payments.
+	 */
+	public const META_FAILED_PAYMENT_COUNT = '_ecommpay_failed_payment_count';
+	public const META_REFUND_ATTEMPTS_COUNT = '_ecommpay_refund_attempts_count';
+
+	/**
+	 * Transaction identifier in order metadata.
+	 */
+	public const META_TRANSACTION_ID = '_transaction_id';
+	private const CANCEL_ACTION = 'cancel';
+
 	private const STATUS_FAILED = 'failed';
 
 	/**
 	 * Mark in order metadata for counting changed payment method.
 	 */
 	private const META_PAYMENT_METHOD_CHANGE_COUNT = '_ecommpay_payment_method_change_count';
-	/**
-	 * Mark in order metadata for counting failed payments.
-	 */
-	const META_FAILED_PAYMENT_COUNT = '_ecommpay_failed_payment_count';
-	const META_REFUND_ATTEMPTS_COUNT = '_ecommpay_refund_attempts_count';
-	/**
-	 * Transaction identifier in order metadata.
-	 */
-	const META_TRANSACTION_ID = '_transaction_id';
-	private const CANCEL_ACTION = 'cancel';
+
 	/**
 	 * @var ?EcpGatewayPayment
 	 */

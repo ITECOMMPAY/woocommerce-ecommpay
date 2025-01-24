@@ -17,12 +17,12 @@ class EcpGatewayRecurringStatus extends EcpAbstractApiObject {
 	/**
 	 * COF-purchase is active
 	 */
-	const ACTIVE = 'active';
+	private const ACTIVE = 'active';
 
 	/**
 	 * COF-purchase is cancelled
 	 */
-	const CANCELLED = 'cancelled';
+	private const CANCELLED = 'cancelled';
 
 	protected static array $names = [];
 

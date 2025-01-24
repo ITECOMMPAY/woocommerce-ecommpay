@@ -22,6 +22,7 @@ jQuery(document).ready(function () {
       startEmbeddedIframeFlow()
       return
     }
+    showOverlayLoader()
 
     var href = window.location.href.split('?')
     var data = targetForm.serializeArray()
@@ -46,6 +47,7 @@ jQuery(document).ready(function () {
       dataType: 'json',
       success: success,
       error: function (jqXHR, textStatus, errorThrown) {
+        hideOverlayLoader()
         submit_error('<div class="woocommerce-error">' + errorThrown + '</div>')
       },
     })
@@ -164,9 +166,11 @@ jQuery(document).ready(function () {
         redirect(result.redirect)
         break
       case 'failure':
+        hideOverlayLoader()
         show_error(result, 'Result failure')
         break
       default:
+        hideOverlayLoader()
         show_error(result, 'Invalid response')
     }
   }
@@ -394,9 +398,6 @@ jQuery(document).ready(function () {
         name = 'BillingInfo[' + name + ']'
       }
       fieldsObject[name] = window.ECP.redirectResult[key]
-      if (key === 'billing_country') {
-        fieldsObject['BillingInfo[country]'] = window.ECP.redirectResult[key]
-      }
     })
 
     postSubmit(fieldsObject)

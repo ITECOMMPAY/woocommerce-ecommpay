@@ -185,7 +185,7 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 				'positions'        => $this->get_positions( $cart ),
 				// Total tax amount per payment.
 				'total_tax_amount' => ecp_price_multiply( $totalTax, get_woocommerce_currency() ),
-				'common_tax'       => round( $totalTax * 100 / ( $totalPrice - $totalTax ), 2 ),
+				'common_tax'       => $totalPrice !== $totalTax ? round( $totalTax * 100 / ( $totalPrice - $totalTax ), 2 ) : 0,
 			]
 			: [
 				// Item positions.
@@ -228,7 +228,7 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 
 		if ( $totalTax > 0 ) {
 			// Tax percentage for the position. Multiple of: 0.01.
-			$data['tax'] = round( $totalTax * 100 / $price, 2 );
+			$data['tax'] = $price !== 0 ? round( $totalTax * 100 / $price, 2 ) : 0;
 			// Tax amount for the position.
 			$data['tax_amount'] = ecp_price_multiply( $totalTax, $currency );
 		}
@@ -262,13 +262,15 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 			EcpGatewayPaymentStatus::INTERNAL_ERROR,
 			EcpGatewayPaymentStatus::EXTERNAL_ERROR,
 			EcpGatewayPaymentStatus::AWAITING_CONFIRMATION,
-			EcpGatewayPaymentStatus::AWAITING_CUSTOMER
+			EcpGatewayPaymentStatus::AWAITING_CUSTOMER,
+			EcpGatewayPaymentStatus::AWAITING_CAPTURE
 		];
 		$data      = [
 			'callback_received' => in_array( $status, $statuses ),
 			'status'            => in_array( $status, [
 				EcpGatewayPaymentStatus::SUCCESS,
-				EcpGatewayPaymentStatus::AWAITING_CONFIRMATION
+				EcpGatewayPaymentStatus::AWAITING_CONFIRMATION,
+				EcpGatewayPaymentStatus::AWAITING_CAPTURE
 			] ),
 		];
 		wp_send_json( $data );
@@ -503,7 +505,8 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 			?>
 			<script type="text/javascript">
 				// order-receive page status (ty page or failed)
-				const order_is_failed = <?= ( $order->get_status() == 'failed' ) ? 'true' : 'false' ?>
+				const order_is_failed = <?= ( $order->get_status() == 'failed' ) ? 'true' : 'false' ?>;
+
 				let result = {}
 
 				function get_status() {

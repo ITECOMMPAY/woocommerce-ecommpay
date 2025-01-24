@@ -753,7 +753,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 				'positions'        => $this->get_positions( $order ),
 				// Total tax amount per payment.
 				'total_tax_amount' => ecp_price_multiply( $totalTax, $order->get_currency() ),
-				'common_tax'       => round( $totalTax / ( $totalPrice - $totalTax ), 2 ),
+				'common_tax'       => $totalPrice !== $totalTax ? round( $totalTax / ( $totalPrice - $totalTax ), 2 ) : 0,
 			]
 			: [
 				// Item positions.
@@ -814,7 +814,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 
 		if ( $totalTax > 0 ) {
 			// Tax percentage for the position. Multiple of: 0.01.
-			$data['tax'] = round( $totalTax / $price, 2 );
+			$data['tax'] = $price !== 0 ? round( $totalTax / $price, 2 ) : 0;
 			// Tax amount for the position.
 			$data['tax_amount'] = ecp_price_multiply( $totalTax / $quantity, $currency );
 		}

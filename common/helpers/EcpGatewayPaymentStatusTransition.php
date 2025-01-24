@@ -11,9 +11,9 @@ namespace common\helpers;
  * @category Class
  */
 class EcpGatewayPaymentStatusTransition extends EcpGatewayJson {
-	const FIELD_NEW = 'new';
-	const FIELD_OLD = 'old';
-	const FIELD_NOTE = 'note';
+	private const FIELD_NEW = 'new';
+	private const FIELD_OLD = 'old';
+	private const FIELD_NOTE = 'note';
 
 	public function get_note(): ?string {
 		$this->try_get_string( $note, self::FIELD_NOTE );

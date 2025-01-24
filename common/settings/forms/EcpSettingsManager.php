@@ -87,7 +87,7 @@ class EcpSettingsManager {
 
 			foreach (
 				apply_filters( 'woocommerce_settings_api_form_fields_' . $tab->get_id(),
-					array_map( [ $this, 'set_defaults' ],
+					array_map( [ $this->ecp_form, 'set_defaults' ],
 						apply_filters( EcpFiltersList::ECP_PREFIX_GET_SETTINGS . $tab->get_id(), [] ) ) ) as $value
 			) {
 				$default = $this->get_field_default( $value );
@@ -174,10 +174,10 @@ class EcpSettingsManager {
 					$value = wp_kses_post( trim( $raw_value ) );
 					break;
 				case EcpSettings::TYPE_MULTI_SELECT:
-				case 'multi_select_countries':
+				case EcpSettings::TYPE_MULTI_SELECT_COUNTRIES:
 					$value = array_filter( array_map( 'wc_clean', (array) $raw_value ) );
 					break;
-				case 'image_width':
+				case EcpSettings::TYPE_IMAGE_WIDTH:
 					$value = [];
 					if ( isset ( $raw_value['width'] ) ) {
 						$value['width']  = wc_clean( $raw_value['width'] );
@@ -204,7 +204,7 @@ class EcpSettingsManager {
 						? $raw_value
 						: $default;
 					break;
-				case 'relative_date_selector':
+				case EcpSettings::TYPE_RELATIVE_DATE_SELECTOR:
 					$value = wc_parse_relative_date_option( $raw_value );
 					break;
 				default:

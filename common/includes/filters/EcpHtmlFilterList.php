@@ -3,7 +3,6 @@
 namespace common\includes\filters;
 class EcpHtmlFilterList {
 
-	public const ECP_HTML_RENDER_FIELD_MULTI_SELECT_COUNTRY = 'ecp_html_render_field_multi_select_country';
 	public const ECP_HTML_RENDER_FIELD_SECTION_END = 'ecp_html_render_field_section_end';
 	public const ECP_HTML_RENDER_FIELD_MONTH = 'ecp_html_render_field_month';
 	public const ECP_HTML_RENDER_FIELD_EMAIL = 'ecp_html_render_field_email';
@@ -11,7 +10,6 @@ class EcpHtmlFilterList {
 	public const ECP_HTML_RENDER_FIELD_SELECT = 'ecp_html_render_field_select';
 	public const ECP_HTML_RENDER_FIELD_SECTION_START = 'ecp_html_render_field_section_start';
 	public const ECP_HTML_RENDER_FIELD_WEEK = 'ecp_html_render_field_week';
-	public const ECP_HTML_RENDER_FIELD_RELATIVE_DATE_SELECTOR = 'ecp_html_render_field_relative_date_selector';
 	public const ECP_HTML_RENDER_FIELD_PASSWORD = 'ecp_html_render_field_password';
 	public const ECP_HTML_RENDER_FIELD_TOGGLE_END = 'ecp_html_render_field_toggle_end';
 	public const ECP_HTML_RENDER_FIELD_RADIO = 'ecp_html_render_field_radio';

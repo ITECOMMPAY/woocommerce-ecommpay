@@ -83,10 +83,10 @@ abstract class EcpGateway extends WC_Payment_Gateway {
 	/**
 	 * @inheritDoc
 	 * @override
-	 * @return string | bool DOM element img as a string
+	 * @return string | null DOM element img as a string
 	 * @since 3.0.0
 	 */
-	public function get_icon() {
+	public function get_icon(): ?string {
 		if ( ! $icon_path = $this->get_icon_path() ) {
 			return null;
 		}

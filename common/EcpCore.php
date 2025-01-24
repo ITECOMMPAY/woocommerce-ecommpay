@@ -54,13 +54,6 @@ use common\settings\forms\EcpForm;
 use WC_Settings_API;
 
 final class EcpCore extends WC_Settings_API {
-	/**
-	 * <h2>Identifier for interface type.</h2>
-	 *
-	 * @var int
-	 * @since 2.0.0
-	 */
-	private const INTERFACE_TYPE = 18;
 
 	/**
 	 * <h2>Plugin version.</h2>
@@ -69,7 +62,30 @@ final class EcpCore extends WC_Settings_API {
 	 * @var string
 	 * @since 2.0.0
 	 */
-	const WC_ECP_VERSION = '4.0.1';
+	public const WC_ECP_VERSION = '4.0.2';
+
+	public const ECOMMPAY_PAYMENT_METHOD = 'ecommpay';
+
+	/**
+	 * @var string
+	 */
+	public $id = EcpCore::ECOMMPAY_PAYMENT_METHOD;
+	/**
+	 * @var ?EcpForm
+	 */
+	private ?EcpForm $form;
+	/**
+	 * @var ?EcpGateway[]
+	 */
+	private ?array $methods;
+
+	/**
+	 * <h2>Identifier for interface type.</h2>
+	 *
+	 * @var int
+	 * @since 2.0.0
+	 */
+	private const INTERFACE_TYPE = 18;
 
 	/**
 	 * @var ?EcpCore
@@ -92,18 +108,6 @@ final class EcpCore extends WC_Settings_API {
 		EcpBrazilOnlineBanks::class,
 		EcpMore::class,
 	];
-	/**
-	 * @var string
-	 */
-	public $id = 'ecommpay';
-	/**
-	 * @var ?EcpForm
-	 */
-	private ?EcpForm $form;
-	/**
-	 * @var ?EcpGateway[]
-	 */
-	private ?array $methods;
 
 	/**
 	 * <h2>Adds action links inside the plugin overview.</h2>
@@ -111,7 +115,7 @@ final class EcpCore extends WC_Settings_API {
 	 * @return array <p>Action link list.</p>
 	 * @since 2.0.0
 	 */
-	public static function add_action_links( $links ): array {
+	public static function add_action_links( array $links ): array {
 		return array_merge( [
 			'<a href="' . ecp_settings_page_url() . '">' . __( 'Settings', 'woo-ecommpay' ) . '</a>',
 		], $links );
@@ -246,7 +250,7 @@ final class EcpCore extends WC_Settings_API {
 			: $empty_value;
 	}
 
-	public function settings() {
+	public function settings(): ?EcpForm {
 		if ( empty ( $this->form ) ) {
 			$this->form = EcpForm::get_instance();
 		}
