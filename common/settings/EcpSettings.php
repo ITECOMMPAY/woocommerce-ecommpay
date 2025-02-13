@@ -42,6 +42,7 @@ abstract class EcpSettings {
 	const FIELD_TITLE = 'title';
 	const FIELD_DESC = 'desc';
 	const FIELD_DEFAULT = 'default';
+	const FIELD_GENERATE_VALUE = 'generate';
 	const FIELD_TIP = 'desc_tip';
 	const FIELD_OPTIONS = 'options';
 	const FIELD_SUFFIX = 'suffix';

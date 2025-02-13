@@ -124,7 +124,7 @@ class EcpForm extends EcpGatewayRegistry {
 			'title'                    => $value[ EcpSettings::FIELD_TITLE ],
 			'tooltip'                  => $this->get_tooltip( $value ),
 			'css'                      => $value[ EcpSettings::FIELD_STYLE ],
-			'option_value'             => $this->get_option( $value, $gateway ),
+			'option_value'             => $this->get_option_value( $value, $gateway ),
 			'options'                  => $value[ EcpSettings::FIELD_OPTIONS ],
 			'class'                    => $value[ EcpSettings::FIELD_CLASS ],
 			'custom_attributes'        => $this->get_custom_attributes( $value ),
@@ -153,6 +153,16 @@ class EcpForm extends EcpGatewayRegistry {
 		}
 
 		return '';
+	}
+
+	private function get_option_value( array $value, string $gateway ) {
+		if (
+			$value[ EcpSettings::FIELD_GENERATE_VALUE ]	&&
+			is_callable( $value[ EcpSettings::FIELD_GENERATE_VALUE ] )
+		) {
+			return call_user_func( $value[ EcpSettings::FIELD_GENERATE_VALUE ] );
+		}
+		return $this->get_option( $value, $gateway );
 	}
 
 	/**

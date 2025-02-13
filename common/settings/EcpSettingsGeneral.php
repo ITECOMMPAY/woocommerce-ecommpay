@@ -94,7 +94,7 @@ class EcpSettingsGeneral extends EcpSettings {
 			[
 				self::FIELD_TITLE   => _x( 'Merchant callback URL', 'Settings integration', 'woo-ecommpay' ),
 				self::FIELD_TYPE    => self::TYPE_TEXT,
-				self::FIELD_DEFAULT => ecp_callback_url(),
+				self::FIELD_GENERATE_VALUE => 'ecp_callback_url',
 				self::FIELD_CUSTOM  => [
 					'readonly' => 'readonly',
 				],

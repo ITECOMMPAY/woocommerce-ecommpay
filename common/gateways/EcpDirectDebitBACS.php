@@ -134,6 +134,6 @@ class EcpDirectDebitBACS extends EcpGateway {
 	}
 
 	public function is_available(): bool {
-		return $this->is_gateway_with_subscription_only();
+		return parent::is_available() && $this->is_gateway_with_subscription_only();
 	}
 }
