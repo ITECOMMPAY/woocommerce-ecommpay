@@ -283,68 +283,6 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 	}
 
 	/**
-	 * <h2>Injects scripts and styles into the site.</h2>
-	 *
-	 * @return void
-	 * @since 2.0.0
-	 */
-	public function include_frontend_scripts(): void {
-		global $wp;
-
-		try {
-			if ( isset ( $wp->query_vars['order-pay'] ) && absint( $wp->query_vars['order-pay'] ) > 0 ) {
-				$order_id = absint( $wp->query_vars['order-pay'] ); // The order ID
-			} else {
-				$order_id = is_wc_endpoint_url( 'order-pay' );
-			}
-		} catch ( Exception $e ) {
-			$order_id = 0;
-		}
-
-		$url = ecp_payment_page()->get_url();
-
-		// Ecommpay merchant bundle.
-		wp_enqueue_script(
-			'ecommpay_merchant_js',
-			sprintf( '%s/shared/merchant.js', $url ),
-			[],
-			null
-		);
-		wp_enqueue_style(
-			'ecommpay_merchant_css',
-			sprintf( '%s/shared/merchant.css', $url ),
-			[],
-			null
-		);
-
-		// Woocommerce Ecommpay Plugin frontend
-		wp_enqueue_script(
-			'ecommpay_checkout_script',
-			ecp_js_url( 'checkout.js' ),
-			[ 'jquery' ],
-			ecp_version()
-		);
-		wp_enqueue_script(
-			'ecommpay_frontend_helpers_script',
-			ecp_js_url( 'frontend-helpers.js' ),
-			[ 'jquery' ],
-			ecp_version()
-		);
-
-		wp_localize_script(
-			'ecommpay_checkout_script',
-			'ECP',
-			[
-				'ajax_url'   => admin_url( "admin-ajax.php" ),
-				'origin_url' => $url,
-				'order_id'   => $order_id,
-			]
-		);
-
-		wp_enqueue_style( 'ecommpay_loader_css', ecp_css_url( 'loader.css' ) );
-	}
-
-	/**
 	 * <h2>Returns the ECOMMPAY Payment page URL.</h2>
 	 *
 	 * @return string <p>Payment Page URL.</p>
@@ -585,11 +523,6 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 			'ajax_process'
 		] ); // Non-authorised user: Guest access
 
-		// register hooks for display payment form on checkout page
-		add_action( EcpWCFilterList::WOOCOMMERCE_BEFORE_CHECKOUT_FORM, [ $this, 'include_frontend_scripts' ] );
-
-		// register hooks for display payment form on payment page
-		add_action( EcpWCFilterList::BEFORE_WOOCOMMERCE_PAY, [ $this, 'include_frontend_scripts' ] );
 
 		// register hooks for display payment form on block-based checkout page
 		add_action( EcpWCFilterList::WOOCOMMERCE_BLOCKS_ENQUEUE_CHECKOUT_BLOCK_SCRIPTS_BEFORE, [

@@ -62,7 +62,7 @@ final class EcpCore extends WC_Settings_API {
 	 * @var string
 	 * @since 2.0.0
 	 */
-	public const WC_ECP_VERSION = '4.0.3';
+	public const WC_ECP_VERSION = '4.0.4';
 
 	public const ECOMMPAY_PAYMENT_METHOD = 'ecommpay';
 
@@ -166,7 +166,7 @@ final class EcpCore extends WC_Settings_API {
 
 	public static function get_instance(): ?EcpCore {
 		if ( ! self::$instance ) {
-			self::$instance = new EcpCore();
+			self::$instance = new static();
 		}
 
 		return self::$instance;
