@@ -3,9 +3,9 @@
 namespace common\gateways;
 
 use common\includes\EcpGatewayOrder;
-use common\includes\filters\EcpApiFilterList;
-use common\includes\filters\EcpAppendsFilterList;
-use common\includes\filters\EcpWCFilterList;
+use common\includes\filters\EcpApiFilters;
+use common\includes\filters\EcpAppendsFilters;
+use common\includes\filters\EcpWCFilters;
 use common\modules\EcpModuleSubscription;
 use common\settings\EcpSettings;
 use common\settings\EcpSettingsGeneral;
@@ -68,15 +68,15 @@ abstract class EcpGateway extends WC_Payment_Gateway {
 			$this->description = $this->get_option( EcpSettings::OPTION_DESCRIPTION );
 		}
 
-		add_action( EcpWCFilterList::WOOCOMMERCE_UPDATE_OPTIONS_PAYMENT_GATEWAYS . $this->id, [
+		add_action( EcpWCFilters::WOOCOMMERCE_UPDATE_OPTIONS_PAYMENT_GATEWAYS . $this->id, [
 			EcpForm::get_instance(),
 			'save'
 		] );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_GATEWAY_ARGUMENTS . $this->id, [
+		add_filter( EcpAppendsFilters::ECP_APPEND_GATEWAY_ARGUMENTS . $this->id, [
 			$this,
 			'apply_payment_args'
 		], 10, 2 );
-		add_filter( EcpApiFilterList::ECP_API_REFUND_ENDPOINT . $this->id, [ $this, 'get_refund_endpoint' ] );
+		add_filter( EcpApiFilters::ECP_API_REFUND_ENDPOINT_PREFIX . $this->id, [ $this, 'get_refund_endpoint' ] );
 	}
 
 

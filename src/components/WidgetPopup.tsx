@@ -25,7 +25,7 @@ function WidgetPopup(props: IProps) {
               resolve({
                 type: props.emitResponse.responseTypes.ERROR,
                 messageContext: props.emitResponse.noticeContexts.PAYMENTS,
-                message: 'Payment failed',
+                message: 'Payment was declined. You can try another payment method.',
                 retry: true,
               })
             },

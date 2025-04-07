@@ -2,7 +2,7 @@
 
 namespace common\settings;
 
-use common\includes\filters\EcpFiltersList;
+use common\includes\filters\EcpFilters;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -147,7 +147,7 @@ abstract class EcpSettings {
 	 * @return array
 	 */
 	public function get_settings(): array {
-		return apply_filters( EcpFiltersList::ECP_PREFIX_GET_SETTINGS . $this->id, [] );
+		return apply_filters( EcpFilters::ECP_PREFIX_GET_SETTINGS . $this->id, [] );
 	}
 
 	/**

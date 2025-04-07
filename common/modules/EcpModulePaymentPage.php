@@ -9,10 +9,11 @@ use common\helpers\EcpGatewayPaymentStatus;
 use common\helpers\EcpGatewayRegistry;
 use common\includes\EcpGatewayFormHandler;
 use common\includes\EcpGatewayOrder;
-use common\includes\filters\EcpApiFilterList;
-use common\includes\filters\EcpAppendsFilterList;
-use common\includes\filters\EcpFiltersList;
-use common\includes\filters\EcpWCFilterList;
+use common\includes\filters\EcpApiFilters;
+use common\includes\filters\EcpAppendsFilters;
+use common\includes\filters\EcpFilters;
+use common\includes\filters\EcpWCFilters;
+use common\includes\filters\EcpWPFilters;
 use Exception;
 use WC_Payment_Gateways;
 use WC_Subscriptions_Cart;
@@ -48,6 +49,7 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 	 */
 	private const HOST = 'paymentpage.ecommpay.com';
 
+	private const FAILED_URI = '/checkout?payment_failed=1';
 
 	/**
 	 * <h2>Stores line items to send to ECOMMPAY.</h2>
@@ -117,10 +119,7 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 	 * @throws EcpGatewaySignatureException
 	 */
 	private function get_data_for_payment_form() {
-		if ( wc_get_var( $_GET['pay_for_order'], '' ) != "" && wc_get_var( $_GET['key'], '' ) != "" ) {
-			$order_key        = wc_get_var( $_GET['key'], '' );
-			$order_id         = wc_get_order_id_by_order_key( $order_key );
-			$order            = ecp_get_order( $order_id );
+		if ( $order = $this->hasOrderOnOrderPayPage() ) {
 			$payment_currency = $order->get_currency();
 			$payment_amount   = ecp_price_multiply( $order->get_total(), $order->get_currency() );
 			$order->set_payment_system( EcpGatewayOperationStatus::AWAITING_CUSTOMER );
@@ -128,13 +127,13 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 			$payment_currency = get_woocommerce_currency();
 			$payment_amount   = ecp_price_multiply( WC()->cart->total, $payment_currency );
 		}
-
+		$payment_id = generateNewPaymentId($order ? : $this->getCreatedOrderForRePayment());
 		$data = [
 			'mode' => $payment_amount > 0 ? self::MODE_PURCHASE : self::MODE_CARD_VERIFY,
 			'payment_amount'          => $payment_amount,
 			'payment_currency'        => $payment_currency,
 			'project_id'              => ecommpay()->get_project_id(),
-			'payment_id'              => uniqid( 'wp_' ),
+			'payment_id' 			  => $payment_id,
 			'force_payment_method'    => 'card',
 			'target_element'          => 'ecommpay-iframe-embedded',
 			'frame_mode'              => 'iframe',
@@ -142,28 +141,49 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 			'payment_methods_options' => "{\"additional_data\":{\"embedded_mode\":true}}",
 		];
 
-		$data = apply_filters( EcpAppendsFilterList::ECP_APPEND_INTERFACE_TYPE, $data, true );
+		$data = apply_filters( EcpAppendsFilters::ECP_APPEND_INTERFACE_TYPE, $data, true );
 
 		$data = $this->append_recurring_total_form_cart( $data );
 
 		if ( isset ( $order ) ) {
-			$data = apply_filters( EcpAppendsFilterList::ECP_APPEND_CARD_OPERATION_TYPE, $data, $order );
-			$data = apply_filters( EcpAppendsFilterList::ECP_APPEND_RECEIPT_DATA, $data, $order, true );
-			$data = apply_filters( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_ID, $data, $order );
+			$data = apply_filters( EcpAppendsFilters::ECP_APPEND_CARD_OPERATION_TYPE, $data, $order );
+			$data = apply_filters( EcpAppendsFilters::ECP_APPEND_RECEIPT_DATA, $data, $order, true );
+			$data = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ID, $data, $order );
 		} else {
-			$data = apply_filters( EcpAppendsFilterList::ECP_APPEND_CARD_OPERATION_TYPE, $data );
+			$data = apply_filters( EcpAppendsFilters::ECP_APPEND_CARD_OPERATION_TYPE, $data );
 			$data = $this->append_receipt_data_from_cart( $data );
 			if ( WC()->cart->get_customer()->id ) {
 				$data['customer_id'] = WC()->cart->get_customer()->id;
 			}
 		}
 
-		$data = apply_filters( EcpAppendsFilterList::ECP_APPEND_LANGUAGE_CODE, $data );
+		$data = apply_filters( EcpAppendsFilters::ECP_APPEND_LANGUAGE_CODE, $data );
 
 		ecp_debug( 'Payment page data: ', $data );
 
 		$data = EcpSigner::get_instance()->sign( $data );
 		wp_send_json( $data );
+	}
+
+	private function hasOrderOnOrderPayPage(): ?EcpGatewayOrder {
+		$order_key = wc_get_var( $_GET['key'], '' );
+		$pay_for_order = wc_get_var( $_GET['pay_for_order'], '' );
+		if ( $pay_for_order === "" || $order_key === "" ) {
+			return null;
+		}
+		$order_id = wc_get_order_id_by_order_key( $order_key );
+		return ecp_get_order( $order_id );
+	}
+
+	private function getCreatedOrderForRePayment(): ?EcpGatewayOrder  {
+		if ( ! WC()->session->has_session() ) {
+			return null;
+		}
+		$orderId = WC()->session->get( 'order_awaiting_payment' );
+		if ( ! $orderId ) {
+			return null;
+		}
+		return ecp_get_order( $orderId );
 	}
 
 	private function append_recurring_total_form_cart( $data ) {
@@ -388,7 +408,7 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 	 * @since 2.0.0
 	 */
 	public function get_request_url( EcpGatewayOrder $order, $gateway ): array {
-		return apply_filters( EcpAppendsFilterList::ECP_APPEND_SIGNATURE, $this->get_form_data( $order, $gateway ) );
+		return apply_filters( EcpAppendsFilters::ECP_APPEND_SIGNATURE, $this->get_form_data( $order, $gateway ) );
 	}
 
 	/**
@@ -401,32 +421,34 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 	 * @since 2.0.0
 	 */
 	private function get_form_data( EcpGatewayOrder $order, EcpGateway $gateway ): array {
-		$return_url = esc_url_raw( add_query_arg( 'utm_nooverride', '1', $gateway->get_return_url( $order ) ) );
-		$info = apply_filters( EcpFiltersList::ECP_CREATE_PAYMENT_INFO, $order );
-
 		// General options
-		$values = apply_filters( EcpFiltersList::ECP_CREATE_PAYMENT_DATA, $order );
+		$values = apply_filters( EcpFilters::ECP_CREATE_PAYMENT_DATA, $order );
 		$values['baseUrl'] = $this->endpoint;
 
 		// Set payment information
+		$info   = apply_filters( EcpFilters::ECP_CREATE_PAYMENT_INFO, $order );
 		foreach ( $info as $key => $value ) {
 			$values[ 'payment_' . $key ] = $value;
 		}
 
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_LANGUAGE_CODE, $values );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_ADDITIONAL_VARIABLES, $values, $order );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_MERCHANT_SUCCESS_URL, $values, $return_url );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_MERCHANT_FAIL_URL, $values, $return_url );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_MERCHANT_RETURN_URL, $values, esc_url_raw( $order->get_checkout_payment_url() ) );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_MERCHANT_CALLBACK_URL, $values );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_REDIRECT_URL, $values, $return_url );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_GATEWAY_ARGUMENTS . $gateway->id, $values, $order );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_VERSIONS, $values );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_INTERFACE_TYPE, $values, true );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_CARD_OPERATION_TYPE, $values, $order );
+		$return_url = esc_url_raw( add_query_arg( 'utm_nooverride', '1', $gateway->get_return_url( $order ) ) );
+		$fail_url = home_url( self::FAILED_URI );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_LANGUAGE_CODE, $values );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_ADDITIONAL_VARIABLES, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_MERCHANT_SUCCESS_URL, $values, $return_url );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_MERCHANT_FAIL_URL, $values, $fail_url );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_REDIRECT_RETURN_URL, $values, home_url( '/checkout' ) );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_MERCHANT_RETURN_URL, $values, esc_url_raw( $order->get_checkout_payment_url() ) );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_MERCHANT_CALLBACK_URL, $values );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_REDIRECT_SUCCESS_URL, $values, $return_url );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_REDIRECT_FAIL_URL, $values, $fail_url );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_GATEWAY_ARGUMENTS . $gateway->id, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_VERSIONS, $values );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_INTERFACE_TYPE, $values, true );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CARD_OPERATION_TYPE, $values, $order );
 
 		// Clean arguments and return
-		return apply_filters( EcpFiltersList::ECP_PAYMENT_PAGE_CLEAN_PARAMETERS, $values );
+		return apply_filters( EcpFilters::ECP_PAYMENT_PAGE_CLEAN_PARAMETERS, $values );
 	}
 
 	public function wc_custom_redirect_after_purchase() {
@@ -439,11 +461,26 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 			$order_key = wc_get_var( $_GET['key'], '' );
 			$order_id  = wc_get_order_id_by_order_key( $order_key );
 			$order     = ecp_get_order( $order_id );
+			if ( ! $order->is_ecp() ) {
+				return;
+			}
 
 			?>
 			<script type="text/javascript">
 				// order-receive page status (ty page or failed)
 				const order_is_failed = <?= ( $order->get_status() == 'failed' ) ? 'true' : 'false' ?>;
+
+				jQuery(document).ready(() => {
+					jQuery(document.body).append(
+				   		'<div id="ecommpay-overlay-loader" class="blockUI blockOverlay ecommpay-loader-overlay" style="display: none;"></div>'
+				  	)
+				})
+				function showOverlayLoader() {
+	    			jQuery('#ecommpay-overlay-loader').show()
+	  			}
+	  			function hideOverlayLoader() {
+	    			jQuery('#ecommpay-overlay-loader').hide()
+	  			}
 
 				let result = {}
 
@@ -464,14 +501,11 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 						if (!(result['status'] ^ order_is_failed)) {
 							location.reload()
 						} else {
-							let loader = jQuery('.blockUI')
-							if (loader.length > 0) {
-								loader[0].remove()
-							}
+							hideOverlayLoader();
 							return
 						}
-					} else if ((jQuery('.blockUI').length < 1) && (document.getElementsByTagName('body').length > 0)) {
-						document.getElementsByTagName('body')[0].innerHTML += '<div class="blockUI blockOverlay ecommpay-loader-overlay"></div>'
+					} else {
+						showOverlayLoader();
 					}
 					setTimeout(get_status, 400)
 				}
@@ -492,49 +526,60 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 		$this->endpoint = sprintf( '%s://%s', $this->get_protocol(), $this->get_host() );
 
 		// register hooks for AJAX requests
-		add_action( EcpApiFilterList::WP_AJAX_ECOMMPAY_PROCESS, [ $this, 'ajax_process' ] ); // Authorised user
-		add_action( EcpApiFilterList::WP_AJAX_ECOMMPAY_BREAK, [ $this, 'ajax_process' ] ); // Authorised user
-		add_action( EcpApiFilterList::WP_AJAX_NOPRIV_ECOMMPAY_PROCESS, [
+		add_action( EcpApiFilters::WP_AJAX_ECOMMPAY_PROCESS, [ $this, 'ajax_process' ] ); // Authorised user
+		add_action( EcpApiFilters::WP_AJAX_ECOMMPAY_BREAK, [ $this, 'ajax_process' ] ); // Authorised user
+		add_action( EcpApiFilters::WP_AJAX_NOPRIV_ECOMMPAY_PROCESS, [
 			$this,
 			'ajax_process'
 		] ); // Non-authorised user: Guest access
-		add_action( EcpApiFilterList::WP_AJAX_NOPRIV_ECOMMPAY_BREAK, [
+		add_action( EcpApiFilters::WP_AJAX_NOPRIV_ECOMMPAY_BREAK, [
 			$this,
 			'ajax_process'
 		] ); // Non-authorised user: Guest access
-		add_action( EcpApiFilterList::WP_AJAX_GET_DATA_FOR_PAYMENT_FORM, [ $this, 'ajax_process' ] ); // Authorised user
-		add_action( EcpApiFilterList::WP_AJAX_NOPRIV_GET_DATA_FOR_PAYMENT_FORM, [
+		add_action( EcpApiFilters::WP_AJAX_GET_DATA_FOR_PAYMENT_FORM, [ $this, 'ajax_process' ] ); // Authorised user
+		add_action( EcpApiFilters::WP_AJAX_NOPRIV_GET_DATA_FOR_PAYMENT_FORM, [
 			$this,
 			'ajax_process'
 		] ); // Non-authorised user: Guest access
-		add_action( EcpApiFilterList::WP_AJAX_GET_PAYMENT_STATUS, [ $this, 'ajax_process' ] ); // Authorised user
-		add_action( EcpApiFilterList::WP_AJAX_NOPRIV_GET_PAYMENT_STATUS, [
+		add_action( EcpApiFilters::WP_AJAX_GET_PAYMENT_STATUS, [ $this, 'ajax_process' ] ); // Authorised user
+		add_action( EcpApiFilters::WP_AJAX_NOPRIV_GET_PAYMENT_STATUS, [
 			$this,
 			'ajax_process'
 		] ); // Non-authorised user: Guest access
-		add_action( EcpApiFilterList::WP_AJAX_CHECK_CART_AMOUNT, [ $this, 'ajax_process' ] ); // Authorised user
-		add_action( EcpApiFilterList::WP_AJAX_NOPRIV_CHECK_CART_AMOUNT, [
+		add_action( EcpApiFilters::WP_AJAX_CHECK_CART_AMOUNT, [ $this, 'ajax_process' ] ); // Authorised user
+		add_action( EcpApiFilters::WP_AJAX_NOPRIV_CHECK_CART_AMOUNT, [
 			$this,
 			'ajax_process'
 		] ); // Non-authorised user: Guest access
-		add_action( EcpApiFilterList::WP_AJAX_ADD_PAYMENT_ID_TO_ORDER, [ $this, 'ajax_process' ] ); // Authorised user
-		add_action( EcpApiFilterList::WP_AJAX_NOPRIV_ADD_PAYMENT_ID_TO_ORDER, [
+		add_action( EcpApiFilters::WP_AJAX_ADD_PAYMENT_ID_TO_ORDER, [ $this, 'ajax_process' ] ); // Authorised user
+		add_action( EcpApiFilters::WP_AJAX_NOPRIV_ADD_PAYMENT_ID_TO_ORDER, [
 			$this,
 			'ajax_process'
 		] ); // Non-authorised user: Guest access
 
 
 		// register hooks for display payment form on block-based checkout page
-		add_action( EcpWCFilterList::WOOCOMMERCE_BLOCKS_ENQUEUE_CHECKOUT_BLOCK_SCRIPTS_BEFORE, [
+		add_action( EcpWCFilters::WOOCOMMERCE_BLOCKS_ENQUEUE_CHECKOUT_BLOCK_SCRIPTS_BEFORE, [
 			$this,
 			'include_new_checkout_scripts'
 		] );
-		add_action( EcpFiltersList::ENQUEUE_BLOCK_EDITOR_ASSETS, [ $this, 'include_new_checkout_scripts' ] );
+		add_action( EcpWPFilters::ENQUEUE_BLOCK_EDITOR_ASSETS, [ $this, 'include_new_checkout_scripts' ] );
 
 		// register hooks for additional container on checkout pages
-		add_filter( EcpFiltersList::THE_CONTENT, [ $this, 'append_iframe_container' ] );
+		add_filter( EcpWPFilters::THE_CONTENT, [ $this, 'append_iframe_container' ] );
 
-		add_action( EcpFiltersList::WP_HEAD, [ $this, 'wc_custom_redirect_after_purchase' ] );
+		add_action( EcpWPFilters::WP_HEAD, [ $this, 'wc_custom_redirect_after_purchase' ] );
+
+		add_action( EcpWPFilters::TEMPLATE_REDIRECT, [ $this, 'payment_fail_notice' ] );
+	}
+
+	/**
+	 * @return void
+	 */
+	public function payment_fail_notice() {
+		if ( is_checkout() && isset( $_GET['payment_failed'] ) ) {
+			wc_add_notice( __( 'Payment was declined. You can try another payment method.', 'woo-ecommpay' ), 'error' );
+		}
 	}
 
 	/**

@@ -3,7 +3,7 @@ Contributors: ECOMMPAY
 Tags: card payments, apple pay, google pay, open banking, subscriptions, paypal, sofort, ideal, klarna, giropay, payment gateway, woocommerce
 Requires at least: 6.2
 Tested up to: 6.7
-Stable tag: 4.0.4
+Stable tag: 4.1.0
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -61,6 +61,9 @@ General:
 3. If WooCommerce Subscriptions is used, the required minimum version is >= 5.6.1
 
 == Changelog ==
+= 4.1.0 =
+* Added a convenient option to make a repeat payment
+
 = 4.0.1 =
 * Dev: Code reformatting
 

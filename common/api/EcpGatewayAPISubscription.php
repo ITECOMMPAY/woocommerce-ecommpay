@@ -5,9 +5,9 @@ namespace common\api;
 use common\exceptions\EcpGatewayAPIException;
 use common\helpers\EcpGatewayPaymentMethods;
 use common\includes\EcpGatewayOrder;
-use common\includes\filters\EcpApiFilterList;
-use common\includes\filters\EcpAppendsFilterList;
-use common\includes\filters\EcpFiltersList;
+use common\includes\filters\EcpApiFilters;
+use common\includes\filters\EcpAppendsFilters;
+use common\includes\filters\EcpFilters;
 use common\models\EcpGatewayInfoResponse;
 use WC_Subscriptions_Order;
 
@@ -77,13 +77,13 @@ class EcpGatewayAPISubscription extends EcpGatewayAPI {
 		ecp_get_log()->debug( __( 'Payment method:', 'woo-ecommpay' ), $payment_method );
 
 		// Create form data
-		$data = apply_filters( EcpApiFilterList::ECP_API_RECURRING_FORM_DATA, $subscription_id, $order );
+		$data = apply_filters( EcpApiFilters::ECP_API_RECURRING_FORM_DATA, $subscription_id, $order );
 
 		// Run request
 		$response = new EcpGatewayInfoResponse(
 			$this->post(
 				sprintf( '%s/%s', $payment_method, 'recurring' ),
-				apply_filters( EcpAppendsFilterList::ECP_APPEND_SIGNATURE, $data )
+				apply_filters( EcpAppendsFilters::ECP_APPEND_SIGNATURE, $data )
 			)
 		);
 
@@ -105,13 +105,13 @@ class EcpGatewayAPISubscription extends EcpGatewayAPI {
 		ecp_get_log()->debug( __( 'Request ID:', 'woo-ecommpay' ), $request_id );
 
 		// Create form data
-		$data = apply_filters( EcpFiltersList::ECP_CREATE_GENERAL_DATA, $request_id );
+		$data = apply_filters( EcpFilters::ECP_CREATE_GENERAL_DATA, $request_id );
 
 		// Run request
 		$response = new EcpGatewayInfoResponse(
 			$this->post(
 				'status/request',
-				apply_filters( EcpAppendsFilterList::ECP_APPEND_SIGNATURE, $data )
+				apply_filters( EcpAppendsFilters::ECP_APPEND_SIGNATURE, $data )
 			)
 		);
 
@@ -152,12 +152,12 @@ class EcpGatewayAPISubscription extends EcpGatewayAPI {
 
 		$data = $this->create_general_section(
 			apply_filters(
-				EcpAppendsFilterList::ECP_APPEND_MERCHANT_CALLBACK_URL,
-				apply_filters( EcpFiltersList::ECP_CREATE_GENERAL_DATA, $order )
+				EcpAppendsFilters::ECP_APPEND_MERCHANT_CALLBACK_URL,
+				apply_filters( EcpFilters::ECP_CREATE_GENERAL_DATA, $order )
 			)
 		);
-		$data = apply_filters( EcpApiFilterList::ECP_API_APPEND_RECURRING_DATA, $data, $subscription_id );
-		$data = apply_filters( EcpAppendsFilterList::ECP_APPEND_PAYMENT_SECTION, $data, $order );
+		$data = apply_filters( EcpApiFilters::ECP_API_APPEND_RECURRING_DATA, $data, $subscription_id );
+		$data = apply_filters( EcpAppendsFilters::ECP_APPEND_PAYMENT_SECTION, $data, $order );
 
 		$ip_address       = $order->get_ecp_meta( '_customer_ip_address' );
 		$data['customer'] = [
@@ -165,7 +165,7 @@ class EcpGatewayAPISubscription extends EcpGatewayAPI {
 			"ip_address" => $ip_address ?: wc_get_var( $_SERVER['REMOTE_ADDR'] )
 		];
 
-		return apply_filters( EcpAppendsFilterList::ECP_APPEND_INTERFACE_TYPE, $data );
+		return apply_filters( EcpAppendsFilters::ECP_APPEND_INTERFACE_TYPE, $data );
 	}
 
 	/**
@@ -181,13 +181,13 @@ class EcpGatewayAPISubscription extends EcpGatewayAPI {
 		ecp_get_log()->info( __( 'Create form data for recurring cancel request.', 'woo-ecommpay' ) );
 
 		return apply_filters(
-			EcpAppendsFilterList::ECP_APPEND_INTERFACE_TYPE,
+			EcpAppendsFilters::ECP_APPEND_INTERFACE_TYPE,
 			$this->create_general_section(
 				apply_filters(
-					EcpApiFilterList::ECP_API_APPEND_RECURRING_DATA,
+					EcpApiFilters::ECP_API_APPEND_RECURRING_DATA,
 					apply_filters(
-						EcpAppendsFilterList::ECP_APPEND_MERCHANT_CALLBACK_URL,
-						apply_filters( EcpFiltersList::ECP_CREATE_GENERAL_DATA, $order )
+						EcpAppendsFilters::ECP_APPEND_MERCHANT_CALLBACK_URL,
+						apply_filters( EcpFilters::ECP_CREATE_GENERAL_DATA, $order )
 					),
 					$subscription_id
 				)
@@ -219,12 +219,12 @@ class EcpGatewayAPISubscription extends EcpGatewayAPI {
 	protected function hooks(): void {
 		parent::hooks();
 
-		add_filter( EcpApiFilterList::ECP_API_RECURRING_FORM_DATA, [
+		add_filter( EcpApiFilters::ECP_API_RECURRING_FORM_DATA, [
 			$this,
 			'create_recurring_request_form_data'
 		], 10, 2 );
-		add_filter( EcpApiFilterList::ECP_API_APPEND_RECURRING_DATA, [ $this, 'append_recurring_data' ], 10, 2 );
-		add_filter( EcpApiFilterList::ECP_API_RECURRING_CANCEL_FORM_DATA, [
+		add_filter( EcpApiFilters::ECP_API_APPEND_RECURRING_DATA, [ $this, 'append_recurring_data' ], 10, 2 );
+		add_filter( EcpApiFilters::ECP_API_RECURRING_CANCEL_FORM_DATA, [
 			$this,
 			'create_cancel_request_form_data'
 		], 10, 2 );

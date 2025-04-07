@@ -3,8 +3,9 @@
 namespace common\settings\forms;
 
 use common\helpers\EcpGatewayRegistry;
-use common\includes\filters\EcpFiltersList;
-use common\includes\filters\EcpHtmlFilterList;
+use common\includes\filters\EcpFilters;
+use common\includes\filters\EcpHtmlFilters;
+use common\includes\filters\EcpWPFilters;
 use common\settings\EcpSettings;
 use common\settings\EcpSettingsGeneral;
 
@@ -101,7 +102,7 @@ class EcpForm extends EcpGatewayRegistry {
 				continue;
 			}
 
-			$value = apply_filters( EcpFiltersList::ECP_FIELD_NORMALISATION, $value );
+			$value = apply_filters( EcpFilters::ECP_FIELD_NORMALISATION, $value );
 			do_action(
 				'ecp_html_render_field_' . $value['type'],
 				$this->get_general_rendering_options( $value, $options->get_id() )
@@ -270,7 +271,7 @@ class EcpForm extends EcpGatewayRegistry {
 					array_map( [
 						$this,
 						'set_defaults'
-					], apply_filters( EcpFiltersList::ECP_PREFIX_GET_SETTINGS . $tab->get_id(), [] ) )
+					], apply_filters( EcpFilters::ECP_PREFIX_GET_SETTINGS . $tab->get_id(), [] ) )
 				)
 			);
 		}
@@ -294,7 +295,7 @@ class EcpForm extends EcpGatewayRegistry {
 			array_map( [
 				$this,
 				'set_defaults'
-			], apply_filters( EcpFiltersList::ECP_PREFIX_GET_SETTINGS . $current_tab, [] ) )
+			], apply_filters( EcpFilters::ECP_PREFIX_GET_SETTINGS . $current_tab, [] ) )
 		);
 	}
 
@@ -433,44 +434,44 @@ class EcpForm extends EcpGatewayRegistry {
 	 * @inheritDoc
 	 */
 	protected function init(): void {
-		add_filter( EcpFiltersList::ECP_FIELD_NORMALISATION, [ $this, 'normalize_field' ] );
+		add_filter( EcpFilters::ECP_FIELD_NORMALISATION, [ $this, 'normalize_field' ] );
 
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_SECTION_START, [ $this, 'render_fieldset_start' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_SECTION_END, [ $this, 'render_fieldset_end' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_SECTION_DESCRIPTION, [
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_SECTION_START, [ $this, 'render_fieldset_start' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_SECTION_END, [ $this, 'render_fieldset_end' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_SECTION_DESCRIPTION, [
 			$this,
 			'render_field_description'
 		] );
 
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_TOGGLE_START, [ $this, 'render_toggle_start' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_TOGGLE_END, [ $this, 'render_toggle_end' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_TEXT, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_PASSWORD, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_DATETIME, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_DATETIME_LOCAL, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_DATE, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_MONTH, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_TIME, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_WEEK, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_NUMBER, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_EMAIL, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_URL, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_TEL, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_COLOR, [ $this, 'render_field_color' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_TEXTAREA, [ $this, 'render_field_text' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_SELECT, [ $this, 'render_field_select' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_MULTISELECT, [ $this, 'render_field_select' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_RADIO, [ $this, 'render_field_radio' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_CHECKBOX, [ $this, 'render_field_checkbox' ] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_SINGLE_SELECT_PAGE, [
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_TOGGLE_START, [ $this, 'render_toggle_start' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_TOGGLE_END, [ $this, 'render_toggle_end' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_TEXT, [ $this, 'render_field_input' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_PASSWORD, [ $this, 'render_field_input' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_DATETIME, [ $this, 'render_field_input' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_DATETIME_LOCAL, [ $this, 'render_field_input' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_DATE, [ $this, 'render_field_input' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_MONTH, [ $this, 'render_field_input' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_TIME, [ $this, 'render_field_input' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_WEEK, [ $this, 'render_field_input' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_NUMBER, [ $this, 'render_field_input' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_EMAIL, [ $this, 'render_field_input' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_URL, [ $this, 'render_field_input' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_TEL, [ $this, 'render_field_input' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_COLOR, [ $this, 'render_field_color' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_TEXTAREA, [ $this, 'render_field_text' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_SELECT, [ $this, 'render_field_select' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_MULTISELECT, [ $this, 'render_field_select' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_RADIO, [ $this, 'render_field_radio' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_CHECKBOX, [ $this, 'render_field_checkbox' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_SINGLE_SELECT_PAGE, [
 			$this,
 			'render_field_single_select_page'
 		] );
-		add_action( EcpHtmlFilterList::ECP_HTML_RENDER_FIELD_SINGLE_SELECT_COUNTRY, [
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_SINGLE_SELECT_COUNTRY, [
 			$this,
 			'render_field_single_select_country'
 		] );
-		add_action( EcpFiltersList::WP_ADMIN_NOTICES_FILTER, [ $this, 'admin_notice_settings' ] );
+		add_action( EcpWPFilters::WP_ADMIN_NOTICES_FILTER, [ $this, 'admin_notice_settings' ] );
 
 		$this->ecp_tab_manager->init_tabs();
 	}

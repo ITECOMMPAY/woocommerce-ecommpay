@@ -2,7 +2,7 @@
 
 namespace common\settings;
 
-use common\includes\filters\EcpFiltersList;
+use common\includes\filters\EcpFilters;
 use WC_Log_Levels;
 
 defined( 'ABSPATH' ) || exit;
@@ -76,7 +76,7 @@ class EcpSettingsGeneral extends EcpSettings {
 		parent::__construct();
 
 		add_filter( 'ecp_' . $this->id . '_settings', [ $this, 'add_uninstall_setting' ] );
-		add_filter( EcpFiltersList::ECP_PREFIX_GET_SETTINGS . $this->id, [ $this, 'get_settings_general' ] );
+		add_filter( EcpFilters::ECP_PREFIX_GET_SETTINGS . $this->id, [ $this, 'get_settings_general' ] );
 	}
 
 	/**

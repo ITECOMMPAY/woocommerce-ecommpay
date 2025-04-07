@@ -2,8 +2,10 @@
 
 namespace common\includes\filters;
 
-class EcpWCFilterList {
-
+/**
+ * WooCommerce filters
+ */
+class EcpWCFilters {
 	public const WOOCOMMERCE_ECOMMPAY_CAN_USER_MANAGE_PAYMENT_PREFIX = 'woocommerce_ecommpay_can_user_manage_payment_';
 	public const WOOCOMMERCE_ECOMMPAY_CAN_USER_MANAGE_PAYMENT = 'woocommerce_ecommpay_can_user_manage_payment';
 	public const WOOCOMMERCE_AVAILABLE_PAYMENT_GATEWAYS = 'woocommerce_available_payment_gateways';

@@ -3,7 +3,7 @@
 namespace common\gateways;
 
 use common\includes\EcpGatewayOrder;
-use common\includes\filters\EcpAppendsFilterList;
+use common\includes\filters\EcpAppendsFilters;
 use common\modules\EcpModuleRefund;
 use common\settings\EcpSettingsPayPalPayLater;
 use WC_Order;
@@ -48,7 +48,7 @@ class EcpPayPalPayLater extends EcpGateway {
 	 * @since 3.4.3
 	 */
 	public function apply_payment_args( array $values, EcpGatewayOrder $order ): array {
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_FORCE_MODE, $values, self::PAYMENT_METHOD );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, self::PAYMENT_METHOD );
 		$values['payment_methods_options'] = '{"submethod_code": "paylater"}';
 
 		return parent::apply_payment_args( $values, $order );

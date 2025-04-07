@@ -4,7 +4,7 @@ defined( 'ABSPATH' ) || exit;
 
 
 use common\exceptions\EcpGatewayErrorException;
-use common\includes\filters\EcpFiltersList;
+use common\includes\filters\EcpWPFilters;
 
 /**
  * <h2>Handler for system non catch error.</h2>
@@ -108,7 +108,7 @@ function woocommerce_ecommpay_display_admin_notices( bool $clear = true ) {
 	}
 }
 
-add_action( EcpFiltersList::WP_ADMIN_NOTICES_FILTER, 'woocommerce_ecommpay_display_admin_notices', 100 );
+add_action( EcpWPFilters::WP_ADMIN_NOTICES_FILTER, 'woocommerce_ecommpay_display_admin_notices', 100 );
 
 /**
  * Display any notices added with
@@ -131,7 +131,7 @@ function woocommerce_ecommpay_display_dismissible_admin_notices() {
 	}
 }
 
-add_action( EcpFiltersList::WP_ADMIN_NOTICES_FILTER, 'woocommerce_ecommpay_display_dismissible_admin_notices', 100 );
+add_action( EcpWPFilters::WP_ADMIN_NOTICES_FILTER, 'woocommerce_ecommpay_display_dismissible_admin_notices', 100 );
 
 /**
  * Endpoint to flush the persisted errors
@@ -163,7 +163,7 @@ function check_before_ecommpay_plugin_update() {
 		if ( version_compare( get_bloginfo( 'version' ), $required_wp_version, '<' )
 		     || version_compare( PHP_VERSION, $required_php_version, '<' )
 		     || version_compare( WC_VERSION, $required_wc_version, '<' ) ) {
-			add_action( EcpFiltersList::WP_ADMIN_NOTICES_FILTER, function () use ( $required_wp_version, $required_php_version, $required_wc_version ) {
+			add_action( EcpWPFilters::WP_ADMIN_NOTICES_FILTER, function () use ( $required_wp_version, $required_php_version, $required_wc_version ) {
 				$ecommpay_domain = 'woo-ecommpay';
 				$woo_website     = 'https://woocommerce.com/document/update-php-wordpress/';
 				echo '<div class="notice notice-error"><p>';

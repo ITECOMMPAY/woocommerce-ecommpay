@@ -2,7 +2,7 @@
 
 namespace common\settings;
 
-use common\includes\filters\EcpFiltersList;
+use common\includes\filters\EcpFilters;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -39,7 +39,7 @@ class EcpSettingsGooglepay extends EcpSettings {
 
 		parent::__construct();
 
-		add_filter( EcpFiltersList::ECP_PREFIX_GET_SETTINGS . $this->id, [ $this, 'get_settings_google_pay_methods' ] );
+		add_filter( EcpFilters::ECP_PREFIX_GET_SETTINGS . $this->id, [ $this, 'get_settings_google_pay_methods' ] );
 	}
 
 	/**

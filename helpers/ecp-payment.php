@@ -5,7 +5,7 @@ defined( 'ABSPATH' ) || exit;
 
 use common\helpers\EcpGatewayOperationType;
 use common\helpers\EcpGatewayPaymentStatus;
-use common\includes\filters\EcpFiltersList;
+use common\includes\filters\EcpFilters;
 
 /**
  * Get all ECOMMPAY payment statuses.
@@ -17,7 +17,7 @@ use common\includes\filters\EcpFiltersList;
 function ecp_get_payment_statuses(): array {
 	$payment_statuses = EcpGatewayPaymentStatus::get_status_names();
 
-	return apply_filters( EcpFiltersList::ECP_PAYMENT_STATUSES, $payment_statuses );
+	return apply_filters( EcpFilters::ECP_PAYMENT_STATUSES, $payment_statuses );
 }
 
 /**
@@ -54,4 +54,12 @@ function ecp_is_payment_status( string $maybe_status ): bool {
  */
 function ecp_get_operation_type_name( string $status ): string {
 	return EcpGatewayOperationType::get_status_name( $status );
+}
+
+function generateNewPaymentId( ?WC_Order $order ): string {
+	$paymentId = uniqid( 'wp_' );
+	if ( $orderId = $order ? $order->get_id() : null ) {
+		$paymentId = $paymentId . '_' . (string)($orderId);
+	}
+	return $paymentId;
 }

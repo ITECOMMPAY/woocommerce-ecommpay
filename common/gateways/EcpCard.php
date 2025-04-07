@@ -4,7 +4,7 @@ namespace common\gateways;
 
 use common\exceptions\EcpGatewayErrorException;
 use common\helpers\EcpGatewayPaymentMethods;
-use common\includes\filters\EcpAppendsFilterList;
+use common\includes\filters\EcpAppendsFilters;
 use common\modules\EcpModuleRefund;
 use common\settings\EcpSettings;
 use common\settings\EcpSettingsCard;
@@ -68,11 +68,11 @@ class EcpCard extends EcpGateway {
 		$amount       = ecp_price_multiply( $order->get_total(), $order->get_currency() );
 		$display_mode = $this->get_option( EcpSettings::OPTION_MODE, EcpSettings::MODE_REDIRECT );
 
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_CARD_OPERATION_TYPE, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CARD_OPERATION_TYPE, $values, $order );
 		// Setup Payment Page Operation Mode
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_OPERATION_MODE, $values, $amount > 0 ? self::MODE_PURCHASE : self::MODE_CARD_VERIFY );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_OPERATION_MODE, $values, $amount > 0 ? self::MODE_PURCHASE : self::MODE_CARD_VERIFY );
 		// Setup Payment Page Force Mode
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_FORCE_MODE, $values, self::PAYMENT_METHOD );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, self::PAYMENT_METHOD );
 		// Setup Payment Page Display Mode
 		$values = apply_filters(
 			'ecp_append_display_mode',
@@ -81,7 +81,7 @@ class EcpCard extends EcpGateway {
 			ecp_is_enabled( EcpSettings::OPTION_POPUP_MISS_CLICK, $this->id )
 		);
 		// Setup Recurring (Subscriptions)
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_RECURRING, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_RECURRING, $values, $order );
 
 		return parent::apply_payment_args( $values, $order );
 	}

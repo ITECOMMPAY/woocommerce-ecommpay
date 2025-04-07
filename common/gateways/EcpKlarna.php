@@ -2,7 +2,7 @@
 
 namespace common\gateways;
 
-use common\includes\filters\EcpAppendsFilterList;
+use common\includes\filters\EcpAppendsFilters;
 use common\modules\EcpModuleRefund;
 use common\settings\EcpSettingsKlarna;
 use WC_Order;
@@ -54,7 +54,7 @@ class EcpKlarna extends EcpGateway {
 		$values = apply_filters( 'ecp_append_customer_country', $values, $order );
 		$values = apply_filters( 'ecp_append_billing_country', $values, $order );
 		$values = apply_filters( 'ecp_append_receipt_data', $values, $order, true );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_FORCE_MODE, $values, self::PAYMENT_METHOD );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, self::PAYMENT_METHOD );
 
 		return parent::apply_payment_args( $values, $order );
 	}

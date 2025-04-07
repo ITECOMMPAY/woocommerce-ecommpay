@@ -2,13 +2,14 @@
 
 namespace common\includes\filters;
 
-class EcpAppendsFilterList {
+class EcpAppendsFilters {
 
 	public const ECP_APPEND_INTERFACE_TYPE = 'ecp_append_interface_type';
 	public const ECP_APPEND_MERCHANT_RETURN_URL = 'ecp_append_merchant_return_url';
 	public const ECP_APPEND_PAYMENT_SECTION = 'ecp_append_payment_section';
 	public const ECP_APPEND_MERCHANT_SUCCESS_URL = 'ecp_append_merchant_success_url';
-	public const ECP_APPEND_REDIRECT_URL = 'ecp_append_redirect_url';
+	public const ECP_APPEND_REDIRECT_SUCCESS_URL = 'ecp_append_redirect_success_url';
+	public const ECP_APPEND_REDIRECT_FAIL_URL = 'ecp_append_redirect_fail_url';
 	public const ECP_APPEND_BILLING_DATA = 'ecp_append_billing_data';
 	public const ECP_APPEND_OPERATION_MODE = 'ecp_append_operation_mode';
 	public const ECP_APPEND_CUSTOMER_PHONE = 'ecp_append_customer_phone';
@@ -30,6 +31,7 @@ class EcpAppendsFilterList {
 	public const ECP_APPEND_CUSTOMER_DATA = 'ecp_append_customer_data';
 	public const ECP_APPEND_CUSTOMER_COUNTRY = 'ecp_append_customer_country';
 	public const ECP_APPEND_MERCHANT_FAIL_URL = 'ecp_append_merchant_fail_url';
+	public const ECP_APPEND_REDIRECT_RETURN_URL = 'ecp_append_redirect_return_url';
 	public const ECP_APPEND_DISPLAY_MODE = 'ecp_append_display_mode';
 	public const ECP_APPEND_BILLING_CITY = 'ecp_append_billing_city';
 	public const ECP_APPEND_BILLING_COUNTRY = 'ecp_append_billing_country';

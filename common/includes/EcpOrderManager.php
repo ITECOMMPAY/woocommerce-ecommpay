@@ -150,6 +150,7 @@ class EcpOrderManager {
 
 		ecp_get_log()->debug( __( 'Run success process.', 'woo-ecommpay' ), $order->get_id() );
 		$order->payment_complete( $callback->get_operation()->get_request_id() );
+		WC()->cart->empty_cart();
 		ecp_get_log()->debug( __( 'Success process completed.', 'woo-ecommpay' ), $order->get_id() );
 
 		if ( ! $skip_amount_check && ( ! $is_amount_equal || ! $is_currency_equal ) ) {

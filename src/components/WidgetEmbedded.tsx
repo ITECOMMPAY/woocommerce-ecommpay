@@ -99,6 +99,7 @@ function WidgetEmbedded(props: PaymentMethodInterface) {
         },
         onFail: () => {
           hideOverlayLoader()
+          runIframe()
           resolve({
             type: props.emitResponse.responseTypes.FAIL,
             messageContext: props.emitResponse.noticeContexts.PAYMENTS,

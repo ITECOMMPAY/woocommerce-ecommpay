@@ -2,7 +2,7 @@
 
 namespace common\gateways;
 
-use common\includes\filters\EcpAppendsFilterList;
+use common\includes\filters\EcpAppendsFilters;
 use common\settings\EcpSettings;
 use common\settings\EcpSettingsMore;
 use WC_Order;
@@ -59,7 +59,7 @@ class EcpMore extends EcpGateway {
 		$force = $this->get_option( EcpSettings::OPTION_FORCE_CODE );
 
 		if ( $force !== null && $force !== '' ) {
-			$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_FORCE_MODE, $values, $force );
+			$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, $force );
 		}
 
 		return parent::apply_payment_args( $values, $order );

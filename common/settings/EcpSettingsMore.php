@@ -2,7 +2,7 @@
 
 namespace common\settings;
 
-use common\includes\filters\EcpFiltersList;
+use common\includes\filters\EcpFilters;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -38,7 +38,7 @@ class EcpSettingsMore extends EcpSettings {
 
 		parent::__construct();
 
-		add_filter( EcpFiltersList::ECP_PREFIX_GET_SETTINGS . $this->id, [ $this, 'get_settings_more_methods' ] );
+		add_filter( EcpFilters::ECP_PREFIX_GET_SETTINGS . $this->id, [ $this, 'get_settings_more_methods' ] );
 	}
 
 	/**

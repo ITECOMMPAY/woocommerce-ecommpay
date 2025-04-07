@@ -1,7 +1,7 @@
 <?php
 
 namespace common\includes\filters;
-class EcpHtmlFilterList {
+class EcpHtmlFilters {
 
 	public const ECP_HTML_RENDER_FIELD_SECTION_END = 'ecp_html_render_field_section_end';
 	public const ECP_HTML_RENDER_FIELD_MONTH = 'ecp_html_render_field_month';

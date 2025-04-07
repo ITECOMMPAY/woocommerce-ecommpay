@@ -4,8 +4,8 @@ defined( 'ABSPATH' ) || exit;
 
 
 use common\includes\EcpGatewayOrder;
-use common\includes\filters\EcpWCFilterList;
 use common\includes\EcpGatewaySubscription;
+use common\includes\filters\EcpWCFilters;
 
 /**
  * Checks if a subscription is up for renewal.
@@ -54,12 +54,11 @@ function ecp_subscription_is_active(): bool {
  * @param bool $single - to return a single item or not
  *
  * @return EcpGatewaySubscription|EcpGatewaySubscription[]
- * @noinspection PhpUndefinedClassInspection
  */
 function ecp_get_subscriptions_for_renewal_order( $order, bool $single = false ) {
 	if ( function_exists( 'wcs_get_subscriptions_for_renewal_order' ) ) {
 		add_filter(
-			EcpWCFilterList::WOOCOMMERCE_ORDER_CLASS,
+			EcpWCFilters::WOOCOMMERCE_ORDER_CLASS,
 			[ ecommpay(), 'type_wrapper' ],
 			101,
 			2
@@ -68,7 +67,7 @@ function ecp_get_subscriptions_for_renewal_order( $order, bool $single = false )
 		$subscriptions = wcs_get_subscriptions_for_renewal_order( $order );
 
 		remove_filter(
-			EcpWCFilterList::WOOCOMMERCE_ORDER_CLASS,
+			EcpWCFilters::WOOCOMMERCE_ORDER_CLASS,
 			[ ecommpay(), 'type_wrapper' ],
 			101
 		);
@@ -94,12 +93,11 @@ function ecp_get_subscriptions_for_renewal_order( $order, bool $single = false )
  * @param bool $single - to return a single item or not
  *
  * @return false|WC_Subscription|WC_Subscription[]
- * @noinspection PhpUndefinedClassInspection
  */
 function ecp_get_subscriptions_for_resubscribe_order( $order, bool $single = false ) {
 	if ( function_exists( 'wcs_get_subscriptions_for_resubscribe_order' ) ) {
 		add_filter(
-			EcpWCFilterList::WOOCOMMERCE_ORDER_CLASS,
+			EcpWCFilters::WOOCOMMERCE_ORDER_CLASS,
 			[ ecommpay(), 'type_wrapper' ],
 			101,
 			2
@@ -108,7 +106,7 @@ function ecp_get_subscriptions_for_resubscribe_order( $order, bool $single = fal
 		$subscriptions = wcs_get_subscriptions_for_resubscribe_order( $order );
 
 		remove_filter(
-			EcpWCFilterList::WOOCOMMERCE_ORDER_CLASS,
+			EcpWCFilters::WOOCOMMERCE_ORDER_CLASS,
 			[ ecommpay(), 'type_wrapper' ],
 			101
 		);
@@ -133,7 +131,6 @@ function ecp_get_subscription_status_name( $status ) {
  * @param $order
  *
  * @return WC_Subscription[]
- * @noinspection PhpUndefinedClassInspection
  */
 function ecp_get_subscriptions_for_order( $order ): array {
 	if ( function_exists( 'wcs_get_subscriptions_for_order' ) ) {

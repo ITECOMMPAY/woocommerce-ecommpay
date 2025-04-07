@@ -2,7 +2,7 @@
 
 namespace common\settings\forms;
 
-use common\includes\filters\EcpHtmlFilterList;
+use common\includes\filters\EcpHtmlFilters;
 use common\settings\EcpSettings;
 use common\settings\EcpSettingsApplepay;
 use common\settings\EcpSettingsBanks;
@@ -62,7 +62,7 @@ class EcpTabManager {
 				new EcpSettingsMore(),
 			];
 
-			$this->tabs = apply_filters( EcpHtmlFilterList::ECP_GET_SETTINGS_PAGES, $tabs );
+			$this->tabs = apply_filters( EcpHtmlFilters::ECP_GET_SETTINGS_PAGES, $tabs );
 		}
 	}
 

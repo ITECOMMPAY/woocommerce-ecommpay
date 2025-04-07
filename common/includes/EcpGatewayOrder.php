@@ -46,6 +46,8 @@ class EcpGatewayOrder extends Order {
 	 */
 	private const META_PAYMENT_METHOD_CHANGE_COUNT = '_ecommpay_payment_method_change_count';
 
+	private const ORDER_PAY_ECOMMPAY_ACTION_NAME = 'ecommpay_process';
+
 	/**
 	 * @var ?EcpGatewayPayment
 	 */
@@ -103,22 +105,20 @@ class EcpGatewayOrder extends Order {
 	 * @return string
 	 */
 	public function create_payment_id(): string {
-		$_payment_id = $this->get_ecp_meta( '_payment_id' );
-		if ( $_payment_id != '' & ( $_REQUEST['action'] != 'ecommpay_process' ) ) {
-			$id = $_payment_id;
-		} else if ( ! empty ( $_REQUEST['payment_id'] ) ) {
-			$id = $_REQUEST['payment_id'];
-		} else {
-			$id = $this->get_id() . '_' . ( $this->get_failed_ecommpay_payment_count() + 1 );
-		}
+		$embeddedModePaymentId = $this->getEmbeddedModePaymentId();
+		$paymentId = $embeddedModePaymentId ? : generateNewPaymentId($this);
 
-		$this->set_payment_id( $id );
+		$this->set_payment_id( $paymentId );
 		$this->set_ecp_payment_status( EcpGatewayPaymentStatus::INITIAL );
 		$this->save_meta_data();
 
-		ecp_get_log()->debug( __( 'New payment identifier created:', 'woo-ecommpay' ), $id );
+		ecp_get_log()->debug( __( 'New payment identifier created:', 'woo-ecommpay' ), $paymentId );
 
-		return $id;
+		return $paymentId;
+	}
+
+	private function getEmbeddedModePaymentId(): ?string {
+		return $_POST['payment_id'] ?? null;
 	}
 
 	/**

@@ -6,7 +6,7 @@ use common\helpers\EcpGatewayOperationType;
 use common\helpers\EcpGatewayPaymentStatus;
 use common\includes\EcpGatewayOrder;
 use common\includes\EcpGatewayRefund;
-use common\includes\filters\EcpAppendsFilterList;
+use common\includes\filters\EcpAppendsFilters;
 use common\models\EcpGatewayInfoResponse;
 use common\models\EcpGatewayInfoStatus;
 use common\settings\EcpSettingsApplepay;
@@ -64,7 +64,7 @@ class EcpGatewayAPIPayment extends EcpGatewayAPI {
 		$response = new EcpGatewayInfoStatus(
 			$this->post(
 				self::STATUS_API_ENDPOINT,
-				apply_filters( EcpAppendsFilterList::ECP_APPEND_SIGNATURE, $this->create_status_request_form_data( $order ) )
+				apply_filters( EcpAppendsFilters::ECP_APPEND_SIGNATURE, $this->create_status_request_form_data( $order ) )
 			)
 		);
 
@@ -125,7 +125,7 @@ class EcpGatewayAPIPayment extends EcpGatewayAPI {
 				apply_filters( 'ecp_api_refund_endpoint_' . $order->get_payment_method(), $order->get_payment_system() ),
 				'refund'
 			),
-			apply_filters( EcpAppendsFilterList::ECP_APPEND_SIGNATURE, $data )
+			apply_filters( EcpAppendsFilters::ECP_APPEND_SIGNATURE, $data )
 		);
 
 		$response = new EcpGatewayInfoResponse( $response );
@@ -149,7 +149,7 @@ class EcpGatewayAPIPayment extends EcpGatewayAPI {
 		$data = $this->create_general_section(
 			apply_filters(
 				'ecp_append_merchant_callback_url',
-				apply_filters( 'ecp_create_payment_data', $order )
+				apply_filters( 'ecp_create_payment_data', $refund )
 			)
 		);
 		$data = apply_filters( 'ecp_append_payment_section', $data, $refund );
@@ -162,7 +162,7 @@ class EcpGatewayAPIPayment extends EcpGatewayAPI {
 		ecp_debug( 'Order ID: ', $order->get_id() );
 		$data     = $this->create_general_request_form_data( $order );
 		$url = $this->getMethodEndpoint( $order->get_payment_method(), EcpGatewayAPI::CANCEL_ENDPOINT );
-		$response = $this->post( $url, apply_filters( EcpAppendsFilterList::ECP_APPEND_SIGNATURE, $data ) );
+		$response = $this->post( $url, apply_filters( EcpAppendsFilters::ECP_APPEND_SIGNATURE, $data ) );
 		$response = new EcpGatewayInfoResponse( $response );
 		$order->set_transaction_order_id( $response->get_request_id(), EcpGatewayOperationType::CANCEL );
 		ecp_info( 'Cancel payment process completed.' );
@@ -206,7 +206,7 @@ class EcpGatewayAPIPayment extends EcpGatewayAPI {
 		ecp_debug( 'Order ID: ' . $order->get_id() );
 		$data     = $this->create_general_request_form_data( $order );
 		$url = $this->getMethodEndpoint( $order->get_payment_method(), EcpGatewayAPI::CAPTURE_ENDPOINT );
-		$response = $this->post( $url, apply_filters( EcpAppendsFilterList::ECP_APPEND_SIGNATURE, $data ) );
+		$response = $this->post( $url, apply_filters( EcpAppendsFilters::ECP_APPEND_SIGNATURE, $data ) );
 		$response = new EcpGatewayInfoResponse( $response );
 		$order->set_transaction_order_id( $response->get_request_id(), self::CAPTURE_OPERATION );
 		ecp_info( 'Capture payment process completed.' );

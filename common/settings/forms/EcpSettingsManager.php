@@ -2,7 +2,7 @@
 
 namespace common\settings\forms;
 
-use common\includes\filters\EcpFiltersList;
+use common\includes\filters\EcpFilters;
 use common\install\EcpGatewayInstall;
 use common\settings\EcpSettings;
 
@@ -88,7 +88,7 @@ class EcpSettingsManager {
 			foreach (
 				apply_filters( 'woocommerce_settings_api_form_fields_' . $tab->get_id(),
 					array_map( [ $this->ecp_form, 'set_defaults' ],
-						apply_filters( EcpFiltersList::ECP_PREFIX_GET_SETTINGS . $tab->get_id(), [] ) ) ) as $value
+						apply_filters( EcpFilters::ECP_PREFIX_GET_SETTINGS . $tab->get_id(), [] ) ) ) as $value
 			) {
 				$default = $this->get_field_default( $value );
 

@@ -5,7 +5,7 @@ namespace common\modules;
 defined( 'ABSPATH' ) || exit;
 
 use common\helpers\EcpGatewayRegistry;
-use common\includes\filters\EcpWCFilterList;
+use common\includes\filters\EcpWCFilters;
 use common\settings\EcpSettingsApplepay;
 use common\settings\EcpSettingsCard;
 use common\settings\EcpSettingsGeneral;
@@ -40,7 +40,7 @@ class EcpModuleAuth extends EcpGatewayRegistry {
 	}
 
 	protected function init(): void {
-		add_filter( EcpWCFilterList::WOOCOMMERCE_AVAILABLE_PAYMENT_GATEWAYS, [
+		add_filter( EcpWCFilters::WOOCOMMERCE_AVAILABLE_PAYMENT_GATEWAYS, [
 			$this,
 			'filterPaymentMethodsAuthOnly'
 		] );

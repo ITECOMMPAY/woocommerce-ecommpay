@@ -2,7 +2,7 @@
 
 namespace common\gateways;
 
-use common\includes\filters\EcpAppendsFilterList;
+use common\includes\filters\EcpAppendsFilters;
 use common\modules\EcpModuleRefund;
 use common\settings\EcpSettingsGiropay;
 use WC_Order;
@@ -50,7 +50,7 @@ class EcpGiropay extends EcpGateway {
 	 * @since 3.0.0
 	 */
 	public function apply_payment_args( $values, $order ): array {
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_FORCE_MODE, $values, self::PAYMENT_METHOD );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, self::PAYMENT_METHOD );
 
 		return parent::apply_payment_args( $values, $order );
 	}

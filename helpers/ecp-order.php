@@ -7,7 +7,7 @@ use Automattic\WooCommerce\Utilities\OrderUtil;
 use common\includes\EcpGatewayOrder;
 use common\includes\EcpGatewayRefund;
 use common\includes\EcpGatewaySubscription;
-use common\includes\filters\EcpWCFilterList;
+use common\includes\filters\EcpWCFilters;
 
 const NON_DECIMAL_CURRENCIES = [
 	'BIF',
@@ -138,12 +138,12 @@ function ecp_callback_url( $post_id = null ): string {
 		$args['order_post_id'] = $post_id;
 	}
 
-	$args = apply_filters( EcpWCFilterList::WOOCOMMERCE_ECOMMPAY_CALLBACK_ARGS, $args, $post_id );
+	$args = apply_filters( EcpWCFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_ARGS, $args, $post_id );
 
 	// For testing purposes
 	$callback_url = getenv( 'WORDPRESS_CALLBACK_URL' ) ?: home_url( '/' );
 
-	return apply_filters( EcpWCFilterList::WOOCOMMERCE_ECOMMPAY_CALLBACK_URL, add_query_arg( $args, $callback_url ), $args, $post_id );
+	return apply_filters( EcpWCFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_URL, add_query_arg( $args, $callback_url ), $args, $post_id );
 }
 
 /**

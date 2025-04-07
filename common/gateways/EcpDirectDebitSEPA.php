@@ -3,7 +3,7 @@
 namespace common\gateways;
 
 use common\helpers\EcpGatewayPaymentMethods;
-use common\includes\filters\EcpAppendsFilterList;
+use common\includes\filters\EcpAppendsFilters;
 use common\modules\EcpModuleRefund;
 use common\settings\EcpSettingsDirectDebitSEPA;
 use WC_Order;
@@ -61,13 +61,13 @@ class EcpDirectDebitSEPA extends EcpGateway {
 	public function apply_payment_args( $values, $order ): array {
 		$amount = ecp_price_multiply( $order->get_total(), $order->get_currency() );
 
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_CARD_OPERATION_TYPE, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CARD_OPERATION_TYPE, $values, $order );
 		// Setup Payment Page Operation Mode
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_OPERATION_MODE, $values, $amount > 0 ? self::MODE_PURCHASE : self::MODE_CARD_VERIFY );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_OPERATION_MODE, $values, $amount > 0 ? self::MODE_PURCHASE : self::MODE_CARD_VERIFY );
 		// Setup Payment Page Force Mode
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_FORCE_MODE, $values, self::PAYMENT_METHOD );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, self::PAYMENT_METHOD );
 		// Setup Recurring (Subscriptions)
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_RECURRING, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_RECURRING, $values, $order );
 
 		return parent::apply_payment_args( $values, $order );
 	}

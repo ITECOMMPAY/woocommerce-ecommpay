@@ -6,8 +6,8 @@ use common\EcpCore;
 use common\exceptions\EcpGatewaySignatureException;
 use common\includes\EcpGatewayOrder;
 use common\includes\EcpGatewayRefund;
-use common\includes\filters\EcpAppendsFilterList;
-use common\includes\filters\EcpFiltersList;
+use common\includes\filters\EcpAppendsFilters;
+use common\includes\filters\EcpFilters;
 use common\modules\EcpModuleCapture;
 use common\settings\EcpSettings;
 use common\settings\EcpSettingsGeneral;
@@ -142,12 +142,12 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	public function append_customer_data( array $values, EcpGatewayOrder $order ): array {
 		ecp_get_log()->info( __( 'Append customer data to the form data.', 'woo-ecommpay' ) );
 
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_COUNTRY, $values, $order );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_STATE, $values, $order );
-		$values = apply_filters( EcpFiltersList::ECP_APPEND_CUSTOMER_CITY, $values, $order );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_ADDRESS, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_COUNTRY, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_STATE, $values, $order );
+		$values = apply_filters( EcpFilters::ECP_APPEND_CUSTOMER_CITY, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ADDRESS, $values, $order );
 
-		return apply_filters( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_ZIP, $values, $order );
+		return apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ZIP, $values, $order );
 	}
 
 	/**
@@ -354,11 +354,11 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	 * @since 2.0.0
 	 */
 	public function append_billing_data( array $values, EcpGatewayOrder $order ): array {
-		$values = apply_filters( EcpFiltersList::ECP_APPEND_BILLING_ADDRESS, $values, $order );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_BILLING_CITY, $values, $order );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_BILLING_COUNTRY, $values, $order );
+		$values = apply_filters( EcpFilters::ECP_APPEND_BILLING_ADDRESS, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_BILLING_CITY, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_BILLING_COUNTRY, $values, $order );
 
-		return apply_filters( EcpAppendsFilterList::ECP_APPEND_BILLING_POSTAL, $values, $order );
+		return apply_filters( EcpAppendsFilters::ECP_APPEND_BILLING_POSTAL, $values, $order );
 	}
 
 	/**
@@ -503,18 +503,39 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 
 	/**
 	 * @param array $values
+	 * @param string|null $value
+	 *
+	 * @return array
+	 */
+	public function append_redirect_return_url( array $values, ?string $value ): array {
+		$this->append_argument( 'redirect_return_url', $value, $values );
+
+		return $values;
+	}
+
+	/**
+	 * @param array $values
 	 * @param $url
 	 *
 	 * @return array
 	 */
-	public function append_redirect_url( array $values, $url ): array {
+	public function append_redirect_success_url( array $values, string $url ): array {
 		$this->append_argument( 'redirect_success_enabled', 2, $values );
 		$this->append_argument( 'redirect_success_mode', 'parent_page', $values );
 		$this->append_argument( 'redirect_success_url', $url, $values );
+		return $values;
+	}
+
+	/**
+	 * @param array $values
+	 * @param $url
+	 *
+	 * @return array
+	 */
+	public function append_redirect_fail_url( array $values, string $url ): array {
 		$this->append_argument( 'redirect_fail_enabled', 2, $values );
 		$this->append_argument( 'redirect_fail_mode', 'parent_page', $values );
 		$this->append_argument( 'redirect_fail_url', $url, $values );
-
 		return $values;
 	}
 
@@ -611,18 +632,18 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	 * @since 2.0.0
 	 */
 	public function append_custom_variables( $values, EcpGatewayOrder $order ): array {
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_ID, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ID, $values, $order );
 
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_PHONE, $values, $order );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_EMAIL, $values, $order );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_FIRST_NAME, $values, $order );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_LAST_NAME, $values, $order );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_DATA, $values, $order );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_BILLING_DATA, $values, $order );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_RECEIPT_DATA, $values, $order, true );
-		$values = apply_filters( EcpAppendsFilterList::ECP_APPEND_AVS_POST_CODE, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_PHONE, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_EMAIL, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_FIRST_NAME, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_LAST_NAME, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_DATA, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_BILLING_DATA, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_RECEIPT_DATA, $values, $order, true );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_AVS_POST_CODE, $values, $order );
 
-		return apply_filters( EcpAppendsFilterList::ECP_APPEND_AVS_STREET_ADDRESS, $values, $order );
+		return apply_filters( EcpAppendsFilters::ECP_APPEND_AVS_STREET_ADDRESS, $values, $order );
 	}
 
 	/**
@@ -723,7 +744,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	public function filter_receipt_data( array $values, EcpGatewayOrder $order, bool $encode = false ): array {
 		$data = $this->receipt_data( $order );
 
-		apply_filters( EcpFiltersList::ECP_PAYMENT_PAGE_CLEAN_PARAMETERS, $data );
+		apply_filters( EcpFilters::ECP_PAYMENT_PAGE_CLEAN_PARAMETERS, $data );
 
 		if ( count( $data ) <= 0 ) {
 			return $values;
@@ -868,7 +889,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 			'name_indicator' => $order->get_shipping_name_indicator(),
 		];
 
-		apply_filters( EcpFiltersList::ECP_PAYMENT_PAGE_CLEAN_PARAMETERS, $shipping_args );
+		apply_filters( EcpFilters::ECP_PAYMENT_PAGE_CLEAN_PARAMETERS, $shipping_args );
 
 		if ( count( $shipping_args ) <= 0 ) {
 			return $values;
@@ -888,76 +909,81 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	 * @return void
 	 */
 	protected function init(): void {
-		add_filter( EcpFiltersList::ECP_CREATE_GENERAL_DATA_FILTER, [ $this, 'create_general_info' ] );
-		add_filter( EcpFiltersList::ECP_CREATE_PAYMENT_DATA, [ $this, 'create_payment_data' ] );
-		add_filter( EcpFiltersList::ECP_CREATE_PAYMENT_INFO, [ $this, 'create_payment_info' ] );
+		add_filter( EcpFilters::ECP_CREATE_GENERAL_DATA_FILTER, [ $this, 'create_general_info' ] );
+		add_filter( EcpFilters::ECP_CREATE_PAYMENT_DATA, [ $this, 'create_payment_data' ] );
+		add_filter( EcpFilters::ECP_CREATE_PAYMENT_INFO, [ $this, 'create_payment_info' ] );
 
 		// register filters for appending payment arguments
-		add_filter( EcpAppendsFilterList::ECP_APPEND_PROJECT_ID, [ $this, 'append_project_id' ] );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_INTERFACE_TYPE, [ $this, 'append_interface_type' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_CARD_OPERATION_TYPE, [
+		add_filter( EcpAppendsFilters::ECP_APPEND_PROJECT_ID, [ $this, 'append_project_id' ] );
+		add_filter( EcpAppendsFilters::ECP_APPEND_INTERFACE_TYPE, [ $this, 'append_interface_type' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_CARD_OPERATION_TYPE, [
 			$this,
 			'append_card_operation_type'
 		], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_OPERATION_MODE, [ $this, 'append_operation_mode' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_FORCE_MODE, [ $this, 'append_force_mode' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_DISPLAY_MODE, [ $this, 'append_display_mode' ], 10, 3 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_PAYMENT_SECTION, [ $this, 'append_payment_section' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_LANGUAGE_CODE, [ $this, 'append_language' ] );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_MERCHANT_SUCCESS_URL, [
+		add_filter( EcpAppendsFilters::ECP_APPEND_OPERATION_MODE, [ $this, 'append_operation_mode' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, [ $this, 'append_force_mode' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_DISPLAY_MODE, [ $this, 'append_display_mode' ], 10, 3 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_PAYMENT_SECTION, [ $this, 'append_payment_section' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_LANGUAGE_CODE, [ $this, 'append_language' ] );
+		add_filter( EcpAppendsFilters::ECP_APPEND_MERCHANT_SUCCESS_URL, [
 			$this,
 			'append_merchant_success_url'
 		], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_MERCHANT_FAIL_URL, [ $this, 'append_merchant_fail_url' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_MERCHANT_RETURN_URL, [
+		add_filter( EcpAppendsFilters::ECP_APPEND_MERCHANT_FAIL_URL, [ $this, 'append_merchant_fail_url' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_REDIRECT_RETURN_URL, [
+			$this,
+			'append_redirect_return_url'
+		], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_MERCHANT_RETURN_URL, [
 			$this,
 			'append_merchant_return_url'
 		], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_REDIRECT_URL, [ $this, 'append_redirect_url' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_MERCHANT_CALLBACK_URL, [ $this, 'append_merchant_callback_url' ] );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_DATA, [ $this, 'append_customer_data' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_ID, [ $this, 'append_customer_id' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_PHONE, [ $this, 'append_customer_phone' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_EMAIL, [ $this, 'append_customer_email' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_LAST_NAME, [
+		add_filter( EcpAppendsFilters::ECP_APPEND_REDIRECT_SUCCESS_URL, [ $this, 'append_redirect_success_url' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_REDIRECT_FAIL_URL, [ $this, 'append_redirect_fail_url' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_MERCHANT_CALLBACK_URL, [ $this, 'append_merchant_callback_url' ] );
+		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_DATA, [ $this, 'append_customer_data' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ID, [ $this, 'append_customer_id' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_PHONE, [ $this, 'append_customer_phone' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_EMAIL, [ $this, 'append_customer_email' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_LAST_NAME, [
 			$this,
 			'append_customer_last_name'
 		], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_FIRST_NAME, [
+		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_FIRST_NAME, [
 			$this,
 			'append_customer_first_name'
 		], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_COUNTRY, [ $this, 'append_customer_country' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_STATE, [ $this, 'append_customer_state' ], 10, 2 );
-		add_filter( EcpFiltersList::ECP_APPEND_CUSTOMER_CITY, [ $this, 'append_customer_city' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_ADDRESS, [ $this, 'append_customer_address' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_CUSTOMER_ZIP, [ $this, 'append_customer_zip' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_AVS_POST_CODE, [ $this, 'append_avs_post_code' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_AVS_STREET_ADDRESS, [
+		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_COUNTRY, [ $this, 'append_customer_country' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_STATE, [ $this, 'append_customer_state' ], 10, 2 );
+		add_filter( EcpFilters::ECP_APPEND_CUSTOMER_CITY, [ $this, 'append_customer_city' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ADDRESS, [ $this, 'append_customer_address' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ZIP, [ $this, 'append_customer_zip' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_AVS_POST_CODE, [ $this, 'append_avs_post_code' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_AVS_STREET_ADDRESS, [
 			$this,
 			'append_avs_street_address'
 		], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_BILLING_DATA, [ $this, 'append_billing_data' ], 10, 2 );
-		add_filter( EcpFiltersList::ECP_APPEND_BILLING_ADDRESS, [ $this, 'append_billing_address' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_BILLING_CITY, [ $this, 'append_billing_city' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_BILLING_COUNTRY, [ $this, 'append_billing_country' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_BILLING_POSTAL, [ $this, 'append_billing_postal' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_BILLING_REGION, [ $this, 'append_billing_region' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_BILLING_REGION_CODE, [
+		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_DATA, [ $this, 'append_billing_data' ], 10, 2 );
+		add_filter( EcpFilters::ECP_APPEND_BILLING_ADDRESS, [ $this, 'append_billing_address' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_CITY, [ $this, 'append_billing_city' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_COUNTRY, [ $this, 'append_billing_country' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_POSTAL, [ $this, 'append_billing_postal' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_REGION, [ $this, 'append_billing_region' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_REGION_CODE, [
 			$this,
 			'append_billing_region_code'
 		], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_ADDITIONAL_VARIABLES, [
+		add_filter( EcpAppendsFilters::ECP_APPEND_ADDITIONAL_VARIABLES, [
 			$this,
 			'append_custom_variables'
 		], 10, 2 );
-		add_filter( EcpFiltersList::ECP_PAYMENT_PAGE_CLEAN_PARAMETERS, [ $this, 'filter_clean' ] );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_RECURRING, [ $this, 'append_recurring' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_SHIPPING_DATA, [ $this, 'filter_shipping_data' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_RECEIPT_DATA, [ $this, 'filter_receipt_data' ], 10, 3 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_CASH_VOUCHER_DATA, [ $this, 'filter_cash_voucher_data' ], 10, 2 );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_VERSIONS, [ $this, 'append_versions' ] );
-		add_filter( EcpAppendsFilterList::ECP_APPEND_SIGNATURE, [ $this, 'append_signature' ] );
+		add_filter( EcpFilters::ECP_PAYMENT_PAGE_CLEAN_PARAMETERS, [ $this, 'filter_clean' ] );
+		add_filter( EcpAppendsFilters::ECP_APPEND_RECURRING, [ $this, 'append_recurring' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_SHIPPING_DATA, [ $this, 'filter_shipping_data' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_RECEIPT_DATA, [ $this, 'filter_receipt_data' ], 10, 3 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_CASH_VOUCHER_DATA, [ $this, 'filter_cash_voucher_data' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_VERSIONS, [ $this, 'append_versions' ] );
+		add_filter( EcpAppendsFilters::ECP_APPEND_SIGNATURE, [ $this, 'append_signature' ] );
 	}
 
 }

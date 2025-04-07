@@ -2,7 +2,7 @@
 
 namespace common\settings;
 
-use common\includes\filters\EcpFiltersList;
+use common\includes\filters\EcpFilters;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -33,7 +33,7 @@ class EcpSettingsPayPalPayLater extends EcpSettings {
 
 		parent::__construct();
 
-		add_filter( EcpFiltersList::ECP_PREFIX_GET_SETTINGS . $this->id, [
+		add_filter( EcpFilters::ECP_PREFIX_GET_SETTINGS . $this->id, [
 			$this,
 			'get_settings_paypal_paylater_methods'
 		] );

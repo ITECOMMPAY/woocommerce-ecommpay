@@ -2,7 +2,7 @@
 
 namespace common\settings;
 
-use common\includes\filters\EcpFiltersList;
+use common\includes\filters\EcpFilters;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -29,7 +29,7 @@ class EcpSettingsProducts extends EcpSettings {
 		$this->icon    = 'ecommpay.svg';
 		$this->context = self::CONTEXT;
 
-		add_filter( EcpFiltersList::ECP_PREFIX_GET_SETTINGS . $this->id, [ $this, 'get_settings_products' ] );
+		add_filter( EcpFilters::ECP_PREFIX_GET_SETTINGS . $this->id, [ $this, 'get_settings_products' ] );
 
 		parent::__construct();
 	}
