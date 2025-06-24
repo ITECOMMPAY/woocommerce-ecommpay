@@ -461,7 +461,7 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 			$order_key = wc_get_var( $_GET['key'], '' );
 			$order_id  = wc_get_order_id_by_order_key( $order_key );
 			$order     = ecp_get_order( $order_id );
-			if ( ! $order->is_ecp() ) {
+			if ( ! $order || ! $order->is_ecp() ) {
 				return;
 			}
 
