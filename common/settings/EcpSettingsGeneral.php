@@ -149,7 +149,8 @@ class EcpSettingsGeneral extends EcpSettings {
 				self::FIELD_TIP   => _x(
 					'By enabling this, you can have payments cancelled automatically when cancelling related orders.',
 					'Settings payment form', 'woo-ecommpay'
-				)
+				),
+				self::FIELD_DEFAULT => self::VALUE_ENABLED,
 			],
 			[
 				self::FIELD_ID      => self::OPTION_LANGUAGE,

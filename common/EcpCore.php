@@ -12,14 +12,13 @@ use common\gateways\EcpCard;
 use common\gateways\EcpDirectDebitBACS;
 use common\gateways\EcpDirectDebitSEPA;
 use common\gateways\EcpGateway;
-use common\gateways\EcpGiropay;
 use common\gateways\EcpGooglepay;
+use common\gateways\EcpHumm;
 use common\gateways\EcpIdeal;
 use common\gateways\EcpKlarna;
 use common\gateways\EcpMore;
 use common\gateways\EcpPayPal;
 use common\gateways\EcpPayPalPayLater;
-use common\gateways\EcpSofort;
 use common\helpers\EcpGatewayAPIProtocol;
 use common\includes\EcpCallbacksHandler;
 use common\includes\EcpGatewayOrder;
@@ -42,14 +41,13 @@ use common\settings\EcpSettingsCard;
 use common\settings\EcpSettingsDirectDebitBACS;
 use common\settings\EcpSettingsDirectDebitSEPA;
 use common\settings\EcpSettingsGeneral;
-use common\settings\EcpSettingsGiropay;
 use common\settings\EcpSettingsGooglepay;
+use common\settings\EcpSettingsHumm;
 use common\settings\EcpSettingsIdeal;
 use common\settings\EcpSettingsKlarna;
 use common\settings\EcpSettingsMore;
 use common\settings\EcpSettingsPayPal;
 use common\settings\EcpSettingsPayPalPayLater;
-use common\settings\EcpSettingsSofort;
 use common\settings\forms\EcpForm;
 use WC_Settings_API;
 
@@ -62,7 +60,7 @@ final class EcpCore extends WC_Settings_API {
 	 * @var string
 	 * @since 2.0.0
 	 */
-	public const WC_ECP_VERSION = '4.1.1';
+	public const WC_ECP_VERSION = '4.2.0';
 
 	public const ECOMMPAY_PAYMENT_METHOD = 'ecommpay';
 
@@ -100,11 +98,10 @@ final class EcpCore extends WC_Settings_API {
 		EcpBanks::class,
 		EcpPayPal::class,
 		EcpPayPalPayLater::class,
-		EcpSofort::class,
 		EcpIdeal::class,
 		EcpKlarna::class,
 		EcpBlik::class,
-		EcpGiropay::class,
+		EcpHumm::class,
 		EcpBrazilOnlineBanks::class,
 		EcpMore::class,
 	];
@@ -178,11 +175,10 @@ final class EcpCore extends WC_Settings_API {
 			EcpSettingsPayPal::ID             => EcpPayPal::get_instance(),
 			EcpSettingsPayPalPayLater::ID     => EcpPayPalPayLater::get_instance(),
 			EcpSettingsKlarna::ID             => EcpKlarna::get_instance(),
-			EcpSettingsSofort::ID             => EcpSofort::get_instance(),
 			EcpSettingsBlik::ID               => EcpBlik::get_instance(),
 			EcpSettingsIdeal::ID              => EcpIdeal::get_instance(),
 			EcpSettingsBanks::ID              => EcpBanks::get_instance(),
-			EcpSettingsGiropay::ID            => EcpGiropay::get_instance(),
+			EcpSettingsHumm::ID => EcpHumm::get_instance(),
 			EcpSettingsBrazilOnline_Banks::ID => EcpBrazilOnlineBanks::get_instance(),
 			EcpSettingsGooglepay::ID          => EcpGooglepay::get_instance(),
 			EcpSettingsApplepay::ID => EcpApplepay::get_instance(),

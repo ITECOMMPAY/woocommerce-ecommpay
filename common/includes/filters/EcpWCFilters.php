@@ -16,4 +16,5 @@ class EcpWCFilters {
 	public const WOOCOMMERCE_ECOMMPAY_CALLBACK_ARGS = 'woocommerce_ecommpay_callback_args';
 	public const WOOCOMMERCE_ORDER_CLASS = 'woocommerce_order_class';
 	public const WOOCOMMERCE_ECOMMPAY_CAN_USER_EMPTY_LOGS = 'woocommerce_ecommpay_can_user_empty_logs';
+	public const WOOCOMMERCE_ORDER_STATUS_CANCELLED = 'woocommerce_order_status_cancelled';
 }

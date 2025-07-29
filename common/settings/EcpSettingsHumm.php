@@ -7,39 +7,37 @@ use common\includes\filters\EcpFilters;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * EcpSettingsSofort class
+ * EcpSettingsHumm class
  *
- * @class    EcpSettingsSofort
+ * @class    EcpSettingsHumm
  * @version  3.0.0
  * @package  Ecp_Gateway/Settings
  * @category Class
  * @internal
  */
-class EcpSettingsSofort extends EcpSettings {
-
+class EcpSettingsHumm extends EcpSettings {
 
 	/**
 	 * Internal identifier
 	 */
-	const ID = 'ecommpay-sofort';
+	const ID = 'ecommpay-humm';
 
 	/**
 	 * Shop section identifier
 	 */
-	const SOFORT_SETTINGS = 'sofort_settings';
-
+	const HUMM_SETTINGS = 'humm_settings';
 
 	/**
 	 * Constructor.
 	 */
 	public function __construct() {
 		$this->id    = self::ID;
-		$this->label = _x( 'Sofort', 'Settings page', 'woo-ecommpay' );
-		$this->icon  = 'sofort.svg';
+		$this->label = _x( 'Humm', 'Settings page', 'woo-ecommpay' );
+		$this->icon = 'humm.svg';
 
 		parent::__construct();
 
-		add_filter( EcpFilters::ECP_PREFIX_GET_SETTINGS . $this->id, [ $this, 'get_settings_sofort_methods' ] );
+		add_filter( EcpFilters::ECP_PREFIX_GET_SETTINGS . $this->id, [ $this, 'get_settings_humm_methods' ] );
 	}
 
 	/**
@@ -47,76 +45,76 @@ class EcpSettingsSofort extends EcpSettings {
 	 *
 	 * @return array
 	 */
-	public function get_settings_sofort_methods(): array {
+	public function get_settings_humm_methods(): array {
 		$settings = [
 			[
-				self::FIELD_ID    => self::SOFORT_SETTINGS,
-				self::FIELD_TITLE => _x( 'Sofort settings', 'Settings section', 'woo-ecommpay' ),
+				self::FIELD_ID    => self::HUMM_SETTINGS,
+				self::FIELD_TITLE => _x( 'Humm settings', 'Settings section', 'woo-ecommpay' ),
 				self::FIELD_TYPE  => self::TYPE_START,
 				self::FIELD_DESC  => '',
 			],
 			[
 				self::FIELD_ID      => self::OPTION_ENABLED,
-				self::FIELD_TITLE   => _x( 'Enable/Disable', 'Settings sofort payments', 'woo-ecommpay' ),
+				self::FIELD_TITLE   => _x( 'Enable/Disable', 'Settings humm payments', 'woo-ecommpay' ),
 				self::FIELD_TYPE    => self::TYPE_CHECKBOX,
-				self::FIELD_DESC    => _x( 'Enable', 'Settings sofort payments', 'woo-ecommpay' ),
+				self::FIELD_DESC    => _x( 'Enable', 'Settings humm payments', 'woo-ecommpay' ),
 				self::FIELD_TIP     => _x(
-					'Before enabling the payment method please contact support@ecommpay.com',
-					'Settings sofort payments',
+					'Before enabling the payment method please contact support@ecommpay.com.',
+					'Settings humm payments',
 					'woo-ecommpay'
 				),
 				self::FIELD_DEFAULT => self::VALUE_DISABLED
 			],
 			[
 				self::FIELD_ID      => self::OPTION_TITLE,
-				self::FIELD_TITLE   => _x( 'Title', 'Settings sofort payments', 'woo-ecommpay' ),
+				self::FIELD_TITLE   => _x( 'Title', 'Settings humm payments', 'woo-ecommpay' ),
 				self::FIELD_TYPE    => self::TYPE_TEXT,
 				self::FIELD_TIP     => _x(
-					'This controls the tittle which the user sees during checkout.',
-					'Settings sofort payments',
+					'This controls the title which the user sees during checkout.',
+					'Settings humm payments',
 					'woo-ecommpay'
 				),
-				self::FIELD_DEFAULT => _x( 'Sofort', 'Settings sofort payments', 'woo-ecommpay' ),
+				self::FIELD_DEFAULT => _x( 'Humm', 'Settings humm payments', 'woo-ecommpay' ),
 			],
 			[
 				self::FIELD_ID      => self::OPTION_SHOW_DESCRIPTION,
-				self::FIELD_TITLE   => _x( 'Show Description', 'Settings sofort payments', 'woo-ecommpay' ),
+				self::FIELD_TITLE   => _x( 'Show Description', 'Settings humm payments', 'woo-ecommpay' ),
 				self::FIELD_TYPE    => self::TYPE_CHECKBOX,
 				self::FIELD_DESC    => _x(
 					'Display the payment method description which user sees during checkout.',
-					'Settings sofort payments',
+					'Settings humm payments',
 					'woo-ecommpay'
 				),
 				self::FIELD_DEFAULT => self::VALUE_ENABLED,
 			],
 			[
 				self::FIELD_ID      => self::OPTION_DESCRIPTION,
-				self::FIELD_TITLE   => _x( 'Description', 'Settings sofort payments', 'woo-ecommpay' ),
+				self::FIELD_TITLE   => _x( 'Description', 'Settings humm payments', 'woo-ecommpay' ),
 				self::FIELD_TYPE    => self::TYPE_AREA,
 				self::FIELD_TIP     => _x(
 					'This controls the description which the user sees during checkout.',
-					'Settings sofort payments',
+					'Settings humm payments',
 					'woo-ecommpay'
 				),
 				self::FIELD_DEFAULT => _x(
-					'You will be redirected to your bank.',
-					'Settings sofort payments',
+					'Buy now, pay later with Humm. Interest free payments over time.',
+					'Settings humm payments',
 					'woo-ecommpay'
 				),
 			],
 			[
 				self::FIELD_ID      => self::OPTION_CHECKOUT_BUTTON_TEXT,
-				self::FIELD_TITLE   => _x( 'Order button text', 'Settings sofort payments', 'woo-ecommpay' ),
+				self::FIELD_TITLE   => _x( 'Order button text', 'Settings humm payments', 'woo-ecommpay' ),
 				self::FIELD_TYPE    => self::TYPE_TEXT,
 				self::FIELD_TIP     => _x(
 					'Text shown on the submit button when choosing payment method.',
-					'Settings sofort payments',
+					'Settings humm payments',
 					'woo-ecommpay'
 				),
-				self::FIELD_DEFAULT => _x( 'Go to payment', 'Settings sofort payments', 'woo-ecommpay' ),
+				self::FIELD_DEFAULT => _x( 'Pay with Humm', 'Settings humm payments', 'woo-ecommpay' ),
 			],
 			[
-				self::FIELD_ID   => self::SOFORT_SETTINGS,
+				self::FIELD_ID => self::HUMM_SETTINGS,
 				self::FIELD_TYPE => self::TYPE_END,
 			],
 		];

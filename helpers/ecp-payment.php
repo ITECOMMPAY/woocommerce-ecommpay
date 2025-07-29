@@ -5,7 +5,6 @@ defined( 'ABSPATH' ) || exit;
 
 use common\helpers\EcpGatewayOperationType;
 use common\helpers\EcpGatewayPaymentStatus;
-use common\includes\filters\EcpFilters;
 
 /**
  * Get all ECOMMPAY payment statuses.
@@ -15,9 +14,7 @@ use common\includes\filters\EcpFilters;
  * @used-by EcpGatewayPayment::set_status
  */
 function ecp_get_payment_statuses(): array {
-	$payment_statuses = EcpGatewayPaymentStatus::get_status_names();
-
-	return apply_filters( EcpFilters::ECP_PAYMENT_STATUSES, $payment_statuses );
+	return EcpGatewayPaymentStatus::get_status_names();
 }
 
 /**

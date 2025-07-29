@@ -295,6 +295,7 @@ function get_ecp_payment_method_icon( string $payment_type ): string {
 		'crypto'          => 'crypto.svg',
 		'google-pay'      => 'google_pay.png',
 		'google-pay-host' => 'google_pay.svg',
+		'humm'			  => 'humm.svg',
 		'jeton-wallet'    => 'jetonWallet.svg',
 		'mobile'          => 'mobile.svg',
 		'monetix-wallet'  => 'monetix-wallet.svg',
@@ -303,7 +304,6 @@ function get_ecp_payment_method_icon( string $payment_type ): string {
 		'profee'          => 'profee.svg',
 		'rapid'           => 'rapid.svg',
 		'skrill'          => 'skrill.svg',
-		'sofort'          => 'sofort.svg',
 		'unionpay'        => 'unionpay.svg',
 		'webmoney'        => 'webmoney.svg',
 	];

@@ -5,7 +5,6 @@ namespace common\helpers;
 use common\EcpCore;
 use common\exceptions\EcpGatewaySignatureException;
 use common\includes\EcpGatewayOrder;
-use common\includes\EcpGatewayRefund;
 use common\includes\filters\EcpAppendsFilters;
 use common\includes\filters\EcpFilters;
 use common\modules\EcpModuleCapture;
@@ -16,26 +15,6 @@ use WC_Order_Item;
 use WC_Order_Item_Product;
 
 class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
-
-	/**
-	 * @param EcpGatewayOrder|EcpGatewayRefund $order
-	 *
-	 * @return array
-	 */
-	public function create_payment_data( $order ): array {
-		$data = apply_filters( 'ecp_append_project_id', [] );
-
-		if ( $order instanceof EcpGatewayOrder ) {
-			// Identifier of the payment, must be unique within the project.
-			$this->append_argument( 'payment_id', $order->create_payment_id(), $data );
-		} else if ( $order instanceof EcpGatewayRefund ) {
-			// Identifier of the payment, must be unique within the project.
-			$this->append_argument( 'payment_id', $order->get_order()->get_payment_id(), $data );
-		}
-
-		return $data;
-	}
-
 	/**
 	 * @param string $key
 	 * @param mixed $value
@@ -49,59 +28,6 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 		}
 
 		$values[ $key ] = $value;
-	}
-
-	public function create_general_info( $order ) {
-		$data = apply_filters( 'ecp_append_project_id', [] );
-
-		switch ( true ) {
-			case is_string( $order ):
-				// Identifier of the request from ECOMMPAY payment platform.
-				$this->append_argument( 'request_id', $order, $data );
-				break;
-			case $order instanceof EcpGatewayRefund:
-				// Identifier of the payment, must be unique within the project.
-				$this->append_argument( 'payment_id', $order->get_order()->get_payment_id(), $data );
-				break;
-			case $order instanceof EcpGatewayOrder:
-				// Identifier of the payment, must be unique within the project.
-				$this->append_argument( 'payment_id', $order->get_payment_id(), $data );
-				break;
-		}
-
-		return $data;
-	}
-
-	public function append_payment_section( $data, $order ) {
-		$this->append_argument( 'payment', $this->create_payment_info( $order ), $data );
-
-		return $data;
-	}
-
-	public function create_payment_info( $order ): array {
-		$payment = [];
-
-		$this->append_argument(
-			'amount',
-			ecp_price_multiply( abs( $order->get_total() ), $order->get_currency() ),
-			$payment
-		);
-		$this->append_argument( 'currency', $order->get_currency(), $payment );
-
-		if ( $order instanceof EcpGatewayRefund ) {
-			// Refund comment. REQUIRED!!!
-			$this->append_argument(
-				'description',
-				(string) $order->get_reason() !== ''
-					? $order->get_reason()
-					: sprintf( 'User %s create refund', wp_get_current_user()->ID ),
-				$payment
-			);
-			// Refund ECOMMPAY identifier in WooCommerce.
-			$this->append_argument( 'merchant_refund_id', $order->get_payment_id(), $payment );
-		}
-
-		return $payment;
 	}
 
 	public function append_versions( $data ) {
@@ -411,37 +337,6 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 		$this->append_argument(
 			'billing_postal',
 			wc_format_postcode( $order->get_billing_postcode(), $order->get_billing_country() ),
-			$values
-		);
-
-		return $values;
-	}
-
-	/**
-	 * @param EcpGatewayOrder $order
-	 * @param array $values
-	 *
-	 * @return array
-	 * @since 3.0.0
-	 */
-	public function append_billing_region( array $values, EcpGatewayOrder $order ): array {
-		$this->append_argument( 'billing_region', $order->get_billing_state(), $values );
-
-		return $values;
-	}
-
-
-	/**
-	 * @param EcpGatewayOrder $order
-	 * @param array $values
-	 *
-	 * @return array
-	 * @since 3.0.0
-	 */
-	public function append_billing_region_code( array $values, EcpGatewayOrder $order ): array {
-		$this->append_argument(
-			'billing_region_code',
-			ecp_region_code( $order->get_billing_country(), $order->get_billing_state() ),
 			$values
 		);
 
@@ -866,53 +761,10 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	}
 
 	/**
-	 * <h2>Appends shipping information.</h2>
-	 *
-	 * @param EcpGatewayOrder $order <p>Order object.</p>
-	 * @param array $values <p>Base array for appending data</p>
-	 *
-	 * @return array Result of appending data as new array.
-	 */
-	public function filter_shipping_data( EcpGatewayOrder $order, array $values ): array {
-		if ( ! $order->needs_shipping_address() ) {
-			return $values;
-		}
-
-		$shipping_args = [
-			'type'           => $order->get_shipping_type(),
-			'delivery_email' => $this->limit_length( $order->get_billing_email(), 255 ),
-			'city'           => $this->limit_length( $order->get_shipping_city(), 50 ),
-			'country'        => $order->get_shipping_country(),
-			'address'        => $this->limit_length( $order->get_shipping_address(), 150 ),
-			'postal'         => wc_format_postcode( $order->get_shipping_postcode(), $order->get_shipping_country() ),
-			'region_code'    => ecp_region_code( $order->get_shipping_country(), $order->get_shipping_state() ),
-			'name_indicator' => $order->get_shipping_name_indicator(),
-		];
-
-		apply_filters( EcpFilters::ECP_PAYMENT_PAGE_CLEAN_PARAMETERS, $shipping_args );
-
-		if ( count( $shipping_args ) <= 0 ) {
-			return $values;
-		}
-
-		$values['customer_shipping'] = base64_encode( json_encode( [ 'customer' => [ 'shipping' => $shipping_args ] ] ) );
-
-		return $values;
-	}
-
-	public function filter_cash_voucher_data( $values, $order ) {
-		return $values;
-	}
-
-	/**
 	 * @inheritDoc
 	 * @return void
 	 */
 	protected function init(): void {
-		add_filter( EcpFilters::ECP_CREATE_GENERAL_DATA_FILTER, [ $this, 'create_general_info' ] );
-		add_filter( EcpFilters::ECP_CREATE_PAYMENT_DATA, [ $this, 'create_payment_data' ] );
-		add_filter( EcpFilters::ECP_CREATE_PAYMENT_INFO, [ $this, 'create_payment_info' ] );
-
 		// register filters for appending payment arguments
 		add_filter( EcpAppendsFilters::ECP_APPEND_PROJECT_ID, [ $this, 'append_project_id' ] );
 		add_filter( EcpAppendsFilters::ECP_APPEND_INTERFACE_TYPE, [ $this, 'append_interface_type' ], 10, 2 );
@@ -923,7 +775,6 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 		add_filter( EcpAppendsFilters::ECP_APPEND_OPERATION_MODE, [ $this, 'append_operation_mode' ], 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, [ $this, 'append_force_mode' ], 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_DISPLAY_MODE, [ $this, 'append_display_mode' ], 10, 3 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_PAYMENT_SECTION, [ $this, 'append_payment_section' ], 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_LANGUAGE_CODE, [ $this, 'append_language' ] );
 		add_filter( EcpAppendsFilters::ECP_APPEND_MERCHANT_SUCCESS_URL, [
 			$this,
@@ -968,20 +819,13 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_CITY, [ $this, 'append_billing_city' ], 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_COUNTRY, [ $this, 'append_billing_country' ], 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_POSTAL, [ $this, 'append_billing_postal' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_REGION, [ $this, 'append_billing_region' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_REGION_CODE, [
-			$this,
-			'append_billing_region_code'
-		], 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_ADDITIONAL_VARIABLES, [
 			$this,
 			'append_custom_variables'
 		], 10, 2 );
 		add_filter( EcpFilters::ECP_PAYMENT_PAGE_CLEAN_PARAMETERS, [ $this, 'filter_clean' ] );
 		add_filter( EcpAppendsFilters::ECP_APPEND_RECURRING, [ $this, 'append_recurring' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_SHIPPING_DATA, [ $this, 'filter_shipping_data' ], 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_RECEIPT_DATA, [ $this, 'filter_receipt_data' ], 10, 3 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_CASH_VOUCHER_DATA, [ $this, 'filter_cash_voucher_data' ], 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_VERSIONS, [ $this, 'append_versions' ] );
 		add_filter( EcpAppendsFilters::ECP_APPEND_SIGNATURE, [ $this, 'append_signature' ] );
 	}

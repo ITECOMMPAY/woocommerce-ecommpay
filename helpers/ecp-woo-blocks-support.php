@@ -12,14 +12,13 @@ use common\gateways\EcpBrazilOnlineBanks;
 use common\gateways\EcpCard;
 use common\gateways\EcpDirectDebitBACS;
 use common\gateways\EcpDirectDebitSEPA;
-use common\gateways\EcpGiropay;
 use common\gateways\EcpGooglepay;
+use common\gateways\EcpHumm;
 use common\gateways\EcpIdeal;
 use common\gateways\EcpKlarna;
 use common\gateways\EcpMore;
 use common\gateways\EcpPayPal;
 use common\gateways\EcpPayPalPayLater;
-use common\gateways\EcpSofort;
 use common\includes\EcpGatewayBlocksSupport;
 use common\settings\EcpSettingsApplepay;
 use common\settings\EcpSettingsBanks;
@@ -28,14 +27,13 @@ use common\settings\EcpSettingsBrazilOnline_Banks;
 use common\settings\EcpSettingsCard;
 use common\settings\EcpSettingsDirectDebitBACS;
 use common\settings\EcpSettingsDirectDebitSEPA;
-use common\settings\EcpSettingsGiropay;
 use common\settings\EcpSettingsGooglepay;
+use common\settings\EcpSettingsHumm;
 use common\settings\EcpSettingsIdeal;
 use common\settings\EcpSettingsKlarna;
 use common\settings\EcpSettingsMore;
 use common\settings\EcpSettingsPayPal;
 use common\settings\EcpSettingsPayPalPayLater;
-use common\settings\EcpSettingsSofort;
 
 add_action( 'before_woocommerce_init', function () {
 	if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
@@ -54,21 +52,20 @@ add_action( 'woocommerce_blocks_loaded', function () {
 			'woocommerce_blocks_payment_method_type_registration',
 			function ( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
 				$gateways = [
-					EcpSettingsApplepay::ID => new EcpApplepay(),
-					EcpSettingsBanks::ID              => new EcpBanks(),
+					EcpSettingsCard::ID           => new EcpCard(),
+					EcpSettingsPayPal::ID         => new EcpPayPal(),
+					EcpSettingsPayPalPayLater::ID => new EcpPayPalPayLater(),
+					EcpSettingsKlarna::ID         => new EcpKlarna(),
 					EcpSettingsBlik::ID               => new EcpBlik(),
+					EcpSettingsIdeal::ID          => new EcpIdeal(),
+					EcpSettingsBanks::ID          => new EcpBanks(),
+					EcpSettingsHumm::ID           => new EcpHumm(),
 					EcpSettingsBrazilOnline_Banks::ID => new EcpBrazilOnlineBanks(),
+					EcpSettingsGooglepay::ID      => new EcpGooglepay(),
+					EcpSettingsApplepay::ID       => new EcpApplepay(),
 					EcpSettingsDirectDebitBACS::ID    => new EcpDirectDebitBACS(),
 					EcpSettingsDirectDebitSEPA::ID    => new EcpDirectDebitSEPA(),
-					EcpSettingsCard::ID               => new EcpCard(),
-					EcpSettingsGiropay::ID            => new EcpGiropay(),
-					EcpSettingsGooglepay::ID          => new EcpGooglepay(),
-					EcpSettingsIdeal::ID              => new EcpIdeal(),
-					EcpSettingsKlarna::ID             => new EcpKlarna(),
 					EcpSettingsMore::ID               => new EcpMore(),
-					EcpSettingsPayPal::ID             => new EcpPayPal(),
-					EcpSettingsPayPalPayLater::ID     => new EcpPayPalPayLater(),
-					EcpSettingsSofort::ID             => new EcpSofort(),
 				];
 
 				foreach ( $gateways as $id => $gateway ) {

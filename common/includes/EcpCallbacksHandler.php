@@ -134,15 +134,6 @@ class EcpCallbacksHandler {
 		$order_number = EcpGatewayOrder::get_order_id_from_callback( $info );
 		$order        = ecp_get_order( $order_number );
 
-		$last_payment_id = $order->get_payment_id();
-
-		if ( $payment_id !== $last_payment_id ) {
-			$message =  sprintf('Order with payment id %s found but it already has a new payment id %s', $payment_id, $last_payment_id);
-			ecp_get_log()->info( __( $message, 'woo-ecommpay' ) );
-			http_response_code( 200 );
-			die ( $message );
-		}
-
 		if ( ! $order ) {
 			// Print debug information to logs
 			$message = __( 'Order not found', 'woo-ecommpay' );
@@ -159,6 +150,15 @@ class EcpCallbacksHandler {
 			ecp_get_log()->add( __( 'Response data: %s', 'woo-ecommpay' ), json_encode( $info ) );
 
 			http_response_code( 404 );
+			die ( $message );
+		}
+
+		$last_payment_id = $order->get_payment_id();
+
+		if ( $payment_id !== $last_payment_id ) {
+			$message =  sprintf('Order with payment id %s found but it already has a new payment id %s', $payment_id, $last_payment_id);
+			ecp_get_log()->info( __( $message, 'woo-ecommpay' ) );
+			http_response_code( 200 );
 			die ( $message );
 		}
 

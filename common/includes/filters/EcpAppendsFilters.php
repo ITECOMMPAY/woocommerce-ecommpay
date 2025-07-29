@@ -6,7 +6,6 @@ class EcpAppendsFilters {
 
 	public const ECP_APPEND_INTERFACE_TYPE = 'ecp_append_interface_type';
 	public const ECP_APPEND_MERCHANT_RETURN_URL = 'ecp_append_merchant_return_url';
-	public const ECP_APPEND_PAYMENT_SECTION = 'ecp_append_payment_section';
 	public const ECP_APPEND_MERCHANT_SUCCESS_URL = 'ecp_append_merchant_success_url';
 	public const ECP_APPEND_REDIRECT_SUCCESS_URL = 'ecp_append_redirect_success_url';
 	public const ECP_APPEND_REDIRECT_FAIL_URL = 'ecp_append_redirect_fail_url';
@@ -19,7 +18,6 @@ class EcpAppendsFilters {
 	public const ECP_APPEND_LANGUAGE_CODE = 'ecp_append_language_code';
 	public const ECP_APPEND_CUSTOMER_ADDRESS = 'ecp_append_customer_address';
 	public const ECP_APPEND_BILLING_POSTAL = 'ecp_append_billing_postal';
-	public const ECP_APPEND_BILLING_REGION = 'ecp_append_billing_region';
 	public const ECP_APPEND_GATEWAY_ARGUMENTS = 'ecp_append_gateway_arguments_';
 	public const ECP_APPEND_AVS_STREET_ADDRESS = 'ecp_append_avs_street_address';
 	public const ECP_APPEND_VERSIONS = 'ecp_append_versions';
@@ -27,7 +25,6 @@ class EcpAppendsFilters {
 	public const ECP_APPEND_RECEIPT_DATA = 'ecp_append_receipt_data';
 	public const ECP_APPEND_ADDITIONAL_VARIABLES = 'ecp_append_additional_variables';
 	public const ECP_APPEND_CUSTOMER_FIRST_NAME = 'ecp_append_customer_first_name';
-	public const ECP_APPEND_CASH_VOUCHER_DATA = 'ecp_append_cash_voucher_data';
 	public const ECP_APPEND_CUSTOMER_DATA = 'ecp_append_customer_data';
 	public const ECP_APPEND_CUSTOMER_COUNTRY = 'ecp_append_customer_country';
 	public const ECP_APPEND_MERCHANT_FAIL_URL = 'ecp_append_merchant_fail_url';
@@ -39,8 +36,6 @@ class EcpAppendsFilters {
 	public const ECP_APPEND_CUSTOMER_ID = 'ecp_append_customer_id';
 	public const ECP_APPEND_CUSTOMER_LAST_NAME = 'ecp_append_customer_last_name';
 	public const ECP_APPEND_CUSTOMER_ZIP = 'ecp_append_customer_zip';
-	public const ECP_APPEND_SHIPPING_DATA = 'ecp_append_shipping_data';
-	public const ECP_APPEND_BILLING_REGION_CODE = 'ecp_append_billing_region_code';
 	public const ECP_APPEND_CUSTOMER_EMAIL = 'ecp_append_customer_email';
 	public const ECP_APPEND_AVS_POST_CODE = 'ecp_append_avs_post_code';
 	public const ECP_APPEND_CARD_OPERATION_TYPE = 'ecp_append_card_operation_type';

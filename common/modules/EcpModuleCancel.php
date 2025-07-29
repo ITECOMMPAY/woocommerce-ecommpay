@@ -5,15 +5,22 @@ defined( 'ABSPATH' ) || exit;
 
 use common\api\EcpGatewayAPIPayment;
 use common\exceptions\EcpGatewayAPIException;
+use common\helpers\EcpGatewayPaymentStatus;
 use common\helpers\EcpGatewayRegistry;
+use common\includes\EcpGatewayOrder;
+use common\includes\filters\EcpApiFilters;
+use common\includes\filters\EcpWCFilters;
+use common\settings\EcpSettingsGeneral;
 use Exception;
+use Throwable;
+use WC_Order;
 
 class EcpModuleCancel extends EcpGatewayRegistry {
 
-	private const WP_AJAX_ECP_PROCESS_CANCEL_ORDER = 'wp_ajax_ecp_process_cancel_order';
-
 	protected function init(): void {
-		add_action( self::WP_AJAX_ECP_PROCESS_CANCEL_ORDER, [ $this, 'process' ] );
+		add_action( EcpApiFilters::WP_AJAX_ECP_PROCESS_CANCEL_ORDER, [ $this, 'process' ] );
+
+		add_action( EcpWCFilters::WOOCOMMERCE_ORDER_STATUS_CANCELLED, [ $this, 'try_auto_cancel_payment' ] );
 	}
 
 	/**
@@ -62,6 +69,45 @@ class EcpModuleCancel extends EcpGatewayRegistry {
 		} catch ( Exception $e ) {
 			ecp_error( 'Cancellation unexpected error: ' . $e->getMessage() );
 			throw $e;
+		}
+	}
+
+	/**
+	 * Determine if the order should be auto-cancelled via Ecommpay.
+	 *
+	 * @param $order EcpGatewayOrder|null
+	 *
+	 * @return bool
+	 */
+	private function should_auto_cancel_payment( ?EcpGatewayOrder $order ): bool {
+		if ( ! $order || ! $order->is_ecp() ) {
+			return false;
+		}
+		if ( ! ecommpay()->get_general_option( EcpSettingsGeneral::AUTOMATIC_CANCELLATION ) ) {
+			return false;
+		}
+		if ( $order->get_ecp_status() !== EcpGatewayPaymentStatus::AWAITING_CAPTURE ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Automatically cancel Ecommpay payment if order is cancelled and feature is enabled.
+	 *
+	 * @param int|WC_Order $order_id
+	 */
+	public function try_auto_cancel_payment( $order_id ) {
+		$order = ecp_get_order( $order_id );
+		if ( ! $this->should_auto_cancel_payment( $order ) ) {
+			return;
+		}
+		try {
+			$api = new EcpGatewayAPIPayment();
+			$api->cancel( $order );
+		} catch ( Throwable $e ) {
+			ecp_error( 'Automatic cancellation failed: ' . $e->getMessage() );
 		}
 	}
 }

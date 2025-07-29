@@ -12,15 +12,14 @@ use common\settings\EcpSettingsCard;
 use common\settings\EcpSettingsDirectDebitBACS;
 use common\settings\EcpSettingsDirectDebitSEPA;
 use common\settings\EcpSettingsGeneral;
-use common\settings\EcpSettingsGiropay;
 use common\settings\EcpSettingsGooglepay;
+use common\settings\EcpSettingsHumm;
 use common\settings\EcpSettingsIdeal;
 use common\settings\EcpSettingsKlarna;
 use common\settings\EcpSettingsMore;
 use common\settings\EcpSettingsPayPal;
 use common\settings\EcpSettingsPayPalPayLater;
 use common\settings\EcpSettingsProducts;
-use common\settings\EcpSettingsSofort;
 use common\settings\EcpSettingsSubscriptions;
 
 class EcpTabManager {
@@ -53,11 +52,10 @@ class EcpTabManager {
 				new EcpSettingsBanks(),
 				new EcpSettingsPayPal(),
 				new EcpSettingsPayPalPayLater(),
-				new EcpSettingsSofort(),
 				new EcpSettingsIdeal(),
 				new EcpSettingsKlarna(),
 				new EcpSettingsBlik(),
-				new EcpSettingsGiropay(),
+				new EcpSettingsHumm(),
 				new EcpSettingsBrazilOnline_Banks(),
 				new EcpSettingsMore(),
 			];

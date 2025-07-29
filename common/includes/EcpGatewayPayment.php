@@ -84,7 +84,7 @@ class EcpGatewayPayment {
 	 *
 	 * @var EcpGatewayInfoPayment
 	 */
-	private EcpGatewayInfoPayment $info;
+	private ?EcpGatewayInfoPayment $info = null;
 
 
 	/**

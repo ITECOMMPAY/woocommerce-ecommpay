@@ -421,23 +421,23 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 	 * @since 2.0.0
 	 */
 	private function get_form_data( EcpGatewayOrder $order, EcpGateway $gateway ): array {
-		// General options
-		$values = apply_filters( EcpFilters::ECP_CREATE_PAYMENT_DATA, $order );
-		$values['baseUrl'] = $this->endpoint;
-
-		// Set payment information
-		$info   = apply_filters( EcpFilters::ECP_CREATE_PAYMENT_INFO, $order );
-		foreach ( $info as $key => $value ) {
-			$values[ 'payment_' . $key ] = $value;
-		}
+		$values = [
+			'baseUrl' => $this->endpoint,
+			'payment_id' => $order->create_payment_id(),
+			'payment_amount' => ecp_price_multiply( abs( $order->get_total() ), $order->get_currency() ),
+			'payment_currency' => $order->get_currency()
+		];
 
 		$return_url = esc_url_raw( add_query_arg( 'utm_nooverride', '1', $gateway->get_return_url( $order ) ) );
 		$fail_url = home_url( self::FAILED_URI );
+
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_PROJECT_ID, $values );
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_LANGUAGE_CODE, $values );
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_ADDITIONAL_VARIABLES, $values, $order );
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_MERCHANT_SUCCESS_URL, $values, $return_url );
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_MERCHANT_FAIL_URL, $values, $fail_url );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_REDIRECT_RETURN_URL, $values, home_url( '/checkout' ) );
+		//todo: uncomment after Humm is fixed
+		//$values = apply_filters( EcpAppendsFilters::ECP_APPEND_REDIRECT_RETURN_URL, $values, home_url( '/checkout' ) );
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_MERCHANT_RETURN_URL, $values, esc_url_raw( $order->get_checkout_payment_url() ) );
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_MERCHANT_CALLBACK_URL, $values );
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_REDIRECT_SUCCESS_URL, $values, $return_url );

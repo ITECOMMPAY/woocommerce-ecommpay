@@ -2,10 +2,10 @@
 
 namespace common\api;
 
+use WC_Abstract_Order;
 use common\EcpCore;
 use common\models\EcpGatewayInfoError;
 use common\models\EcpGatewayInfoStatus;
-use common\modules\EcpSigner;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -44,7 +44,6 @@ class EcpGatewayAPI {
 	 */
 	private const VERSION = 'v2';
 
-	protected const MERCHANT_DESTINATION = 'merchant';
 
 	protected const STATUS_API_ENDPOINT = 'status';
 
@@ -279,28 +278,23 @@ class EcpGatewayAPI {
 		return $this->execute( 'POST', $path, $form );
 	}
 
-	/**
-	 * <h2>Returns form data with general section.</h2>
-	 *
-	 * @param array $data <p>Order object or request identifier.</p>
-	 *
-	 * @return array
-	 * @since 3.0.0
-	 */
-	protected function create_general_section( array $data ): array {
+	protected function build_general_api_block(string $payment_id ): array {
 		return [
-			EcpSigner::GENERAL => $data
+			'general' => [
+				'payment_id' => $payment_id,
+				'project_id' => ecommpay()->get_project_id(),
+				'merchant_callback_url' => ecp_callback_url()
+			],
+			'interface_type' => ecommpay()->get_interface_type()
 		];
 	}
 
-	protected function get_general_data( $order ): array {
-		return [
-			EcpSigner::GENERAL => apply_filters(
-				'ecp_append_merchant_callback_url',
-				apply_filters( 'ecp_create_general_data', $order )
-			)
+	protected function build_general_api_block_with_payment(string $payment_id, WC_Abstract_Order $order): array {
+		$api_data = $this->build_general_api_block($payment_id);
+		$api_data['payment'] = [
+			'amount' => ecp_price_multiply( abs( $order->get_total() ), $order->get_currency() ),
+			'currency' => $order->get_currency(),
 		];
+		return $api_data;
 	}
-
-
 }

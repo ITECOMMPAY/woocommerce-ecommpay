@@ -541,17 +541,26 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 
 		global $wpdb;
 
-		$statuses = $wpdb->get_col( "SELECT DISTINCT {$wpdb->prefix}wc_orders_meta.meta_value
-				FROM {$wpdb->prefix}wc_orders_meta
-				WHERE {$wpdb->prefix}wc_orders_meta.meta_key = '_payment_status'"
-		);
+		if ( ecp_HPOS_enabled() ) {
+			$statuses = $wpdb->get_col(
+				"SELECT DISTINCT {$wpdb->prefix}wc_orders_meta.meta_value
+				 FROM {$wpdb->prefix}wc_orders_meta
+				 WHERE {$wpdb->prefix}wc_orders_meta.meta_key = '_payment_status'"
+			);
+		} else {
+			$statuses = $wpdb->get_col(
+				"SELECT DISTINCT meta_value
+				 FROM {$wpdb->postmeta}
+				 WHERE meta_key = '_payment_status'"
+			);
+		}
 
 		if ( empty( $statuses ) ) {
 			$statuses = [];
 		}
 
-
-		$statuses = array_combine( $statuses,
+		$statuses = array_combine(
+			$statuses,
 			array_map(
 				function ( $status ) {
 					return EcpGatewayPaymentStatus::get_status_name( $status );
@@ -565,7 +574,10 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 		asort( $statuses );
 
 		ecp_get_view(
-			'admin/sections/html-filter.php', [ 'statuses' => $statuses, 'selected_value' => $selected_value ]
+			'admin/sections/html-filter.php', [
+				'statuses'       => $statuses,
+				'selected_value' => $selected_value
+			]
 		);
 	}
 

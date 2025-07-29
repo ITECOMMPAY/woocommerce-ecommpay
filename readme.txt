@@ -1,9 +1,9 @@
 === ECOMMPAY Payments ===
 Contributors: ECOMMPAY
-Tags: card payments, apple pay, google pay, open banking, subscriptions, paypal, sofort, ideal, klarna, giropay, payment gateway, woocommerce
+Tags: card payments, apple pay, google pay, open banking, subscriptions, paypal, humm, ideal, klarna, payment gateway, woocommerce
 Requires at least: 6.2
 Tested up to: 6.7
-Stable tag: 4.1.1
+Stable tag: 4.2.0
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,7 +25,7 @@ Let your customers pay with their bank of choice, reduce processing fees and eli
 = Cryptocurrencies =
 Take payments in all the popular cryptocurrencies and settle in USD, GBP or EUR without the conversion risk.
 = eWallets =
-Offer an option to pay Apple Pay and Google Pay or local eWallets your customers know and trust, like Blik, Bancontact, EPS, Giropay, iDEAL, Multibanco, Neteller and more.
+Offer an option to pay Apple Pay and Google Pay or local eWallets your customers know and trust, like Blik, Bancontact, EPS, Humm, iDEAL, Multibanco, Neteller and more.
 = Subscriptions and recurring payments =
 Offer your customers subscriptions or flexible recurring payment plans. Migrate from your old payment service provider without any interruption.
 = Payment links =
@@ -61,6 +61,11 @@ General:
 3. If WooCommerce Subscriptions is used, the required minimum version is >= 5.6.1
 
 == Changelog ==
+= 4.2.0 =
+* Removed Sofort and Giropay payment methods
+* Added Humm payment method
+* Fixed minor bugs
+
 = 4.1.0 =
 * Added a convenient option to make a repeat payment
 
