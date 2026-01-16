@@ -354,7 +354,11 @@ class EcpGatewayOrder extends Order {
 
 
 	public function get_billing_address(): string {
-		return implode( ' ', [ $this->get_billing_address_1(), $this->get_billing_address_2() ] );
+		return trim( implode( ' ', [ $this->get_billing_address_1(), $this->get_billing_address_2() ] ) );
+	}
+
+	public function get_billing_postcode( $context = 'view' ): string {
+		return trim( parent::get_billing_postcode( $context ) );
 	}
 
 	public function get_shipping_type(): string {

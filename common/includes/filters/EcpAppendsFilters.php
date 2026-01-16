@@ -19,7 +19,6 @@ class EcpAppendsFilters {
 	public const ECP_APPEND_CUSTOMER_ADDRESS = 'ecp_append_customer_address';
 	public const ECP_APPEND_BILLING_POSTAL = 'ecp_append_billing_postal';
 	public const ECP_APPEND_GATEWAY_ARGUMENTS = 'ecp_append_gateway_arguments_';
-	public const ECP_APPEND_AVS_STREET_ADDRESS = 'ecp_append_avs_street_address';
 	public const ECP_APPEND_VERSIONS = 'ecp_append_versions';
 	public const ECP_APPEND_RECURRING = 'ecp_append_recurring';
 	public const ECP_APPEND_RECEIPT_DATA = 'ecp_append_receipt_data';
@@ -37,7 +36,7 @@ class EcpAppendsFilters {
 	public const ECP_APPEND_CUSTOMER_LAST_NAME = 'ecp_append_customer_last_name';
 	public const ECP_APPEND_CUSTOMER_ZIP = 'ecp_append_customer_zip';
 	public const ECP_APPEND_CUSTOMER_EMAIL = 'ecp_append_customer_email';
-	public const ECP_APPEND_AVS_POST_CODE = 'ecp_append_avs_post_code';
+	public const ECP_APPEND_AVS_DATA = 'ecp_append_avs_data';
 	public const ECP_APPEND_CARD_OPERATION_TYPE = 'ecp_append_card_operation_type';
 	public const ECP_APPEND_FORCE_MODE = 'ecp_append_force_mode';
 }

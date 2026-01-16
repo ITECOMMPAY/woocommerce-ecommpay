@@ -217,35 +217,24 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 		return $values;
 	}
 
-
 	/**
-	 * <h2>Appends ECOMMPAY Payment Page Avs zip.</h2>
+	 * <h2>Appends ECOMMPAY Payment Page AVS data (post code and street address).</h2>
+	 * <p>Both AVS fields are added only if both values are present.
+	 * If either field is missing, neither is sent to allow Payment Page to collect both.</p>
 	 *
-	 * @param EcpGatewayOrder $order <p>Order object.</p>
 	 * @param array $values <p>Base array for appending data</p>
+	 * @param EcpGatewayOrder $order <p>Order object.</p>
 	 *
 	 * @return array Result of appending data as new array.
 	 */
-	public function append_avs_post_code( array $values, EcpGatewayOrder $order ): array {
-		$this->append_argument(
-			'avs_post_code',
-			wc_format_postcode( $order->get_billing_postcode(), $order->get_billing_country() ),
-			$values
-		);
+	public function append_avs_data( array $values, EcpGatewayOrder $order ): array {
+		$postcode = wc_format_postcode( $order->get_billing_postcode(), $order->get_billing_country() );
+		$address  = $order->get_billing_address();
 
-		return $values;
-	}
-
-	/**
-	 * <h2>Appends ECOMMPAY Payment Page Avs address.</h2>
-	 *
-	 * @param EcpGatewayOrder $order <p>Order object.</p>
-	 * @param array $values <p>Base array for appending data</p>
-	 *
-	 * @return array Result of appending data as new array.
-	 */
-	public function append_avs_street_address( array $values, EcpGatewayOrder $order ): array {
-		$this->append_argument( 'avs_street_address', $order->get_billing_address(), $values );
+		if ( $postcode && $address ) {
+			$this->append_argument( 'avs_post_code', $postcode, $values );
+			$this->append_argument( 'avs_street_address', $address, $values );
+		}
 
 		return $values;
 	}
@@ -258,8 +247,10 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	 * @since 3.0.0
 	 */
 	public function append_card_operation_type( array $values, EcpGatewayOrder $order = null ): array {
-		$mode = ecommpay()->get_general_option( EcpSettingsGeneral::PURCHASE_TYPE,
-			EcpSettingsGeneral::PURCHASE_TYPE_SALE );
+		$mode = ecommpay()->get_general_option(
+			EcpSettingsGeneral::PURCHASE_TYPE,
+			EcpSettingsGeneral::PURCHASE_TYPE_SALE
+		);
 
 		if ( $mode === EcpSettingsGeneral::PURCHASE_TYPE_AUTH && EcpModuleCapture::is_auto_capture_needed( $order ) ) {
 			$mode = EcpSettingsGeneral::PURCHASE_TYPE_SALE;
@@ -536,9 +527,8 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_DATA, $values, $order );
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_BILLING_DATA, $values, $order );
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_RECEIPT_DATA, $values, $order, true );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_AVS_POST_CODE, $values, $order );
 
-		return apply_filters( EcpAppendsFilters::ECP_APPEND_AVS_STREET_ADDRESS, $values, $order );
+		return apply_filters( EcpAppendsFilters::ECP_APPEND_AVS_DATA, $values, $order );
 	}
 
 	/**
@@ -578,7 +568,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 		$recurring = [
 			'register' => true,
 			'type' => EcpGatewayRecurringTypes::AUTO,
-			'amount'   => ecp_price_multiply( $amount, $order->get_currency() ),
+			'amount' => ecp_price_multiply( $amount, $order->get_currency() ),
 		];
 
 		$this->filter_clean( $recurring );
@@ -789,7 +779,10 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 			$this,
 			'append_merchant_return_url'
 		], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_REDIRECT_SUCCESS_URL, [ $this, 'append_redirect_success_url' ], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_REDIRECT_SUCCESS_URL, [
+			$this,
+			'append_redirect_success_url'
+		], 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_REDIRECT_FAIL_URL, [ $this, 'append_redirect_fail_url' ], 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_MERCHANT_CALLBACK_URL, [ $this, 'append_merchant_callback_url' ] );
 		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_DATA, [ $this, 'append_customer_data' ], 10, 2 );
@@ -809,11 +802,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 		add_filter( EcpFilters::ECP_APPEND_CUSTOMER_CITY, [ $this, 'append_customer_city' ], 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ADDRESS, [ $this, 'append_customer_address' ], 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ZIP, [ $this, 'append_customer_zip' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_AVS_POST_CODE, [ $this, 'append_avs_post_code' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_AVS_STREET_ADDRESS, [
-			$this,
-			'append_avs_street_address'
-		], 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_AVS_DATA, [ $this, 'append_avs_data' ], 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_DATA, [ $this, 'append_billing_data' ], 10, 2 );
 		add_filter( EcpFilters::ECP_APPEND_BILLING_ADDRESS, [ $this, 'append_billing_address' ], 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_CITY, [ $this, 'append_billing_city' ], 10, 2 );

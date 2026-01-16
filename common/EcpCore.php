@@ -60,7 +60,7 @@ final class EcpCore extends WC_Settings_API {
 	 * @var string
 	 * @since 2.0.0
 	 */
-	public const WC_ECP_VERSION = '4.2.0';
+	public const WC_ECP_VERSION = '4.2.1';
 
 	public const ECOMMPAY_PAYMENT_METHOD = 'ecommpay';
 
