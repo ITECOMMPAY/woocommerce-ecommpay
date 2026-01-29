@@ -41,6 +41,7 @@
         {
           action: 'ecommpay_manual_transaction_actions',
           post: this.postID.val(),
+          nonce: ajax_object.nonce,
         },
         dataObject
       ),

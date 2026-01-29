@@ -62,7 +62,12 @@ class EcpGatewayOrder extends Order {
 	 */
 	public static function get_order_id_from_callback( EcpGatewayInfoCallback $info ) {
 		global $wpdb;
-		$payment_id = $info->get_payment()->get_id() ?? $_GET['payment_id'];
+
+		$payment_id = $info->get_payment()->get_id();
+
+		if ( ! $payment_id && isset( $_GET['payment_id'] ) ) {
+			$payment_id = sanitize_text_field( wp_unslash( $_GET['payment_id'] ) );
+		}
 
 		if ( ecp_HPOS_enabled() ) {
 			$orders = wc_get_orders( [

@@ -112,6 +112,13 @@ class EcpGatewayInfoProvider extends EcpGatewayJson {
 		return null;
 	}
 
+	protected function packRules(): array {
+		return [
+			self::FIELD_DATE => function ( $value ) {
+				return $value->format( DateTimeInterface::RFC3339 );
+			},
+		];
+	}
 
 	/**
 	 * @inheritDoc

@@ -1,31 +1,35 @@
 {
-  "name": "woocommerce-ecommpay",
-  "version": "1.0.0",
-  "description": "",
-  "scripts": {
-    "start": "wp-scripts start",
-    "build": "wp-scripts build",
-    "plugin-zip": "wp-scripts plugin-zip",
-    "check-engines": "wp-scripts check-engines",
-    "check-licenses": "wp-scripts check-licenses",
-    "format": "wp-scripts format",
-    "lint:css": "wp-scripts lint-style",
-    "lint:js": "wp-scripts lint-js",
-    "lint:md:docs": "wp-scripts lint-md-docs",
-    "lint:pkg-json": "wp-scripts lint-pkg-json",
-    "packages-update": "wp-scripts packages-update",
-    "test:e2e": "wp-scripts test-e2e",
-    "test:unit": "wp-scripts test-unit-js"
-  },
-  "author": "ECOMMPAY",
-  "license": "GPL-2.0-only",
-  "devDependencies": {
-    "@types/applepayjs": "^14.0.9",
-    "@wordpress/scripts": "^26.19.0"
-  },
-  "dependencies": {
-    "@wordpress/element": "^5.27.0",
-    "@wordpress/html-entities": "^3.50.0",
-    "use-debounce": "^10.0.0"
-  }
+	"name": "woocommerce-ecommpay",
+	"version": "1.0.0",
+	"description": "",
+	"scripts": {
+		"start": "wp-scripts start",
+		"build": "wp-scripts build",
+		"plugin-zip": "wp-scripts plugin-zip",
+		"check-engines": "wp-scripts check-engines",
+		"check-licenses": "wp-scripts check-licenses",
+		"format": "wp-scripts format",
+		"lint:css": "wp-scripts lint-style",
+		"lint:js": "wp-scripts lint-js",
+		"lint:md:docs": "wp-scripts lint-md-docs",
+		"lint:pkg-json": "wp-scripts lint-pkg-json",
+		"packages-update": "wp-scripts packages-update",
+		"test:e2e": "wp-scripts test-e2e",
+		"test:unit": "wp-scripts test-unit-js"
+	},
+	"author": "ECOMMPAY",
+	"license": "GPL-2.0-only",
+	"devDependencies": {
+		"@types/applepayjs": "^14.0.9",
+		"@wordpress/scripts": "^26.19.0"
+	},
+	"dependencies": {
+		"@wordpress/element": "^5.27.0",
+		"@wordpress/html-entities": "^3.50.0",
+		"use-debounce": "^10.0.0"
+	},
+	"resolutions": {
+		"@babel/runtime": "^7.26.10",
+		"@babel/core": "^7.26.10"
+	}
 }

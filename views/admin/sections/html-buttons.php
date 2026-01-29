@@ -17,12 +17,12 @@ if ( $order->is_ecp() && $order->get_ecp_status() === EcpGatewayPaymentStatus::A
 	?>
 
 	<button class="button button-primary <?= esc_attr( EcpModuleAdminUI::ACTION_BUTTON_CLASS ); ?>"
-			data-ecp-action="capture"
+			data-ecp-action="<?= esc_attr( EcpModuleAdminUI::ACTION_CAPTURE ); ?>"
 			data-order-id="<?= esc_attr( $order->get_id() ); ?>">
 		<?= ecpL( 'Capture', 'Capture payment from dashboard' ) . ' ' . $order->get_formatted_order_total(); ?>
 	</button>
 	<button class="button button-secondary <?= esc_attr( EcpModuleAdminUI::ACTION_BUTTON_CLASS ); ?>"
-			data-ecp-action="cancel"
+			data-ecp-action="<?= esc_attr( EcpModuleAdminUI::ACTION_CANCEL ); ?>"
 			data-order-id="<?= esc_attr( $order->get_id() ); ?>">
 		<?= esc_html( ecpL( 'Cancel payment', 'Cancel payment from dashboard' ) ); ?>
 	</button>
@@ -30,6 +30,8 @@ if ( $order->is_ecp() && $order->get_ecp_status() === EcpGatewayPaymentStatus::A
 		jQuery(function($) {
 			const refundButtonSelector = '<?= esc_js( EcpModuleAdminUI::WP_REFUND_BUTTON_SELECTOR ); ?>'
 			const actionButtonClass = '<?= esc_js( EcpModuleAdminUI::ACTION_BUTTON_CLASS ); ?>'
+			const ACTION_CAPTURE = '<?= esc_js( EcpModuleAdminUI::ACTION_CAPTURE ); ?>'
+			const ACTION_CANCEL = '<?= esc_js( EcpModuleAdminUI::ACTION_CANCEL ); ?>'
 
 			// Refund button handler
 			$(refundButtonSelector).on('click', function(e) {
@@ -44,8 +46,8 @@ if ( $order->is_ecp() && $order->get_ecp_status() === EcpGatewayPaymentStatus::A
 				const orderId = $(this).data('order-id')
 				const action = $(this).data('ecp-action')
 				const confirmMessages = {
-					capture: 'Are you sure you wish to process this capture? This action cannot be undone.',
-					cancel: 'Are you sure you wish to process this cancel? This action cannot be undone.',
+					[ACTION_CAPTURE]: 'Are you sure you wish to process this capture? This action cannot be undone.',
+					[ACTION_CANCEL]: 'Are you sure you wish to process this cancel? This action cannot be undone.',
 				}
 
 				if (!confirm(confirmMessages[action])) return
