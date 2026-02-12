@@ -5,6 +5,7 @@ namespace common\includes;
 use common\exceptions\EcpGatewaySignatureException;
 use common\helpers\EcpGatewayOperationStatus;
 use common\helpers\EcpGatewayOperationType;
+use common\helpers\WCOrderStatus;
 use common\includes\callbackOperations\EcpAuthOperationHandler;
 use common\includes\callbackOperations\EcpCancelOperationHandler;
 use common\includes\callbackOperations\EcpCaptureOperationHandler;
@@ -298,7 +299,15 @@ class EcpCallbacksHandler {
 			case EcpGatewayOperationStatus::EXPIRED:
 			case EcpGatewayOperationStatus::INTERNAL_ERROR:
 			case EcpGatewayOperationStatus::EXTERNAL_ERROR:
-			$this->order_manager->decline_order( $callback, $order );
+
+				// Prevents rewrite of the order status to Decline if the order is already paid by other payment method and has status Processing, Completed or On Hold.
+				if ( in_array( $order->get_status(), [ WCOrderStatus::ON_HOLD, WCOrderStatus::PROCESSING, WCOrderStatus::COMPLETED ], true ) ) {
+					$order->add_order_note( __( 'The payment has failed, but the order has already been paid by other payment method.', 'woo-ecommpay' ) );
+					$this->order_manager->append_order_errors( $callback, $order );
+					return;
+				}
+
+				$this->order_manager->decline_order( $callback, $order );
 				break;
 		}
 	}
