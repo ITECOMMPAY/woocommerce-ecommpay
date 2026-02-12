@@ -242,6 +242,17 @@ class EcpGatewayInfoOperation extends EcpGatewayJson {
 		return $provider;
 	}
 
+	protected function packRules(): array {
+		return [
+			self::FIELD_DATE => function ( $value ) {
+				return $value->format( DateTimeInterface::RFC3339 );
+			},
+			self::FIELD_CREATED_DATE => function ( $value ) {
+				return $value->format( DateTimeInterface::RFC3339 );
+			},
+		];
+	}
+
 	protected function unpackRules(): array {
 		return [
 			self::FIELD_DATE         => function ( $value ) {

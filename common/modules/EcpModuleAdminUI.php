@@ -28,6 +28,30 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 	public const ACTION_BUTTON_CLASS = 'ecp-action-button';
 	public const WP_REFUND_BUTTON_SELECTOR = '.button.refund-items';
 
+	public const ACTION_REFRESH = 'refresh';
+	public const ACTION_CAPTURE = 'capture';
+	public const ACTION_CANCEL = 'cancel';
+	public const ACTION_REFUND = 'refund';
+
+	/**
+	 * List of all allowed payment actions for AJAX requests
+	 */
+	private const ALLOWED_ACTIONS = [
+		self::ACTION_REFRESH,
+		self::ACTION_CAPTURE,
+		self::ACTION_CANCEL,
+		self::ACTION_REFUND,
+	];
+
+	/**
+	 * List of allowed payment actions that perform API calls
+	 */
+	private const ALLOWED_API_ACTIONS = [
+		self::ACTION_CAPTURE,
+		self::ACTION_CANCEL,
+		self::ACTION_REFUND,
+	];
+
 	/**
 	 * <h2>Adds a new "Payment" column to "Orders" list.</h2>
 	 *
@@ -369,7 +393,10 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 			wp_localize_script(
 				'ecommpay-backend',
 				'ajax_object',
-				[ 'ajax_url' => admin_url( 'admin-ajax.php' ) ]
+				[
+					'ajax_url' => admin_url( 'admin-ajax.php' ),
+					'nonce'    => wp_create_nonce( 'ecommpay_manual_action' )
+				]
 			);
 		}
 
@@ -414,6 +441,9 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 	 * @since  2.0.0
 	 */
 	public function ajax_manual_request_actions(): void {
+		// Security: Verify nonce for CSRF protection
+		check_ajax_referer( 'ecommpay_manual_action', 'nonce' );
+
 		$param_action = wc_get_var( $_REQUEST['ecommpay_action'] );
 		$param_post   = wc_get_var( $_REQUEST['post'] );
 
@@ -421,15 +451,19 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 			return;
 		}
 
+		// Security: Validate action against whitelist to prevent code injection
+		if ( ! in_array( $param_action, self::ALLOWED_ACTIONS, true ) ) {
+			wp_die( 'Invalid payment action requested.' );
+		}
+
 		if ( ! woocommerce_ecommpay_can_user_manage_payments( $param_action ) ) {
-			printf( 'Your user is not capable of %s payments.', $param_action );
-			exit;
+			wp_die( 'Insufficient permissions for payment management.' );
 		}
 
 		$order = new EcpGatewayOrder( (int) $param_post );
 
 		switch ( $param_action ) {
-			case 'refresh':
+			case self::ACTION_REFRESH:
 				$order->get_payment( true, true );
 				break;
 			default:
@@ -453,45 +487,38 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 
 			// Based on the current transaction state, we check if the requested action is allowed
 			if ( ! $order->is_action_allowed( $param_action ) ) {
-				// The action was not allowed.
+				// The action was not allowed - don't expose internal details
 				throw new EcpGatewayAPIException(
 					sprintf(
-						'Action: "%s", is not allowed for order #%d, with type state "%s"',
-						$param_action,
-						$order->get_id(),
-						$transaction_info->get_current_type()
+						'Action is not allowed for order #%d with current transaction state',
+						$order->get_id()
 					)
 				);
 			}
 
-			// Check if the action method is available in the payment class
-			if ( ! method_exists( $api, $param_action ) ) {
-				throw new EcpGatewayAPIException(
-					sprintf(
-						'Unsupported action: "%s".',
-						$param_action
-					)
-				);
+			// Security: Double-check action is in whitelist before method call
+			if ( ! in_array( $param_action, self::ALLOWED_API_ACTIONS, true ) ) {
+				throw new EcpGatewayAPIException( 'Invalid payment action requested.' );
 			}
 
-			$payment_amount = wc_get_var( $_REQUEST['$payment_amount'] );
-
-			// Fetch amount if sent.
-			$amount = $payment_amount !== null
-				? ecp_price_custom_to_multiplied(
-					$payment_amount,
-					$transaction_info->get_currency()
-				)
-				: $transaction_info->get_remaining_balance();
-
-			// Call the action method and parse the transaction id and order object
-			$api->$param_action(
-				$transaction_id,
-				$order,
-				ecp_price_multiplied_to_float( $amount, $transaction_info->get_currency() )
-			);
+			// Security: Use explicit method calls instead of variable function call
+			switch ( $param_action ) {
+				case self::ACTION_CAPTURE:
+					$api->capture( $order );
+					break;
+				case self::ACTION_CANCEL:
+					$api->cancel( $order );
+					break;
+				case self::ACTION_REFUND:
+					// For refund, find the unprocessed refund created by WooCommerce
+					$refund = $order->find_unprocessed_refund();
+					$api->refund( $refund, $order );
+					break;
+				default:
+					throw new EcpGatewayAPIException( 'Payment action not supported.' );
+			}
 		} catch ( EcpGatewayAPIException $e ) {
-			echo $e->getMessage();
+			echo esc_html( $e->getMessage() );
 			$e->write_to_logs();
 			exit;
 		}

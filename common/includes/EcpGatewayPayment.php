@@ -14,6 +14,7 @@ use common\models\EcpGatewayInfoOperation;
 use common\models\EcpGatewayInfoPayment;
 use DateTimeInterface;
 use Exception;
+use JsonSerializable;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -27,7 +28,7 @@ defined( 'ABSPATH' ) || exit;
  * @package  Ecp_Gateway/Includes
  * @category Class
  */
-class EcpGatewayPayment {
+class EcpGatewayPayment implements JsonSerializable {
 
 
 	/**
@@ -56,21 +57,21 @@ class EcpGatewayPayment {
 	 *
 	 * @var ?EcpGatewayInfoCustomer
 	 */
-	private ?EcpGatewayInfoCustomer $customer;
+	private ?EcpGatewayInfoCustomer $customer = null;
 
 	/**
 	 * <h2>Account information.</h2>
 	 *
 	 * @var ?EcpGatewayInfoAccount
 	 */
-	private ?EcpGatewayInfoAccount $account;
+	private ?EcpGatewayInfoAccount $account = null;
 
 	/**
 	 * <h2>ACS information.</h2>
 	 *
 	 * @var ?EcpGatewayInfoACS
 	 */
-	private ?EcpGatewayInfoACS $acs;
+	private ?EcpGatewayInfoACS $acs = null;
 
 	/**
 	 * <h2>List of errors.</h2>
@@ -154,8 +155,8 @@ class EcpGatewayPayment {
 
 		$this->status_transition = new EcpGatewayPaymentStatusTransition(
 			[
-				'old'  => $old_status,
-				'new'  => $new_status,
+				'old' => $old_status,
+				'new' => $new_status,
 				'note' => $note
 			]
 		);
@@ -195,7 +196,7 @@ class EcpGatewayPayment {
 			do_action( 'ecommpay_payment_status_' . $transition->get_new(), $this->get_id(), $this );
 
 			switch ( true ) {
-				case ! empty ( $transition->get_old() ):
+				case ! empty( $transition->get_old() ):
 					if ( ! $transition->is_changed() ) {
 						return;
 					}
@@ -486,7 +487,7 @@ class EcpGatewayPayment {
 			return in_array( $operation->get_type(), [ 'auth', 'recurring' ] );
 		} );
 
-		if ( empty ( $authorized_operations ) ) {
+		if ( empty( $authorized_operations ) ) {
 			return null;
 		}
 
@@ -512,7 +513,7 @@ class EcpGatewayPayment {
 			return null;
 		}
 
-		return ! empty ( $this->info->get_sum() ) ? $this->info->get_sum()->get_amount() : null;
+		return ! empty( $this->info->get_sum() ) ? $this->info->get_sum()->get_amount() : null;
 	}
 
 	/**
@@ -662,5 +663,76 @@ class EcpGatewayPayment {
 		}
 
 		return null;
+	}
+
+	/**
+	 * <h2>Converts payment data to array for caching.</h2>
+	 * <p>Serializes only the API data, excluding the WooCommerce order object.</p>
+	 * <p>Implements JsonSerializable interface.</p>
+	 *
+	 * @return array Payment data as associative array
+	 * @since 3.3.2
+	 */
+	public function jsonSerialize(): array {
+		return [
+			'payment_id' => $this->get_id(),
+			'info'       => $this->info ? $this->info->to_array() : null,
+			'customer'   => $this->customer ? $this->customer->to_array() : null,
+			'account'    => $this->account ? $this->account->to_array() : null,
+			'acs'        => $this->acs ? $this->acs->to_array() : null,
+			'operations' => array_map(static function (EcpGatewayInfoOperation $operation): array {
+				return $operation->to_array();
+			}, $this->operations ),
+			'errors'     => array_map( static function ( EcpGatewayInfoError $error ): array {
+				return $error->to_array();
+			}, $this->errors ),
+		];
+	}
+
+	/**
+	 * <h2>Restores payment data from cached array.</h2>
+	 *
+	 * @param EcpGatewayOrder $order Parent order
+	 * @param array $data Cached payment data
+	 *
+	 * @return static Restored payment object
+	 * @since 3.3.2
+	 */
+	public static function fromCache( EcpGatewayOrder $order, array $data ): EcpGatewayPayment {
+		$payment = new static( $order );
+
+		if ( ! empty( $data['info'] ) && is_array( $data['info'] ) ) {
+			$payment->set_info( new EcpGatewayInfoPayment( $data['info'] ) );
+		}
+
+		if ( ! empty( $data['customer'] ) && is_array( $data['customer'] ) ) {
+			$payment->set_customer( new EcpGatewayInfoCustomer( $data['customer'] ) );
+		}
+
+		if ( ! empty( $data['account'] ) && is_array( $data['account'] ) ) {
+			$payment->set_account( new EcpGatewayInfoAccount( $data['account'] ) );
+		}
+
+		if ( ! empty( $data['acs'] ) && is_array( $data['acs'] ) ) {
+			$payment->set_acs( new EcpGatewayInfoACS( $data['acs'] ) );
+		}
+
+		if ( ! empty( $data['operations'] ) && is_array( $data['operations'] ) ) {
+			foreach ( $data['operations'] as $op_data ) {
+				if ( is_array( $op_data ) ) {
+					$payment->add_operation( new EcpGatewayInfoOperation( $op_data ) );
+				}
+			}
+		}
+
+		if ( ! empty( $data['errors'] ) && is_array( $data['errors'] ) ) {
+			foreach ( $data['errors'] as $err_data ) {
+				if ( is_array( $err_data ) ) {
+					$payment->errors[] = new EcpGatewayInfoError( $err_data );
+				}
+			}
+		}
+
+		return $payment;
 	}
 }

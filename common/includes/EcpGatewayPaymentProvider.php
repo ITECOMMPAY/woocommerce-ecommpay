@@ -27,23 +27,10 @@ class EcpGatewayPaymentProvider extends EcpGatewayRegistry {
 		ecp_get_log()->debug( __( 'Order ID:', 'woo-ecommpay' ), $order->get_id() );
 		ecp_get_log()->debug( __( 'Reload?', 'woo-ecommpay' ), $reload ? __( 'Yes', 'woo-ecommpay' ) : __( 'No', 'woo-ecommpay' ) );
 
-		if ( ! $reload && $this->is_transaction_caching_enabled() ) {
-			ecp_get_log()->info( __( 'Try loading payment data from cache...', 'woo-ecommpay' ) );
-			$transient = get_transient( $this->get_transient_id( $order->get_payment_id() ) );
-
-			if ( $transient ) {
-				// new EcpGatewayInfoStatus(json_decode($transient, true))
-				$payment = @unserialize( $transient );
-
-				if ( $payment instanceof EcpGatewayPayment ) {
-					ecp_get_log()->info( __( 'Payment loaded from cache. Cache data exists.', 'woo-ecommpay' ) );
-
-					return $payment;
-				}
-
-				ecp_get_log()->warning( __( 'Cache data corrupted:', 'woo-ecommpay' ), $transient );
-			} else {
-				ecp_get_log()->info( __( 'Invalid cache data.', 'woo-ecommpay' ) );
+		if ( ! $reload ) {
+			$cached_payment = $this->tryLoadFromCache( $order );
+			if ( $cached_payment ) {
+				return $cached_payment;
 			}
 		}
 
@@ -62,6 +49,51 @@ class EcpGatewayPaymentProvider extends EcpGatewayRegistry {
 		}
 
 		return $payment;
+	}
+
+	/**
+	 * Tries to load payment from cache.
+	 *
+	 * @param EcpGatewayOrder $order
+	 *
+	 * @return EcpGatewayPayment|null Returns payment if found in cache, null otherwise
+	 */
+	private function tryLoadFromCache( EcpGatewayOrder $order ): ?EcpGatewayPayment {
+		if ( ! $this->is_transaction_caching_enabled() ) {
+			return null;
+		}
+
+		ecp_get_log()->info( __( 'Try loading payment data from cache...', 'woo-ecommpay' ) );
+
+		$transient = get_transient( $this->get_transient_id( $order->get_payment_id() ) );
+
+		if ( ! $transient ) {
+			ecp_get_log()->info( __( 'Invalid cache data.', 'woo-ecommpay' ) );
+
+			return null;
+		}
+
+		$cached_data = json_decode( $transient, true );
+
+		if ( ! is_array( $cached_data ) || empty( $cached_data['payment_id'] ) ) {
+			ecp_get_log()->warning( __( 'Cache data corrupted or invalid format', 'woo-ecommpay' ) );
+
+			return null;
+		}
+
+		try {
+			$payment = EcpGatewayPayment::fromCache( $order, $cached_data );
+			ecp_get_log()->info( __( 'Payment loaded from cache. Cache data exists.', 'woo-ecommpay' ) );
+
+			return $payment;
+		} catch ( Exception $e ) {
+			ecp_get_log()->warning(
+				__( 'Failed to restore payment from cache:', 'woo-ecommpay' ),
+				$e->getMessage()
+			);
+
+			return null;
+		}
 	}
 
 	/**
@@ -89,6 +121,7 @@ class EcpGatewayPaymentProvider extends EcpGatewayRegistry {
 		$payment = new EcpGatewayPayment( $order );
 
 		if ( count( $status->get_errors() ) > 0 ) {
+			$info = null;
 			if ( $status->try_get_payment( $info ) ) {
 				$payment->set_info( $info );
 			}
@@ -129,10 +162,14 @@ class EcpGatewayPaymentProvider extends EcpGatewayRegistry {
 			// Cache expiration in seconds
 			$expiration = apply_filters( 'woocommerce_ecommpay_transaction_cache_expiration', $expiration );
 
+
 			ecp_get_log()->debug( __( 'Expiration length:.', 'woo-ecommpay' ), $expiration );
+
+			$json_data = json_encode( $payment, JSON_THROW_ON_ERROR );
+
 			set_transient(
 				$this->get_transient_id( $payment->get_id() ),
-				serialize( $payment ),
+				$json_data,
 				$expiration
 			);
 		} catch ( Exception $e ) {

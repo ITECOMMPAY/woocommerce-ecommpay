@@ -129,7 +129,11 @@ class EcpCallbacksHandler {
 	 * @since 2.0.0
 	 */
 	private function get_order( EcpGatewayInfoCallback $info ): EcpGatewayOrder {
-		$payment_id = $info->get_payment()->get_id() ?? $_GET['payment_id'];
+		$payment_id = $info->get_payment()->get_id();
+
+		if ( ! $payment_id && isset( $_GET['payment_id'] ) ) {
+			$payment_id = sanitize_text_field( wp_unslash( $_GET['payment_id'] ) );
+		}
 
 		$order_number = EcpGatewayOrder::get_order_id_from_callback( $info );
 		$order        = ecp_get_order( $order_number );

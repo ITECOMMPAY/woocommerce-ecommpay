@@ -3,6 +3,8 @@
  * Template for ECOMMPAY Payment meta box error message.
  */
 
+use common\modules\EcpModuleAdminUI;
+
 ?>
 <ul class="order_actions">
 	<li class="wide">
@@ -19,7 +21,8 @@
 	</li>
 	<li class="wide">
 		<strong class="ecp-amount"></strong>
-		<button type="button" data-action="refresh" class="button refresh-info button-secondary" name="save"
+		<button type="button" data-action="<?php echo esc_attr( EcpModuleAdminUI::ACTION_REFRESH ); ?>"
+				class="button refresh-info button-secondary" name="save"
 				value="Refresh">Refresh
 		</button>
 	</li>

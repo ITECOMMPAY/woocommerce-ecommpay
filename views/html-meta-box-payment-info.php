@@ -17,6 +17,7 @@
 
 use common\helpers\EcpGatewayPaymentStatus;
 use common\models\EcpGatewayInfoPayment;
+use common\modules\EcpModuleAdminUI;
 
 ?>
 <ul class="order_actions">
@@ -118,7 +119,8 @@ use common\models\EcpGatewayInfoPayment;
 		<strong class="ecp-amount">
 			<?php echo wp_kses_post( $amount ); ?>
 		</strong>
-		<button type="button" data-action="refresh" class="button refresh-info button-secondary" name="save"
+		<button type="button" data-action="<?php echo esc_attr( EcpModuleAdminUI::ACTION_REFRESH ); ?>"
+				class="button refresh-info button-secondary" name="save"
 				value="Refresh">Refresh
 		</button>
 	</li>
