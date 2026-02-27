@@ -49,6 +49,16 @@ class EcpGatewayOrder extends Order {
 	private const ORDER_PAY_ECOMMPAY_ACTION_NAME = 'ecommpay_process';
 
 	/**
+	 * Payment statuses that require creating a new payment_id.
+	 */
+	private const STATUSES_REQUIRING_NEW_PAYMENT_ID = [
+		EcpGatewayPaymentStatus::DECLINE,
+		EcpGatewayPaymentStatus::EXPIRED,
+		EcpGatewayPaymentStatus::INTERNAL_ERROR,
+		EcpGatewayPaymentStatus::EXTERNAL_ERROR,
+	];
+
+	/**
 	 * @var ?EcpGatewayPayment
 	 */
 	private ?EcpGatewayPayment $payment = null;
@@ -110,8 +120,22 @@ class EcpGatewayOrder extends Order {
 	 * @return string
 	 */
 	public function create_payment_id(): string {
-		$embeddedModePaymentId = $this->getEmbeddedModePaymentId();
-		$paymentId = $embeddedModePaymentId ? : generateNewPaymentId($this);
+		if ( $embeddedModePaymentId = $this->getEmbeddedModePaymentId() ) {
+			$paymentId = $embeddedModePaymentId;
+		} else {
+			// Check if we can reuse existing payment_id first.
+			if ( $reusablePaymentId = $this->get_reusable_payment_id() ) {
+				ecp_get_log()->info(
+					sprintf(
+						__( 'Reusing existing payment ID %s (status: %s)', 'woo-ecommpay' ),
+						$reusablePaymentId,
+						$this->get_ecp_status()
+					)
+				);
+				return $reusablePaymentId;
+			}
+			$paymentId = generateNewPaymentId( $this );
+		}
 
 		$this->set_payment_id( $paymentId );
 		$this->set_ecp_payment_status( EcpGatewayPaymentStatus::INITIAL );
@@ -120,6 +144,22 @@ class EcpGatewayOrder extends Order {
 		ecp_get_log()->debug( __( 'New payment identifier created:', 'woo-ecommpay' ), $paymentId );
 
 		return $paymentId;
+	}
+
+	private function get_reusable_payment_id(): ?string {
+		$existing_payment_id = $this->get_payment_id();
+
+		if ( ! $existing_payment_id ) {
+			return null;
+		}
+
+		$current_status = $this->get_ecp_status();
+
+		if ( in_array( $current_status, self::STATUSES_REQUIRING_NEW_PAYMENT_ID, true ) ) {
+			return null;
+		}
+
+		return $existing_payment_id;
 	}
 
 	private function getEmbeddedModePaymentId(): ?string {
