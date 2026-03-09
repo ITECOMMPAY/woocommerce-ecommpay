@@ -77,7 +77,6 @@ class EcpGatewayFormHandler extends WC_Form_Handler {
 
 						// Update meta
 						$order->set_payment_method( $payment_method );
-						$order->set_ecp_meta( '_payment_method', $payment_method_id );
 						$order->set_ecp_meta( '_payment_method_title', $payment_method->get_title() );
 						$order->save();
 

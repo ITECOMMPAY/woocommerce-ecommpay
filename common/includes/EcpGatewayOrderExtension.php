@@ -3,6 +3,7 @@
 namespace common\includes;
 
 use common\EcpCore;
+use WC_Meta_Data;
 
 trait EcpGatewayOrderExtension {
 	/**
@@ -232,13 +233,7 @@ trait EcpGatewayOrderExtension {
 	 * @return bool
 	 */
 	public function is_ecp(): bool {
-		$pm = $this->get_ecp_meta( '_payment_method' );
-
-		if ( array_key_exists( $pm, ecp_payment_methods() ) ) {
-			return true;
-		}
-
-		return $pm === EcpCore::ECOMMPAY_PAYMENT_METHOD;
+		return strpos( $this->get_payment_method(), EcpCore::ECOMMPAY_PAYMENT_METHOD ) === 0;
 	}
 
 	public function get_currency_uppercase(): string {

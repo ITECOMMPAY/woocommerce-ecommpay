@@ -167,6 +167,14 @@ class EcpCallbacksHandler {
 			die ( $message );
 		}
 
+		if ( ! $order->is_ecp() ) {
+			$message = 'Ecommpay callback ignored — order payment gateway has changed.';
+			$order->add_order_note( $message );
+			ecp_get_log()->info( $message );
+			http_response_code( 200 );
+			die ( $message );
+		}
+
 		return $order;
 	}
 
