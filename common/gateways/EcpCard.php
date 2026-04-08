@@ -68,7 +68,7 @@ class EcpCard extends EcpGateway {
 		$amount       = ecp_price_multiply( $order->get_total(), $order->get_currency() );
 		$display_mode = $this->get_option( EcpSettings::OPTION_MODE, EcpSettings::MODE_REDIRECT );
 
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CARD_OPERATION_TYPE, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_OPERATION_TYPE, $values, $order );
 		// Setup Payment Page Operation Mode
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_OPERATION_MODE, $values, $amount > 0 ? self::MODE_PURCHASE : self::MODE_CARD_VERIFY );
 		// Setup Payment Page Force Mode

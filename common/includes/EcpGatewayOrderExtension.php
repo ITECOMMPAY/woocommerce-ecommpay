@@ -3,7 +3,6 @@
 namespace common\includes;
 
 use common\EcpCore;
-use WC_Meta_Data;
 
 trait EcpGatewayOrderExtension {
 	/**
@@ -103,7 +102,7 @@ trait EcpGatewayOrderExtension {
 	/**
 	 * Sets ECOMMPAY payment method.
 	 *
-	 * @param string $name
+	 * @param string|null $name
 	 *
 	 * @return void
 	 */

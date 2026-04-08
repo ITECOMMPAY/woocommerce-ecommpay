@@ -14,7 +14,11 @@ use common\includes\filters\EcpAppendsFilters;
 use common\includes\filters\EcpFilters;
 use common\includes\filters\EcpWCFilters;
 use common\includes\filters\EcpWPFilters;
+use common\settings\EcpSettings;
+use common\settings\EcpSettingsCard;
+use common\settings\EcpSettingsGeneral;
 use Exception;
+use WC_Log_Levels;
 use WC_Payment_Gateways;
 use WC_Subscriptions_Cart;
 
@@ -50,6 +54,12 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 	private const HOST = 'paymentpage.ecommpay.com';
 
 	private const FAILED_URI = '/checkout?payment_failed=1';
+
+	private const FRAME_MODE_IFRAME = 'iframe';
+	private const FRAME_MODE_EMBEDDED = 'embedded';
+
+	private const FORCE_PAYMENT_METHOD_CARD = 'card';
+	private const TARGET_ELEMENT_EMBEDDED = 'ecommpay-iframe-embedded';
 
 	/**
 	 * <h2>Stores line items to send to ECOMMPAY.</h2>
@@ -104,7 +114,11 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 				}
 				break;
 			case 'get_data_for_payment_form':
-				$this->get_data_for_payment_form();
+				if ( self::is_modern_embedded_mode() ) {
+					$this->get_data_for_payment_form();
+				} else {
+					$this->get_legacy_data_for_payment_form();
+				}
 				break;
 			case 'get_payment_status':
 				$this->get_payment_status();
@@ -116,9 +130,33 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 	}
 
 	/**
-	 * @throws EcpGatewaySignatureException
+	 * <h2>Check if payment page v5 embedded mode is configured.</h2>
+	 *
+	 * @return bool True if card display mode is embedded and PP version is v5.
+	 * @since 3.2.0
 	 */
-	private function get_data_for_payment_form() {
+	public static function is_modern_embedded_mode(): bool {
+		$card_settings = ecommpay()->get_option( EcpSettingsCard::ID );
+		$card_display_mode = $card_settings[ EcpSettings::OPTION_MODE ] ?? EcpSettings::MODE_EMBEDDED;
+		$payment_page_version = ecommpay()->get_general_option(
+			EcpSettingsGeneral::OPTION_PAYMENT_PAGE_VERSION,
+			EcpSettingsGeneral::PP_VERSION_LEGACY
+		);
+
+		return (
+			$card_display_mode === EcpSettings::MODE_EMBEDDED &&
+			$payment_page_version === EcpSettingsGeneral::PP_VERSION_MODERN
+		);
+	}
+
+	/**
+	 * <h2>Get base embedded form data shared by both embedded widget variants.</h2>
+	 *
+	 * @return array Base payment data with common parameters.
+	 * @throws Exception
+	 * @since 3.2.0
+	 */
+	private function get_base_embedded_data(): array {
 		if ( $order = $this->hasOrderOnOrderPayPage() ) {
 			$payment_currency = $order->get_currency();
 			$payment_amount   = ecp_price_multiply( $order->get_total(), $order->get_currency() );
@@ -127,39 +165,89 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 			$payment_currency = get_woocommerce_currency();
 			$payment_amount   = ecp_price_multiply( WC()->cart->total, $payment_currency );
 		}
-		$payment_id = generateNewPaymentId($order ? : $this->getCreatedOrderForRePayment());
+
+		$payment_id = generateNewPaymentId( $order ? : $this->getCreatedOrderForRePayment() );
+
+		// Build base data array.
 		$data = [
-			'mode' => $payment_amount > 0 ? self::MODE_PURCHASE : self::MODE_CARD_VERIFY,
-			'payment_amount'          => $payment_amount,
-			'payment_currency'        => $payment_currency,
-			'project_id'              => ecommpay()->get_project_id(),
-			'payment_id' 			  => $payment_id,
-			'force_payment_method'    => 'card',
-			'target_element'          => 'ecommpay-iframe-embedded',
-			'frame_mode'              => 'iframe',
-			'merchant_callback_url'   => ecp_callback_url(),
-			'payment_methods_options' => "{\"additional_data\":{\"embedded_mode\":true}}",
+			'mode'                 => $payment_amount > 0 ? self::MODE_PURCHASE : self::MODE_CARD_VERIFY,
+			'payment_amount'       => $payment_amount,
+			'payment_currency'     => $payment_currency,
+			'project_id'           => ecommpay()->get_project_id(),
+			'payment_id'           => $payment_id,
+			'force_payment_method' => self::FORCE_PAYMENT_METHOD_CARD,
+			'target_element'       => self::TARGET_ELEMENT_EMBEDDED,
+			'merchant_callback_url' => ecp_callback_url(),
+			// Note: _referrer is not needed here — merchant.js sets it automatically via config._referrer.
 		];
 
 		$data = apply_filters( EcpAppendsFilters::ECP_APPEND_INTERFACE_TYPE, $data, true );
-
 		$data = $this->append_recurring_total_form_cart( $data );
 
 		if ( isset ( $order ) ) {
-			$data = apply_filters( EcpAppendsFilters::ECP_APPEND_CARD_OPERATION_TYPE, $data, $order );
 			$data = apply_filters( EcpAppendsFilters::ECP_APPEND_RECEIPT_DATA, $data, $order, true );
 			$data = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ID, $data, $order );
 		} else {
-			$data = apply_filters( EcpAppendsFilters::ECP_APPEND_CARD_OPERATION_TYPE, $data );
 			$data = $this->append_receipt_data_from_cart( $data );
-			if ( WC()->cart->get_customer()->id ) {
-				$data['customer_id'] = WC()->cart->get_customer()->id;
+			$customer = WC()->cart->get_customer();
+			if ( $customer->get_id() ) {
+				$data['customer_id'] = $customer->get_id();
 			}
 		}
 
-		$data = apply_filters( EcpAppendsFilters::ECP_APPEND_LANGUAGE_CODE, $data );
+		return apply_filters( EcpAppendsFilters::ECP_APPEND_LANGUAGE_CODE, $data );
+	}
 
-		ecp_debug( 'Payment page data: ', $data );
+	/**
+	 * <h2>Returns payment page data for the legacy-embedded card form.</h2>
+	 *
+	 * @throws EcpGatewaySignatureException
+	 * @throws Exception
+	 * @since 3.2.0
+	 */
+	private function get_legacy_data_for_payment_form() {
+		$data = $this->get_base_embedded_data();
+
+		// Add legacy-specific parameters.
+		$data['frame_mode']              = self::FRAME_MODE_IFRAME;
+		$data['payment_methods_options'] = json_encode( [
+			'additional_data' => [
+				'embedded_mode' => true,
+			],
+		] );
+		$data = $this->append_operation_type( $data );
+
+		if ( $order = $this->hasOrderOnOrderPayPage() ) {
+			$data = apply_filters( EcpAppendsFilters::ECP_APPEND_OPERATION_TYPE, $data, $order );
+		} else {
+			$data = apply_filters( EcpAppendsFilters::ECP_APPEND_OPERATION_TYPE, $data );
+		}
+
+		ecp_debug( 'Payment page data (legacy): ', $data );
+
+		$data = EcpSigner::get_instance()->sign( $data );
+		wp_send_json( $data );
+	}
+
+	/**
+	 * <h2>Returns payment page data for the embedded card form.</h2>
+	 *
+	 * @throws EcpGatewaySignatureException
+	 * @throws Exception
+	 * @since 3.2.0
+	 */
+	private function get_data_for_payment_form() {
+		$data = $this->get_base_embedded_data();
+
+		// Add embedded-specific parameters.
+		$data['frame_mode']       = self::FRAME_MODE_EMBEDDED;
+		$data['baseUrl']          = $this->endpoint;
+		$data['merchant_domain']  = $this->get_merchant_domain();
+		$data = $this->append_operation_type( $data );
+
+		$data = apply_filters( EcpAppendsFilters::ECP_APPEND_VERSIONS, $data );
+
+		ecp_debug( 'Payment page data (embedded): ', $data );
 
 		$data = EcpSigner::get_instance()->sign( $data );
 		wp_send_json( $data );
@@ -184,6 +272,42 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 			return null;
 		}
 		return ecp_get_order( $orderId );
+	}
+
+	/**
+	 * <h2>Append operation_type parameter for embedded mode.</h2>
+	 *
+	 * Supported by both embedded widget variants.
+	 *
+	 * @param array $data Payment data array.
+	 *
+	 * @return array Modified payment data.
+	 * @since 3.2.0
+	 */
+	private function append_operation_type(array $data): array {
+		$purchase_type = ecommpay()->get_general_option(
+			EcpSettingsGeneral::PURCHASE_TYPE,
+			EcpSettingsGeneral::PURCHASE_TYPE_SALE
+		);
+
+		$data['operation_type'] = $purchase_type === EcpSettingsGeneral::PURCHASE_TYPE_AUTH
+			? EcpSettingsGeneral::PURCHASE_TYPE_AUTH
+			: EcpSettingsGeneral::PURCHASE_TYPE_SALE;
+
+		return $data;
+	}
+
+	/**
+	 * <h2>Get merchant domain for embedded mode.</h2>
+	 *
+	 * Extracts the domain name from the site URL.
+	 *
+	 * @return string Merchant domain name.
+	 * @since 3.2.0
+	 */
+	private function get_merchant_domain(): string {
+		$domain = parse_url( home_url(), PHP_URL_HOST );
+		return $domain ? $domain : '';
 	}
 
 	private function append_recurring_total_form_cart( $data ) {
@@ -218,7 +342,7 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 
 	private function get_positions( $cart ): array {
 		$positions = [];
-		foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) {
+		foreach ($cart->get_cart() as $cart_item ) {
 			$positions[] = $this->get_receipt_position( $cart_item, get_woocommerce_currency() );
 		}
 
@@ -299,7 +423,7 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 	private function check_cart_amount( $query_amount ) {
 		$query_amount = (int) $query_amount;
 		$cart_amount  = ecp_price_multiply( WC()->cart->total, get_woocommerce_currency() );
-		wp_send_json( [ 'amount_is_equal' => ( $query_amount === $cart_amount ) ] );
+		wp_send_json( array( 'amount_is_equal' => ( $query_amount === $cart_amount ) ) );
 	}
 
 	/**
@@ -327,17 +451,17 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 
 		$url = ecp_payment_page()->get_url();
 
-		// Ecommpay merchant bundle.
+		// Ecommpay merchant bundle
 		wp_enqueue_script(
 			'ecommpay_merchant_js',
 			sprintf( '%s/shared/merchant.js', $url ),
-			[],
+			array(),
 			null
 		);
 		wp_enqueue_style(
 			'ecommpay_merchant_css',
 			sprintf( '%s/shared/merchant.css', $url ),
-			[],
+			array(),
 			null
 		);
 
@@ -375,6 +499,7 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 				'order_id'      => $order_id,
 				'gateways'      => $filtered_gateways,
 				'ecp_pay_nonce' => wp_create_nonce( 'woocommerce-process_checkout' ),
+				'log_level'     => ecommpay()->get_general_option( EcpSettingsGeneral::OPTION_LOG_LEVEL, WC_Log_Levels::DEBUG ),
 			]
 		);
 	}
@@ -445,7 +570,7 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_GATEWAY_ARGUMENTS . $gateway->id, $values, $order );
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_VERSIONS, $values );
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_INTERFACE_TYPE, $values, true );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CARD_OPERATION_TYPE, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_OPERATION_TYPE, $values, $order );
 
 		// Clean arguments and return
 		return apply_filters( EcpFilters::ECP_PAYMENT_PAGE_CLEAN_PARAMETERS, $values );

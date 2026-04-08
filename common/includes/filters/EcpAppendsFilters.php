@@ -37,6 +37,6 @@ class EcpAppendsFilters {
 	public const ECP_APPEND_CUSTOMER_ZIP = 'ecp_append_customer_zip';
 	public const ECP_APPEND_CUSTOMER_EMAIL = 'ecp_append_customer_email';
 	public const ECP_APPEND_AVS_DATA = 'ecp_append_avs_data';
-	public const ECP_APPEND_CARD_OPERATION_TYPE = 'ecp_append_card_operation_type';
+	public const ECP_APPEND_OPERATION_TYPE = 'ecp_append_operation_type';
 	public const ECP_APPEND_FORCE_MODE = 'ecp_append_force_mode';
 }

@@ -61,7 +61,7 @@ class EcpDirectDebitBACS extends EcpGateway {
 	public function apply_payment_args( $values, $order ): array {
 		$amount = ecp_price_multiply( $order->get_total(), $order->get_currency() );
 
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CARD_OPERATION_TYPE, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_OPERATION_TYPE, $values, $order );
 		// Setup Payment Page Operation Mode
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_OPERATION_MODE, $values, $amount > 0 ? self::MODE_PURCHASE : self::MODE_CARD_VERIFY );
 		// Setup Payment Page Force Mode

@@ -246,7 +246,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	 * @return array
 	 * @since 3.0.0
 	 */
-	public function append_card_operation_type( array $values, EcpGatewayOrder $order = null ): array {
+	public function append_operation_type( array $values, EcpGatewayOrder $order = null ): array {
 		$mode = ecommpay()->get_general_option(
 			EcpSettingsGeneral::PURCHASE_TYPE,
 			EcpSettingsGeneral::PURCHASE_TYPE_SALE
@@ -256,7 +256,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 			$mode = EcpSettingsGeneral::PURCHASE_TYPE_SALE;
 		}
 
-		$this->append_argument( 'card_operation_type', $mode, $values );
+		$this->append_argument( 'operation_type', $mode, $values );
 
 		return $values;
 	}
@@ -758,9 +758,9 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 		// register filters for appending payment arguments
 		add_filter( EcpAppendsFilters::ECP_APPEND_PROJECT_ID, [ $this, 'append_project_id' ] );
 		add_filter( EcpAppendsFilters::ECP_APPEND_INTERFACE_TYPE, [ $this, 'append_interface_type' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_CARD_OPERATION_TYPE, [
+		add_filter( EcpAppendsFilters::ECP_APPEND_OPERATION_TYPE, [
 			$this,
-			'append_card_operation_type'
+			'append_operation_type'
 		], 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_OPERATION_MODE, [ $this, 'append_operation_mode' ], 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, [ $this, 'append_force_mode' ], 10, 2 );

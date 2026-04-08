@@ -84,16 +84,15 @@ final class EcpSigner extends EcpGatewayRegistry {
 	private string $secret_key;
 
 	/**
-	 * <h2>List of ignored keys for data normalization.</h2>
+	 * <h2>List of explicitly ignored keys for data normalization.</h2>
+	 *
+	 * Parameters whose names start with "_" are excluded automatically.
 	 *
 	 * @var string[]
 	 * @since 2.0.0
 	 */
 	private array $ignore_params = [
 		'frame_mode',
-		'_plugin_version',
-		'_wordpress_version',
-		'_woocommerce_version',
 	];
 
 
@@ -180,7 +179,10 @@ final class EcpSigner extends EcpGatewayRegistry {
 		$params_to_sign = [];
 
 		foreach ( $params as $key => $value ) {
-			if ( ( in_array( $key, $ignore_param_keys ) && $current_level === 1 ) ) {
+			if ( $current_level === 1 && (
+				strpos( $key, '_' ) === 0 ||
+				in_array( $key, $ignore_param_keys )
+			) ) {
 				continue;
 			}
 

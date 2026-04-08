@@ -3,7 +3,7 @@ Contributors: ECOMMPAY
 Tags: card payments, apple pay, google pay, open banking, subscriptions, paypal, humm, ideal, klarna, payment gateway, woocommerce
 Requires at least: 6.2
 Tested up to: 6.9
-Stable tag: 4.2.5
+Stable tag: 5.0.0
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -61,6 +61,9 @@ General:
 3. If WooCommerce Subscriptions is used, the required minimum version is >= 5.6.1
 
 == Changelog ==
+= 5.0.0 =
+* Added compatibility with the new payment page
+
 = 4.2.0 =
 * Removed Sofort and Giropay payment methods
 * Added Humm payment method

@@ -14,7 +14,6 @@ defined( 'ABSPATH' ) || exit;
  * @package  Ecp_Gateway/Settings
  * @category Class
  * @abstract
- * @internal
  */
 abstract class EcpSettings {
 	const OPTION_ENABLED = 'enabled';

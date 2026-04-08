@@ -4,19 +4,20 @@
  * Plugin URI:        https://ecommpay.com
  * GitHub Plugin URI:
  * Description:       Easy payment from WooCommerce by different methods in single Payment Page.
- * Version:           4.2.5
+ * Version:           5.0.0
  * License:           GPL2
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       woo-ecommpay
  * Domain Path:       /language/
- * Copyright:         © 2017-2023 Ecommpay, London
+ * Copyright:         © 2017-2026 Ecommpay, London
  *
  * @package Ecp_Gateway
  * @author ECOMMPAY
- * @copyright © 2017-2023 ECOMMPAY, London
+ * @copyright © 2017-2026 ECOMMPAY, London
  */
 
 use common\install\EcpGatewayInstall;
+use common\modules\EcpModulePaymentPage;
 use common\WCDependencies;
 
 defined( 'ABSPATH' ) || exit;
@@ -91,7 +92,8 @@ add_action(
 					ecp_version()
 				);
 
-				$is_checkout_scripts_needed = is_checkout() || is_wc_endpoint_url( 'order-pay' );
+				$is_checkout_scripts_needed = ( is_checkout() && ! is_wc_endpoint_url( 'order-received' ) )
+					|| is_wc_endpoint_url( 'order-pay' );
 
 				if ( $is_checkout_scripts_needed ) {
 
@@ -110,10 +112,22 @@ add_action(
 						[],
 						null
 					);
+
+					// Enqueue common checkout functions (must be before version-specific script)
+					wp_enqueue_script(
+						'ecommpay_checkout_common_script',
+						ecp_js_url( 'checkout-common.js' ),
+						[ 'jquery' ],
+						ecp_version()
+					);
+
+					// Choose a checkout script based on the version.
+					$checkout_script = EcpModulePaymentPage::is_modern_embedded_mode() ? 'checkout.js' : 'checkout-legacy.js';
+
 					wp_enqueue_script(
 						'ecommpay_checkout_script',
-						ecp_js_url( 'checkout.js' ),
-						[ 'jquery' ],
+						ecp_js_url( $checkout_script ),
+						[ 'jquery', 'ecommpay_checkout_common_script' ],
 						ecp_version()
 					);
 
@@ -136,7 +150,7 @@ add_action(
 					);
 
 					wp_localize_script(
-						'ecommpay_checkout_script',
+						'ecommpay_checkout_common_script',
 						'ECP',
 						[
 							'ajax_url'   => admin_url( "admin-ajax.php" ),

@@ -13,7 +13,6 @@ defined( 'ABSPATH' ) || exit;
  * @version  3.0.0
  * @package  Ecp_Gateway/Settings
  * @category Class
- * @internal
  */
 class EcpSettingsCard extends EcpSettings {
 

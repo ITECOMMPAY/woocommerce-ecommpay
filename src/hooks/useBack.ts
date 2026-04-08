@@ -21,11 +21,11 @@ const useBack = () => {
       url: window.ECP.ajax_url + '?' + window.location.href.split('?')[1],
       data,
       dataType: 'json',
-      success: function (result) {
+      success: function (result: unknown) {
         console.log(result)
       },
-      error: function (jqXHR, textStatus, errorThrown) {
-        console.error(jqXHR, textStatus, errorThrown)
+      error: function (_jqXHR: unknown, textStatus: unknown, errorThrown: unknown) {
+        console.error(String(textStatus), errorThrown)
       },
     })
   }, [])
