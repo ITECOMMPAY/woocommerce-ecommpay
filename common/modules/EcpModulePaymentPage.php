@@ -137,7 +137,7 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 	 */
 	public static function is_modern_embedded_mode(): bool {
 		$card_settings = ecommpay()->get_option( EcpSettingsCard::ID );
-		$card_display_mode = $card_settings[ EcpSettings::OPTION_MODE ] ?? EcpSettings::MODE_EMBEDDED;
+		$card_display_mode = $card_settings[ EcpSettings::OPTION_MODE ] ?? EcpSettings::MODE_REDIRECT;
 		$payment_page_version = ecommpay()->get_general_option(
 			EcpSettingsGeneral::OPTION_PAYMENT_PAGE_VERSION,
 			EcpSettingsGeneral::PP_VERSION_LEGACY

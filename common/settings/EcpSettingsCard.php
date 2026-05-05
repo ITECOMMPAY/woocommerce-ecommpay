@@ -122,7 +122,7 @@ class EcpSettingsCard extends EcpSettings {
 					self::MODE_POPUP    => _x( 'Popup', 'Display mode', 'woo-ecommpay' ),
 					self::MODE_EMBEDDED => _x( 'Embedded', 'Display mode', 'woo-ecommpay' ),
 				],
-				self::FIELD_DEFAULT => self::MODE_EMBEDDED,
+				self::FIELD_DEFAULT => self::MODE_REDIRECT,
 			],
 			[
 				self::FIELD_ID      => self::OPTION_POPUP_MISS_CLICK,
