@@ -18,9 +18,9 @@ $all_fields  = array_column(
 	EcpSettings::FIELD_ID
 );
 
-$map = [
-	EcpSettingsGeneral::ID => [
-		'test' => 'test',
+$migration_map = array(
+	EcpSettingsGeneral::ID => array(
+		'test'                    => 'test',
 		'language'                => EcpSettingsGeneral::OPTION_LANGUAGE,
 		'caching_enabled'         => EcpSettingsGeneral::OPTION_CACHING_ENABLED,
 		'caching_expiration'      => EcpSettingsGeneral::OPTION_CACHING_EXPIRATION,
@@ -29,18 +29,18 @@ $map = [
 		'project_id'              => EcpSettingsGeneral::OPTION_PROJECT_ID,
 		'salt'                    => EcpSettingsGeneral::OPTION_SECRET_KEY,
 		'custom_variables'        => EcpSettingsGeneral::OPTION_CUSTOM_VARIABLES,
-	],
-	EcpSettingsCard::ID    => [
+	),
+	EcpSettingsCard::ID    => array(
 		'enabled'             => EcpSettings::OPTION_ENABLED,
 		'mode'                => EcpSettings::OPTION_MODE,
 		'close_on_miss_click' => EcpSettings::OPTION_POPUP_MISS_CLICK,
-	],
-];
+	),
+);
 
 // Clean old unused settings via map
 foreach ( $prev_settings as $key => $value ) {
 	$key = str_replace( 'ecommpay_', '', $key );
-	foreach ( $map as $section => $options ) {
+	foreach ( $migration_map as $section => $options ) {
 		if ( array_key_exists( $key, $options ) ) {
 			$form_fields[ $section ][ $options[ $key ] ] = $value;
 		}

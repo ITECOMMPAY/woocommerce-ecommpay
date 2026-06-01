@@ -69,7 +69,7 @@ class EcpGatewayFormHandler extends WC_Form_Handler {
 						}
 
 						$available_gateways = WC()->payment_gateways->get_available_payment_gateways();
-						$payment_method = $available_gateways[ $payment_method_id ] ?? false;
+						$payment_method     = $available_gateways[ $payment_method_id ] ?? false;
 
 						if ( ! $payment_method ) {
 							throw new Exception( __( 'Invalid payment method.', 'woocommerce' ) );

@@ -15,6 +15,7 @@ defined( 'ABSPATH' ) || exit;
  * @category Class
  */
 class EcpGatewayInfoResponse extends EcpGatewayJson {
+
 	/**
 	 * Identifier of merchant project received from ECOMMPAY.
 	 */
@@ -74,7 +75,8 @@ class EcpGatewayInfoResponse extends EcpGatewayJson {
 		return $code;
 	}
 
-	public function get_message(): ?string {
+	public function get_message(): string {
+		$message = '';
 		$this->try_get_string( $message, self::FIELD_MESSAGE, __( 'Undefined error', 'woo-ecommpay' ) );
 
 		return $message;

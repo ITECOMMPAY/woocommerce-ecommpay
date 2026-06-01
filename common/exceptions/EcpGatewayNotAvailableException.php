@@ -15,6 +15,7 @@ defined( 'ABSPATH' ) || exit;
  * @package Ecp_Gateway/Exceptions
  */
 class EcpGatewayNotAvailableException extends EcpGatewayException {
+
 	/**
 	 * @param string $message Error message.
 	 * @param int $code [optional] Error code. Default: {@see EcpGatewayError::NOT_AVAILABLE}.
@@ -33,11 +34,11 @@ class EcpGatewayNotAvailableException extends EcpGatewayException {
 	 * @return string[][]
 	 */
 	protected function prepare_message(): array {
-		return [
-			[
+		return array(
+			array(
 				$this->get_base_message(),
 				WC_Log_Levels::ERROR,
-			],
-		];
+			),
+		);
 	}
 }

@@ -1,6 +1,7 @@
 <?php
 
 namespace common\modules;
+
 defined( 'ABSPATH' ) || exit;
 
 use common\exceptions\EcpGatewayError;
@@ -91,9 +92,12 @@ final class EcpSigner extends EcpGatewayRegistry {
 	 * @var string[]
 	 * @since 2.0.0
 	 */
-	private array $ignore_params = [
+	private array $ignore_params = array(
 		'frame_mode',
-	];
+		'_plugin_version',
+		'_wordpress_version',
+		'_woocommerce_version',
+	);
 
 
 	/**
@@ -152,6 +156,7 @@ final class EcpSigner extends EcpGatewayRegistry {
 		$params_to_sign = $this->get_params_to_sign( $data, $this->ignore_params );
 		$string_to_sign = $this->get_string_to_sign( $params_to_sign );
 
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Used for cryptographic signature.
 		return base64_encode( hash_hmac( self::ALGORITHM, $string_to_sign, $this->secret_key, true ) );
 	}
 
@@ -172,54 +177,55 @@ final class EcpSigner extends EcpGatewayRegistry {
 	 */
 	private function get_params_to_sign(
 		array $params,
-		array $ignore_param_keys = [],
+		array $ignore_param_keys = array(),
 		int $current_level = 1,
 		string $prefix = self::BLANK
 	): array {
-		$params_to_sign = [];
+		$params_to_sign = array();
 
 		foreach ( $params as $key => $value ) {
-			if ( $current_level === 1 && (
-				strpos( $key, '_' ) === 0 ||
-				in_array( $key, $ignore_param_keys )
-			) ) {
+			if ( in_array( $key, $ignore_param_keys, true ) && 1 === $current_level ) {
 				continue;
 			}
 
-			if ( strpos( $key, self::VALUE_SEPARATOR ) !== false ) {
+			if ( false !== strpos( $key, self::VALUE_SEPARATOR ) ) {
+				// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 				throw new EcpGatewaySignatureException(
 					__( 'Key contains an invalid character', 'woo-ecommpay' ),
 					$key,
 					EcpGatewayError::INVALID_KEY
 				);
+				// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			}
 
-			if ( is_string( $value ) && strpos( $value, self::VALUE_SEPARATOR ) !== false ) {
+			if ( is_string( $value ) && false !== strpos( $value, self::VALUE_SEPARATOR ) ) {
+				// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 				throw new EcpGatewaySignatureException(
 					__( 'Value contains an invalid character', 'woo-ecommpay' ),
 					$value,
 					EcpGatewayError::INVALID_VALUE
 				);
+				// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			}
 
-			$paramKey = ( $prefix ? $prefix . self::KEY_SEPARATOR : self::BLANK ) . str_replace( ':', '::', $key );
+			$param_key = ( $prefix ? $prefix . self::KEY_SEPARATOR : self::BLANK ) . str_replace( ':', '::', $key );
 
 			switch ( true ) {
 				case is_array( $value ):
 					$params_to_sign = array_merge(
 						$params_to_sign,
-						$this->get_params_to_sign( $value, $ignore_param_keys, $current_level + 1, $paramKey )
+						$this->get_params_to_sign( $value, $ignore_param_keys, $current_level + 1, $param_key )
 					);
 					break;
 				case is_bool( $value ):
-					$params_to_sign[ $paramKey ] = $paramKey . self::KEY_SEPARATOR . $value ? self::TRUE : self::FALSE;
+					$params_to_sign[ $param_key ] = $param_key . self::KEY_SEPARATOR . $value ? self::TRUE : self::FALSE;
 					break;
 				default:
-					$params_to_sign[ $paramKey ] = $paramKey . self::KEY_SEPARATOR . $value;
+					$params_to_sign[ $param_key ] = $param_key . self::KEY_SEPARATOR . $value;
 			}
 		}
 
-		if ( $current_level === 1 ) {
+		if ( 1 === $current_level ) {
 			ksort( $params_to_sign, SORT_NATURAL );
 		}
 

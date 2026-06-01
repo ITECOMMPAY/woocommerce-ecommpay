@@ -13,16 +13,33 @@ use common\settings\EcpSettingsGeneral;
 use WC_Order;
 use WC_Order_Item;
 use WC_Order_Item_Product;
+use function ecommpay;
+use function ecp_callback_url;
+use function ecp_get_log;
+use function ecp_price_multiply;
+use function wc_version;
+use function wp_version;
 
+/**
+ * <h2>ECOMMPAY Gateway API Protocol Handler.</h2>
+ * <p>Handles building and formatting payment request parameters for the ECOMMPAY payment gateway.</p>
+ *
+ * @class    EcpGatewayAPIProtocol
+ * @version  3.0.0
+ * @package  Ecp_Gateway/Helpers
+ * @category Class
+ * @since    2.0.0
+ */
 class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	/**
 	 * @param string $key
 	 * @param mixed $value
-	 * @param $values
+	 * @param array $values
 	 *
 	 * @return void
 	 */
-	private function append_argument( string $key, $value, &$values ): void {
+	private function append_argument(string $key, $value, array &$values): void
+	{
 		if ( $value === null ) {
 			return;
 		}
@@ -30,7 +47,16 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 		$values[ $key ] = $value;
 	}
 
-	public function append_versions( $data ) {
+	/**
+	 * <h2>Appends version information to the payment data.</h2>
+	 *
+	 * @param array $data <p>Payment data array.</p>
+	 *
+	 * @return array <p>Payment data with version information.</p>
+	 * @since 2.0.0
+	 */
+	public function append_versions(array $data): array
+	{
 		$this->append_argument( '_plugin_version', EcpCore::WC_ECP_VERSION, $data );
 		$this->append_argument( '_wordpress_version', wp_version(), $data );
 		$this->append_argument( '_woocommerce_version', wc_version(), $data );
@@ -38,15 +64,32 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 		return $data;
 	}
 
-	public function append_project_id( $data ) {
-		// Identifier of merchant project received from ECOMMPAY
+	/**
+	 * <h2>Appends project ID to the payment data.</h2>
+	 *
+	 * @param array $data <p>Payment data array.</p>
+	 *
+	 * @return array <p>Payment data with project ID.</p>
+	 * @since 2.0.0
+	 */
+	public function append_project_id(array $data): array
+	{
 		$this->append_argument( 'project_id', ecommpay()->get_project_id(), $data );
 
 		return $data;
 	}
 
-	public function append_interface_type( $data, $encode = false ) {
-		// ECOMMPAY internal interface type identifier
+	/**
+	 * <h2>Appends interface type to the payment data.</h2>
+	 *
+	 * @param array $data <p>Payment data array.</p>
+	 * @param bool $encode <p>Whether to JSON encode the interface type.</p>
+	 *
+	 * @return array <p>Payment data with interface type.</p>
+	 * @since 2.0.0
+	 */
+	public function append_interface_type(array $data, bool $encode = false): array
+	{
 		$this->append_argument(
 			'interface_type',
 			$encode ? json_encode( ecommpay()->get_interface_type() ) : ecommpay()->get_interface_type(),
@@ -401,7 +444,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 
 	/**
 	 * @param array $values
-	 * @param $url
+	 * @param string $url
 	 *
 	 * @return array
 	 */
@@ -409,6 +452,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 		$this->append_argument( 'redirect_success_enabled', 2, $values );
 		$this->append_argument( 'redirect_success_mode', 'parent_page', $values );
 		$this->append_argument( 'redirect_success_url', $url, $values );
+
 		return $values;
 	}
 
@@ -422,6 +466,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 		$this->append_argument( 'redirect_fail_enabled', 2, $values );
 		$this->append_argument( 'redirect_fail_mode', 'parent_page', $values );
 		$this->append_argument( 'redirect_fail_url', $url, $values );
+
 		return $values;
 	}
 
@@ -484,10 +529,13 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	/**
 	 * <h2>Returns language code settings.</h2>
 	 *
-	 * @return string[] <p>Payment page language settings.</p>
+	 * @param array $values
+	 *
+	 * @return array <p>Payment page language settings.</p>
 	 * @since 2.0.0
 	 */
-	public function append_language( $values ): array {
+	public function append_language(array $values): array
+	{
 		switch ( ecommpay()->get_general_option( EcpSettingsGeneral::OPTION_LANGUAGE, 'by_customer_browser' ) ) {
 			case EcpSettingsGeneral::LANG_BY_CUSTOMER:
 				return $values;
@@ -512,12 +560,14 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	/**
 	 * <h2>Returns ECOMMPAY Payment Page custom variables.</h2>
 	 *
+	 * @param array $values
 	 * @param EcpGatewayOrder $order <p>Order for payment.</p>
 	 *
 	 * @return array <p>Payment page custom settings.</p>
 	 * @since 2.0.0
 	 */
-	public function append_custom_variables( $values, EcpGatewayOrder $order ): array {
+	public function append_custom_variables(array $values, EcpGatewayOrder $order): array
+	{
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ID, $values, $order );
 
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_PHONE, $values, $order );
@@ -534,12 +584,14 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	/**
 	 * <h2>Returns ECOMMPAY Payment Page Subscription information.</h2>
 	 *
+	 * @param array $values
 	 * @param EcpGatewayOrder $order <p>Order for payment.</p>
 	 *
 	 * @return array <p>An array of the recurring data if available, or an empty array.</p>
 	 * @since 2.0.0
 	 */
-	public function append_recurring( $values, EcpGatewayOrder $order ): array {
+	public function append_recurring(array $values, EcpGatewayOrder $order): array
+	{
 		if ( ! ecp_subscription_is_active() ) {
 			return $values;
 		}
@@ -567,7 +619,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 
 		$recurring = [
 			'register' => true,
-			'type' => EcpGatewayRecurringTypes::AUTO,
+			'type'     => EcpGatewayRecurringTypes::AUTO,
 			'amount' => ecp_price_multiply( $amount, $order->get_currency() ),
 		];
 
@@ -650,16 +702,16 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	 * @return array
 	 */
 	public function receipt_data( WC_Order $order ): array {
-		$totalTax   = abs( $order->get_total_tax() );
-		$totalPrice = abs( $order->get_total() );
+		$total_tax = abs($order->get_total_tax());
+		$total_price = abs($order->get_total());
 
-		return $totalTax > 0
+		return $total_tax > 0
 			? [
 				// Item positions.
 				'positions'        => $this->get_positions( $order ),
 				// Total tax amount per payment.
-				'total_tax_amount' => ecp_price_multiply( $totalTax, $order->get_currency() ),
-				'common_tax'       => $totalPrice !== $totalTax ? round( $totalTax / ( $totalPrice - $totalTax ), 2 ) : 0,
+				'total_tax_amount' => ecp_price_multiply($total_tax, $order->get_currency()),
+				'common_tax' => $total_price !== $total_tax ? round($total_tax / ($total_price - $total_tax), 2) : 0,
 			]
 			: [
 				// Item positions.
@@ -716,13 +768,13 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 			$data['description'] = $this->limit_length( $description, 255 );
 		}
 
-		$totalTax = abs( $item->get_total_tax() );
+		$total_tax = abs($item->get_total_tax());
 
-		if ( $totalTax > 0 ) {
+		if ($total_tax > 0) {
 			// Tax percentage for the position. Multiple of: 0.01.
-			$data['tax'] = $price !== 0 ? round( $totalTax / $price, 2 ) : 0;
+			$data['tax'] = $price !== 0 ? round($total_tax / $price, 2) : 0;
 			// Tax amount for the position.
-			$data['tax_amount'] = ecp_price_multiply( $totalTax / $quantity, $currency );
+			$data['tax_amount'] = ecp_price_multiply($total_tax / $quantity, $currency);
 		}
 
 		return $data;

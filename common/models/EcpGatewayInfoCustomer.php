@@ -18,7 +18,6 @@ defined( 'ABSPATH' ) || exit;
  */
 class EcpGatewayInfoCustomer extends EcpGatewayJson {
 
-
 	/**
 	 * <h2>Label for unique identifier of the customer.</h2>
 	 *
@@ -113,12 +112,12 @@ class EcpGatewayInfoCustomer extends EcpGatewayJson {
 	/**
 	 * <h2>Customer information constructor.</h2>
 	 *
-	 * @param array $array [optional] <p>Json-data as array.</p>
+	 * @param array $data [optional] <p>Json-data as array.</p>
 	 */
-	public function __construct( array $array = [] ) {
+	public function __construct( array $data = array() ) {
 		$this->register( self::FIELD_BILLING, EcpGatewayInfoBilling::class );
 
-		parent::__construct( $array );
+		parent::__construct( $data );
 	}
 
 	/**
@@ -233,7 +232,6 @@ class EcpGatewayInfoCustomer extends EcpGatewayJson {
 		}
 
 		return null;
-
 	}
 
 	/**
@@ -247,7 +245,6 @@ class EcpGatewayInfoCustomer extends EcpGatewayJson {
 		}
 
 		return null;
-
 	}
 
 	/**
@@ -285,17 +282,16 @@ class EcpGatewayInfoCustomer extends EcpGatewayJson {
 		}
 
 		return null;
-
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	protected function unpackRules(): array {
-		return [
-			self::FIELD_BIRTHDAY => function ( $value ) {
+		return array(
+			self::FIELD_BIRTHDAY => static function ( string $value ) {
 				return DateTime::createFromFormat( 'd-m-Y', $value );
-			}
-		];
+			},
+		);
 	}
 }

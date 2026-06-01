@@ -302,7 +302,7 @@ class EcpGatewayInfoCallback extends EcpGatewayJson {
 	protected function unpackRules(): array {
 		return [
 			self::FIELD_PROJECT_ID => fn( $value ) => (int) $value,
-			self::FIELD_ERRORS => fn( $value ) => array_map( fn( $item ) => new EcpGatewayInfoError( $item ), $value ),
+			self::FIELD_ERRORS     => fn( $value ) => array_map( fn( $item ) => new EcpGatewayInfoError( $item ), $value ),
 		];
 	}
 

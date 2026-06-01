@@ -1,7 +1,15 @@
 <?php
+/**
+ * ECOMMPAY Gateway Blik class.
+ *
+ * @package Ecp_Gateway/Gateways
+ * @since   3.0.0
+ */
 
 namespace common\gateways;
 
+use common\exceptions\EcpGatewayLogicException;
+use common\includes\EcpGatewayOrder;
 use common\includes\filters\EcpAppendsFilters;
 use common\modules\EcpModuleRefund;
 use common\settings\EcpSettingsBlik;
@@ -18,67 +26,109 @@ defined( 'ABSPATH' ) || exit;
  * @category Class
  */
 class EcpBlik extends EcpGateway {
-	protected const PAYMENT_METHOD = 'blik';
-	protected const REFUND_ENDPOINT = 'blik';
 
 	/**
+	 * <h2>Payment method code for Blik.</h2>
+	 *
+	 * @var string
+	 * @since 3.0.0
+	 */
+	private const PAYMENT_METHOD_CODE = 'blik';
+
+	/**
+	 * Refund endpoint prefix for Blik.
+	 *
+	 * @var string
+	 * @since 3.0.0
+	 */
+	private const REFUND_ENDPOINT_PREFIX = 'blik';
+
+	/**
+	 * <h2>Supported gateway features.</h2>
+	 *
 	 * @inheritDoc
 	 * @override
 	 * @var string[]
 	 * @since 3.0.0
 	 */
-	public $supports = [
+	public $supports = array(
 		self::SUPPORT_PRODUCTS,
-		self::SUPPORT_REFUNDS
-	];
+		self::SUPPORT_REFUNDS,
+	);
 
+	/**
+	 * <h2>Returns payment method code.</h2>
+	 *
+	 * @inheritDoc
+	 * @return string
+	 * @since 3.0.0
+	 */
+	protected function get_payment_method_code(): string {
+		return self::PAYMENT_METHOD_CODE;
+	}
+
+	/**
+	 * <h2>Returns refund endpoint prefix.</h2>
+	 *
+	 * @inheritDoc
+	 * @return string
+	 * @since 3.0.0
+	 */
+	protected function get_refund_endpoint_prefix(): string {
+		return self::REFUND_ENDPOINT_PREFIX;
+	}
 
 	/**
 	 * <h2>ECOMMPAY Blik Gateway constructor.</h2>
 	 */
 	public function __construct() {
-		$this->id = EcpSettingsBlik::ID;
-		$this->method_title       = __( 'ECOMMPAY Blik', 'woo-ecommpay' );
-		$this->method_description = __( 'Accept payments via Blik.', 'woo-ecommpay' );
+		$this->id                     = EcpSettingsBlik::ID;
+		$this->method_title_key       = 'ECOMMPAY Blik';
+		$this->method_description_key = 'Accept payments via Blik.';
 
 		parent::__construct();
 	}
 
 	/**
+	 * <h2>Applies payment arguments.</h2>
+	 *
 	 * @inheritDoc
 	 * @override
+	 * @param array    $values <p>Payment arguments.</p>
+	 * @param WC_Order $order <p>Order object.</p>
 	 * @return array
 	 * @since 3.0.0
 	 */
-	public function apply_payment_args( $values, $order ): array {
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, self::PAYMENT_METHOD );
+	public function apply_payment_args( array $values, EcpGatewayOrder $order ): array {
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, $this->get_payment_method_code() );
 
 		return parent::apply_payment_args( $values, $order );
 	}
 
 
 	/**
+	 * <h2>Processes payment.</h2>
+	 *
 	 * @inheritDoc
 	 * @override
+	 * @param int $order_id <p>Order ID.</p>
 	 * @return array <p>Settings for redirecting to the ECOMMPAY payment page.</p>
 	 * @since 3.0.0
 	 */
 	public function process_payment( $order_id ): array {
-		$order            = ecp_get_order( $order_id );
-		$options          = ecp_payment_page()->get_request_url( $order, $this );
-		$payment_page_url = ecp_payment_page()->get_url() . '/payment?' . http_build_query( $options );
-
-		return [
-			'result' => self::PROCESS_RESULT_SUCCESS,
-			'redirect' => $payment_page_url,
-			'order_id' => $order_id,
-		];
+		return $this->process_standard_payment( $order_id );
 	}
 
 	/**
+	 * <h2>Processes refund.</h2>
+	 *
 	 * @inheritDoc
 	 * @override
+	 * @param int        $order_id <p>Order ID.</p>
+	 * @param float|null $amount <p>Refund amount.</p>
+	 * @param string     $reason <p>Refund reason.</p>
 	 * @return bool <p><b>TRUE</b> on process completed successfully, <b>FALSE</b> otherwise.</p>
+	 * @throws EcpGatewayLogicException If refund process fails.
 	 * @since 3.0.0
 	 */
 	public function process_refund( $order_id, $amount = null, $reason = '' ): bool {
@@ -86,13 +136,14 @@ class EcpBlik extends EcpGateway {
 	}
 
 	/**
-	 * @inheritDoc
+	 * <h2>Checks if order can be refunded.</h2>
 	 * <p>If false, the automatic refund button is hidden in the UI.</p>
 	 *
-	 * @param WC_Order $order <p>Order object.</p>
-	 *
+	 * @inheritDoc
 	 * @override
+	 * @param WC_Order $order <p>Order object.</p>
 	 * @return bool <p><b>TRUE</b> if a refund available for the order, or <b>FALSE</b> otherwise.</p>
+	 * @throws EcpGatewayLogicException If order validation fails.
 	 * @since 3.0.0
 	 */
 	public function can_refund_order( $order ): bool {
@@ -106,7 +157,6 @@ class EcpBlik extends EcpGateway {
 
 		$order = ecp_get_order( $order );
 
-		// Check if there is a ECOMMPAY payment
 		if ( ! $order->is_ecp() ) {
 			return false;
 		}

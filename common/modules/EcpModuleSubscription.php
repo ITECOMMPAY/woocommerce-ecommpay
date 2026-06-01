@@ -23,9 +23,11 @@ defined( 'ABSPATH' ) || exit;
  * @category Class
  */
 class EcpModuleSubscription extends EcpGatewayRegistry {
+
 	public const SHOP_ORDER_REFUND = 'shop_order_refund';
 	public const SHOP_SUBSCRIPTION = 'shop_subscription';
-	public const SHOP_ORDER = 'shop_order';
+	public const SHOP_ORDER        = 'shop_order';
+	public const STATUS_CANCELLED  = 'cancelled';
 
 	/**
 	 * <h2>Runs every time a scheduled renewal of a subscription is required</h2>
@@ -98,16 +100,19 @@ class EcpModuleSubscription extends EcpGatewayRegistry {
 		EcpGatewayInfoResponse $response
 	): void {
 		if ( $response->get_status() !== 'success' ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			throw new EcpGatewayAPIException( $response->get_message() );
 		}
 
 		if ( ecommpay()->get_project_id() !== $response->get_project_id() ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			throw new EcpGatewayLogicException( __( 'Wrong project id.', 'woo-ecommpay' ) );
 		}
 
 		try {
 			$order->set_transaction_id( $response->get_request_id() );
 		} catch ( Exception $e ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			throw new EcpGatewayLogicException( __( 'Internal exception.', 'woo-ecommpay' ), 0, $e );
 		}
 	}
@@ -120,7 +125,7 @@ class EcpModuleSubscription extends EcpGatewayRegistry {
 	 * @return void
 	 */
 	public function subscription_cancellation( WC_Subscription $subscription ): void {
-		if ( 'cancelled' !== $subscription->get_status() ) {
+		if ( self::STATUS_CANCELLED !== $subscription->get_status() ) {
 			return;
 		}
 
@@ -192,15 +197,15 @@ class EcpModuleSubscription extends EcpGatewayRegistry {
 	 * @return array
 	 */
 	public function woocommerce_subscription_payment_meta( array $payment_meta, WC_Subscription $subscription ): array {
-		$order = new EcpGatewayOrder( $subscription->get_id() );
-		$payment_meta['ecommpay'] = [
-			'post_meta' => [
-				'_ecp_recurring_id' => [
+		$order                    = new EcpGatewayOrder( $subscription->get_id() );
+		$payment_meta['ecommpay'] = array(
+			'post_meta' => array(
+				'_ecp_recurring_id' => array(
 					'value' => $order->get_payment_id(),
 					'label' => __( 'ECOMMPAY Payment ID', 'woo-ecommpay' ),
-				],
-			],
-		];
+				),
+			),
+		);
 
 		return $payment_meta;
 	}
@@ -213,7 +218,7 @@ class EcpModuleSubscription extends EcpGatewayRegistry {
 	 * @param WC_Subscription $subscription
 	 */
 	public function woocommerce_subscription_validate_payment_meta( array $payment_meta, WC_Subscription $subscription ) {
-		if ( ! isset ( $payment_meta['post_meta'][ EcpGatewayOrder::META_TRANSACTION_ID ]['value'] ) ) {
+		if ( ! isset( $payment_meta['post_meta'][ EcpGatewayOrder::META_TRANSACTION_ID ]['value'] ) ) {
 			return;
 		}
 
@@ -231,7 +236,7 @@ class EcpModuleSubscription extends EcpGatewayRegistry {
 		// If transaction could be found, add a note on the order for history and debugging reasons.
 		$subscription->add_order_note(
 			sprintf(
-				__( 'ECOMMERCE Payment ID updated from #%d to #%d', 'woo-ecommpay' ),
+				__( 'ECOMMERCE Payment ID updated from #%1$d to #%2$d', 'woo-ecommpay' ),
 				$order->get_payment_id(),
 				$transaction_id
 			),
@@ -252,25 +257,25 @@ class EcpModuleSubscription extends EcpGatewayRegistry {
 		// On renewal subscription
 		add_filter(
 			'wcs_renewal_order_meta_query',
-			[ $this, 'remove_failed_ecommpay_attempts_meta_query' ]
+			array( $this, 'remove_failed_ecommpay_attempts_meta_query' )
 		);
 
 		// On renewal subscription
 		add_filter(
 			'wcs_renewal_order_meta_query',
-			[ $this, 'remove_legacy_transaction_id_meta_query' ]
+			array( $this, 'remove_legacy_transaction_id_meta_query' )
 		);
 
 		add_filter(
 			'woocommerce_subscription_payment_meta',
-			[ $this, 'woocommerce_subscription_payment_meta' ],
+			array( $this, 'woocommerce_subscription_payment_meta' ),
 			10,
 			2
 		);
 
 		add_action(
 			'ecp_scheduled_subscription_payment_after',
-			[ $this, 'after_create_recurring' ],
+			array( $this, 'after_create_recurring' ),
 			10,
 			2
 		);

@@ -2,6 +2,8 @@
 
 namespace common\gateways;
 
+use common\exceptions\EcpGatewayLogicException;
+use common\includes\EcpGatewayOrder;
 use common\includes\filters\EcpAppendsFilters;
 use common\modules\EcpModuleRefund;
 use common\settings\EcpSettingsKlarna;
@@ -18,28 +20,57 @@ defined( 'ABSPATH' ) || exit;
  * @category Class
  */
 class EcpKlarna extends EcpGateway {
-	protected const PAYMENT_METHOD = 'klarna';
-	protected const REFUND_ENDPOINT = 'bank-transfer/klarna';
+
+	/**
+	 * @var string Payment method code for Klarna
+	 * @since 3.0.0
+	 */
+	private const PAYMENT_METHOD_CODE = 'klarna';
+
+	/**
+	 * Refund endpoint prefix for Klarna.
+	 *
+	 * @var string
+	 * @since 3.0.0
+	 */
+	private const REFUND_ENDPOINT_PREFIX = 'bank-transfer/klarna';
+
 	/**
 	 * @inheritDoc
 	 * @override
 	 * @var string[]
 	 * @since 1.0.0
 	 */
-	public $supports = [
+	public $supports = array(
 		self::SUPPORT_PRODUCTS,
-		self::SUPPORT_REFUNDS
-	];
+		self::SUPPORT_REFUNDS,
+	);
 
+	/**
+	 * @inheritDoc
+	 * @return string
+	 * @since 3.0.0
+	 */
+	protected function get_payment_method_code(): string {
+		return self::PAYMENT_METHOD_CODE;
+	}
+
+	/**
+	 * @inheritDoc
+	 * @return string
+	 * @since 3.0.0
+	 */
+	protected function get_refund_endpoint_prefix(): string {
+		return self::REFUND_ENDPOINT_PREFIX;
+	}
 
 	/**
 	 * <h2>ECOMMPAY Klarna Gateway constructor.</h2>
 	 */
 	public function __construct() {
-		$this->id = EcpSettingsKlarna::ID;
-		$this->method_title       = __( 'ECOMMPAY Klarna', 'woo-ecommpay' );
-		$this->method_description = __( 'Accept payments via Klarna.', 'woo-ecommpay' );
-
+		$this->id                     = EcpSettingsKlarna::ID;
+		$this->method_title_key       = 'ECOMMPAY Klarna';
+		$this->method_description_key = 'Accept payments via Klarna.';
 
 		parent::__construct();
 	}
@@ -50,11 +81,11 @@ class EcpKlarna extends EcpGateway {
 	 * @return array
 	 * @since 3.0.0
 	 */
-	public function apply_payment_args( $values, $order ): array {
-		$values = apply_filters( 'ecp_append_customer_country', $values, $order );
-		$values = apply_filters( 'ecp_append_billing_country', $values, $order );
-		$values = apply_filters( 'ecp_append_receipt_data', $values, $order, true );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, self::PAYMENT_METHOD );
+	public function apply_payment_args( array $values, EcpGatewayOrder $order ): array {
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_COUNTRY, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_BILLING_COUNTRY, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_RECEIPT_DATA, $values, $order, true );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, $this->get_payment_method_code() );
 
 		return parent::apply_payment_args( $values, $order );
 	}
@@ -66,21 +97,14 @@ class EcpKlarna extends EcpGateway {
 	 * @since 3.0.0
 	 */
 	public function process_payment( $order_id ): array {
-		$order            = ecp_get_order( $order_id );
-		$options          = ecp_payment_page()->get_request_url( $order, $this );
-		$payment_page_url = ecp_payment_page()->get_url() . '/payment?' . http_build_query( $options );
-
-		return [
-			'result' => self::PROCESS_RESULT_SUCCESS,
-			'redirect' => $payment_page_url,
-			'order_id' => $order_id,
-		];
+		return $this->process_standard_payment( $order_id );
 	}
 
 	/**
 	 * @inheritDoc
 	 * @override
 	 * @return bool <p><b>TRUE</b> on process completed successfully, <b>FALSE</b> otherwise.</p>
+	 * @throws EcpGatewayLogicException
 	 * @since 3.0.0
 	 */
 	public function process_refund( $order_id, $amount = null, $reason = '' ): bool {
@@ -95,6 +119,7 @@ class EcpKlarna extends EcpGateway {
 	 *
 	 * @override
 	 * @return bool <p><b>TRUE</b> if a refund available for the order, or <b>FALSE</b> otherwise.</p>
+	 * @throws EcpGatewayLogicException
 	 * @since 3.0.0
 	 */
 	public function can_refund_order( $order ): bool {

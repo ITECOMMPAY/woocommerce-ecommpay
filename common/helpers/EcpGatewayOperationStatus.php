@@ -11,9 +11,9 @@ defined( 'ABSPATH' ) || exit;
  * @since    2.0.0
  * @package  Ecp_Gateway/Helpers
  * @category Class
- * @internal
  */
 class EcpGatewayOperationStatus extends EcpAbstractApiObject {
+
 	/**
 	 * Payment processing at Gate
 	 */
@@ -114,10 +114,10 @@ class EcpGatewayOperationStatus extends EcpAbstractApiObject {
 	 */
 	const AWAITING_CONFIRMATION = 'awaiting confirmation';
 
-	protected static array $names = [];
+	protected static array $names = array();
 
 	protected static function compile_names(): array {
-		return [
+		return array(
 			self::PROCESSING               => _x( 'Processing', 'Operation status', 'woo-ecommpay' ),
 			self::AWAITING_APPROVAL        => _x( 'Awaiting approval', 'Operation status', 'woo-ecommpay' ),
 			self::AWAITING_3DS             => _x( 'Awaiting 3ds result', 'Operation status', 'woo-ecommpay' ),
@@ -136,6 +136,6 @@ class EcpGatewayOperationStatus extends EcpAbstractApiObject {
 			self::EXPIRED                  => _x( 'Expired', 'Operation status', 'woo-ecommpay' ),
 			self::AWAITING_PAYMENT         => _x( 'Awaiting payment', 'Operation status', 'woo-ecommpay' ),
 			self::UNKNOWN                  => _x( 'Unknown', 'Operation status', 'woo-ecommpay' ),
-		];
+		);
 	}
 }

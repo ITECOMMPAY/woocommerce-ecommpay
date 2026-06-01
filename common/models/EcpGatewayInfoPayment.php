@@ -19,6 +19,7 @@ defined( 'ABSPATH' ) || exit;
  * @category Class
  */
 class EcpGatewayInfoPayment extends EcpGatewayJson {
+
 	/**
 	 * Label for unique ECOMMPAY ID of the payment.
 	 */
@@ -89,7 +90,7 @@ class EcpGatewayInfoPayment extends EcpGatewayJson {
 	 *
 	 * @param array $data [optional] <p>Json-data as array.</p>
 	 */
-	public function __construct( array $data = [] ) {
+	public function __construct( array $data = array() ) {
 		$this->register( self::FIELD_SUM, EcpGatewayInfoSum::class );
 		$this->register( self::FIELD_OPERATION_FEE, EcpGatewayInfoOperationFee::class );
 
@@ -283,27 +284,27 @@ class EcpGatewayInfoPayment extends EcpGatewayJson {
 	 * @inheritDoc
 	 */
 	protected function packRules(): array {
-		return [
-			self::FIELD_DATE => function ( $value ) {
+		return array(
+			self::FIELD_DATE => static function ( $value ) {
 				return $value->format( DateTimeInterface::RFC3339 );
 			},
-		];
+		);
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	protected function unpackRules(): array {
-		return [
-			self::FIELD_DATE                      => function ( $value ) {
+		return array(
+			self::FIELD_DATE                      => static function ( string $value ) {
 				return DateTime::createFromFormat( DateTimeInterface::RFC3339, $value );
 			},
-			self::FIELD_IS_NEW_ATTEMPTS_AVAILABLE => function ( $value ) {
+			self::FIELD_IS_NEW_ATTEMPTS_AVAILABLE => static function ( $value ) {
 				return (bool) $value;
 			},
-			self::FIELD_CASCADING_WITH_REDIRECT   => function ( $value ) {
+			self::FIELD_CASCADING_WITH_REDIRECT   => static function ( $value ) {
 				return (bool) $value;
-			}
-		];
+			},
+		);
 	}
 }

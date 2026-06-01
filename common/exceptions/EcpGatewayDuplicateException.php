@@ -16,6 +16,7 @@ defined( 'ABSPATH' ) || exit;
  * @internal
  */
 class EcpGatewayDuplicateException extends EcpGatewayException {
+
 	/**
 	 * @var string
 	 * @since 2.0.0
@@ -53,20 +54,20 @@ class EcpGatewayDuplicateException extends EcpGatewayException {
 	 * @since 2.0.0
 	 */
 	protected function prepare_message(): array {
-		return [
-			[
+		return array(
+			array(
 				$this->get_base_message(),
-				WC_Log_Levels::ALERT
-			],
-			[
+				WC_Log_Levels::ALERT,
+			),
+			array(
 				sprintf(
 				/* translators: %s: Duplicate key name */
 					_x( 'Duplicated key: %s', 'Exception message', 'woo-ecommpay' ),
 					$this->getKey()
 				),
-				WC_Log_Levels::ERROR
-			]
-		];
+				WC_Log_Levels::ERROR,
+			),
+		);
 	}
 
 	/**

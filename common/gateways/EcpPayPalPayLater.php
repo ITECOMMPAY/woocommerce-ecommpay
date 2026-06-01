@@ -2,6 +2,7 @@
 
 namespace common\gateways;
 
+use common\exceptions\EcpGatewayLogicException;
 use common\includes\EcpGatewayOrder;
 use common\includes\filters\EcpAppendsFilters;
 use common\modules\EcpModuleRefund;
@@ -19,24 +20,69 @@ defined( 'ABSPATH' ) || exit;
  * @category Class
  */
 class EcpPayPalPayLater extends EcpGateway {
-	protected const PAYMENT_METHOD = 'paypal-wallet';
-	protected const REFUND_ENDPOINT = 'wallet/paypal';
-	protected const ICON_NAME = 'paypal-paylater';
+
+	/**
+	 * @var string Payment method code for PayPal Pay Later
+	 * @since 3.4.5
+	 */
+	private const PAYMENT_METHOD_CODE = 'paypal-wallet';
+
+	/**
+	 * @var string Icon file name for PayPal Pay Later
+	 * @since 3.4.5
+	 */
+	private const ICON_FILE_NAME = 'paypal-paylater';
+
+	/**
+	 * Refund endpoint prefix for PayPal Pay Later.
+	 *
+	 * @var string
+	 * @since 3.4.5
+	 */
+	private const REFUND_ENDPOINT_PREFIX = 'wallet/paypal';
+
 	/**
 	 * @inheritDoc
 	 * @override
 	 * @var string[]
 	 * @since 3.4.3
 	 */
-	public $supports = [
+	public $supports = array(
 		self::SUPPORT_PRODUCTS,
-		self::SUPPORT_REFUNDS
-	];
+		self::SUPPORT_REFUNDS,
+	);
+
+	/**
+	 * @inheritDoc
+	 * @return string
+	 * @since 3.4.5
+	 */
+	protected function get_payment_method_code(): string {
+		return self::PAYMENT_METHOD_CODE;
+	}
+
+	/**
+	 * @inheritDoc
+	 * @return string
+	 * @since 3.4.5
+	 */
+	protected function get_icon_file_name(): string {
+		return self::ICON_FILE_NAME;
+	}
+
+	/**
+	 * @inheritDoc
+	 * @return string
+	 * @since 3.4.5
+	 */
+	protected function get_refund_endpoint_prefix(): string {
+		return self::REFUND_ENDPOINT_PREFIX;
+	}
 
 	public function __construct() {
-		$this->id = EcpSettingsPayPalPayLater::ID;
-		$this->method_title       = __( 'ECOMMPAY PayPal PayLater', 'woo-ecommpay' );
-		$this->method_description = __( 'Accept payments via PayPal Buy Now Pay Later.', 'woo-ecommpay' );
+		$this->id                     = EcpSettingsPayPalPayLater::ID;
+		$this->method_title_key       = 'ECOMMPAY PayPal PayLater';
+		$this->method_description_key = 'Accept payments via PayPal Buy Now Pay Later.';
 
 		parent::__construct();
 	}
@@ -48,7 +94,7 @@ class EcpPayPalPayLater extends EcpGateway {
 	 * @since 3.4.3
 	 */
 	public function apply_payment_args( array $values, EcpGatewayOrder $order ): array {
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, self::PAYMENT_METHOD );
+		$values                            = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, $this->get_payment_method_code() );
 		$values['payment_methods_options'] = '{"submethod_code": "paylater"}';
 
 		return parent::apply_payment_args( $values, $order );
@@ -61,21 +107,14 @@ class EcpPayPalPayLater extends EcpGateway {
 	 * @since 3.4.3
 	 */
 	public function process_payment( $order_id ): array {
-		$order            = ecp_get_order( $order_id );
-		$options          = ecp_payment_page()->get_request_url( $order, $this );
-		$payment_page_url = ecp_payment_page()->get_url() . '/payment?' . http_build_query( $options );
-
-		return [
-			'result' => self::PROCESS_RESULT_SUCCESS,
-			'redirect' => $payment_page_url,
-			'order_id' => $order_id,
-		];
+		return $this->process_standard_payment( $order_id );
 	}
 
 	/**
 	 * @inheritDoc
 	 * @override
 	 * @return bool <p><b>TRUE</b> on process completed successfully, <b>FALSE</b> otherwise.</p>
+	 * @throws EcpGatewayLogicException
 	 * @since 3.4.3
 	 */
 	public function process_refund( $order_id, $amount = null, $reason = '' ): bool {
@@ -90,6 +129,7 @@ class EcpPayPalPayLater extends EcpGateway {
 	 *
 	 * @override
 	 * @return bool <p><b>TRUE</b> if a refund available for the order, or <b>FALSE</b> otherwise.</p>
+	 * @throws EcpGatewayLogicException
 	 * @since 3.4.3
 	 */
 	public function can_refund_order( $order ): bool {

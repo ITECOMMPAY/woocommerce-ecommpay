@@ -15,6 +15,7 @@ defined( 'ABSPATH' ) || exit;
  * @package Ecp_Gateway/Exceptions
  */
 class EcpGatewayErrorException extends EcpGatewayException {
+
 	private $severity;
 
 	public function __construct(
@@ -37,11 +38,11 @@ class EcpGatewayErrorException extends EcpGatewayException {
 
 
 	protected function prepare_message(): array {
-		return [
-			[
+		return array(
+			array(
 				$this->get_base_message(),
 				WC_Log_Levels::ERROR,
-			],
-		];
+			),
+		);
 	}
 }

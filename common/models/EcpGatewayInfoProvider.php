@@ -20,7 +20,6 @@ defined( 'ABSPATH' ) || exit;
  */
 class EcpGatewayInfoProvider extends EcpGatewayJson {
 
-
 	/**
 	 * Label for the payment provider that has been used to process the operation.
 	 */
@@ -113,21 +112,21 @@ class EcpGatewayInfoProvider extends EcpGatewayJson {
 	}
 
 	protected function packRules(): array {
-		return [
-			self::FIELD_DATE => function ( $value ) {
+		return array(
+			self::FIELD_DATE => static function ( $value ) {
 				return $value->format( DateTimeInterface::RFC3339 );
 			},
-		];
+		);
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	protected function unpackRules(): array {
-		return [
-			self::FIELD_DATE => function ( $value ) {
+		return array(
+			self::FIELD_DATE => static function ( string $value ) {
 				return DateTime::createFromFormat( DateTimeInterface::RFC3339, $value );
 			},
-		];
+		);
 	}
 }

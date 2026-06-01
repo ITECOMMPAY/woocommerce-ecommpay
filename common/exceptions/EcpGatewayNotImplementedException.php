@@ -16,6 +16,7 @@ defined( 'ABSPATH' ) || exit;
  * @abstract
  */
 class EcpGatewayNotImplementedException extends EcpGatewayException {
+
 	/**
 	 * @var string Default exception message.
 	 */
@@ -59,20 +60,20 @@ class EcpGatewayNotImplementedException extends EcpGatewayException {
 	 * @return string[][]
 	 */
 	protected function prepare_message(): array {
-		return [
-			[
+		return array(
+			array(
 				$this->get_base_message(),
 				WC_Log_Levels::ALERT,
-			],
-			[
+			),
+			array(
 				sprintf( __( 'Object name: %s', 'woo-ecommpay' ), $this->get_object() ),
 				WC_Log_Levels::ERROR,
-			],
-			[
+			),
+			array(
 				sprintf( __( 'Interface name: %s', 'woo-ecommpay' ), $this->get_interface() ),
 				WC_Log_Levels::ERROR,
-			],
-		];
+			),
+		);
 	}
 
 	/**

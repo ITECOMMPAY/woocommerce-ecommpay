@@ -20,6 +20,7 @@ defined( 'ABSPATH' ) || exit;
  * @internal
  */
 class EcpGatewayLog extends EcpGatewayRegistry {
+
 	/**
 	 * <h2>Logger domain.</h2>
 	 *
@@ -58,30 +59,30 @@ class EcpGatewayLog extends EcpGatewayRegistry {
 	 * @var string[]
 	 * @since 2.0.0
 	 */
-	private array $masked = [
-		'customer_first_name'                           => '***',
-		'customer_last_name'                            => '***',
-		'customer_address'                              => '***',
-		'customer_phone'                                => '***',
-		'customer_email'                                => '***@***',
-		'customer_city'                                 => '***',
-		'customer_state'                                => '***',
-		'customer_zip'                                  => '***',
-		'customer_country'                              => '***',
-		'billing_address'                               => '***',
-		'billing_city'                                  => '***',
+	private array $masked = array(
+		'customer_first_name'                 => '***',
+		'customer_last_name'                  => '***',
+		'customer_address'                    => '***',
+		'customer_phone'                      => '***',
+		'customer_email'                      => '***@***',
+		'customer_city'                       => '***',
+		'customer_state'                      => '***',
+		'customer_zip'                        => '***',
+		'customer_country'                    => '***',
+		'billing_address'                     => '***',
+		'billing_city'                        => '***',
 		'billing_country'                     => '***',
 		'billing_postal'                      => '***',
 		'billing_region'                      => '***',
 		'billing_region_code'                 => '***',
 		'signature'                           => '*SECRET*',
-		"card_holder"                         => '** CARD_HOLDER **',
+		'card_holder'                         => '** CARD_HOLDER **',
 		'expiry_month'                        => '**',
 		'expiry_year'                         => '****',
 		'phone'                               => '***',
 		'token'                               => '** TOKEN **',
 		EcpSettingsGeneral::OPTION_SECRET_KEY => '*SECRET*',
-	];
+	);
 
 	/**
 	 * <h2>Destructor logger.</h2>
@@ -172,9 +173,9 @@ class EcpGatewayLog extends EcpGatewayRegistry {
 		$this->logger->log(
 			$level,
 			$message,
-			[
+			array(
 				'source' => $this->domain,
-			]
+			)
 		);
 	}
 
@@ -437,6 +438,4 @@ class EcpGatewayLog extends EcpGatewayRegistry {
 			)
 		);
 	}
-
-
 }

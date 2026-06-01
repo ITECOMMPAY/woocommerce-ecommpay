@@ -1,7 +1,7 @@
 // @ts-ignore
-import loader from '../../assets/img/loader.svg'
+import loader from '../../plugin-ecommpay/assets/img/loader.svg'
 // @ts-ignore
-import loaderDark from '../../assets/img/loader_dark.svg'
+import loaderDark from '../../plugin-ecommpay/assets/img/loader_dark.svg'
 
 interface IProps {
   darkMode?: boolean

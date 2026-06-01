@@ -1,11 +1,26 @@
 <?php
+/**
+ * ECOMMPAY Gateway API base class.
+ *
+ * @package Ecp_Gateway/Api
+ * @since   2.0.0
+ */
 
 namespace common\api;
 
-use WC_Abstract_Order;
 use common\EcpCore;
 use common\models\EcpGatewayInfoError;
 use common\models\EcpGatewayInfoStatus;
+use WC_Abstract_Order;
+use function ecommpay;
+use function ecp_callback_url;
+use function ecp_debug;
+use function ecp_get_log;
+use function ecp_info;
+use function ecp_price_multiply;
+use function ecp_warn;
+use function wc_version;
+use function wp_version;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -19,6 +34,13 @@ defined( 'ABSPATH' ) || exit;
  */
 class EcpGatewayAPI {
 
+	/**
+	 * <h2>HTTP status code for successful response.</h2>
+	 *
+	 * @var int
+	 * @since 2.0.0
+	 */
+	private const HTTP_OK = 200;
 
 	/**
 	 * <h2>Default API protocol name.</h2>
@@ -48,7 +70,7 @@ class EcpGatewayAPI {
 	protected const STATUS_API_ENDPOINT = 'status';
 
 	public const CAPTURE_ENDPOINT = 'capture';
-	public const CANCEL_ENDPOINT = 'cancel';
+	public const CANCEL_ENDPOINT  = 'cancel';
 
 	/**
 	 * <h2>The API url.</h2>
@@ -77,19 +99,19 @@ class EcpGatewayAPI {
 	public function __construct( string $append = '' ) {
 		$this->api_url = sprintf(
 			'%s://%s/%s%s',
-			$this->getProtocol(),
-			$this->getHost(),
-			$this->getVersion(),
-			$append !== '' ? '/' . $append : ''
+			$this->get_protocol(),
+			$this->get_host(),
+			$this->get_version(),
+			'' !== $append ? '/' . $append : ''
 		);
 
-		$this->headers = [
+		$this->headers = array(
 			'X-ECOMMPAY_PLUGIN' => EcpCore::WC_ECP_VERSION,
 			'X-WORDPRESS'       => wp_version(),
 			'X-WOOCOMMERCE'     => wc_version(),
 			'Accept'            => 'application/json',
 			'Content-Type'      => 'application/json',
-		];
+		);
 
 		$this->hooks();
 	}
@@ -100,7 +122,7 @@ class EcpGatewayAPI {
 	 * @return string <p>Protocol name.</p>
 	 * @since 2.0.0
 	 */
-	private function getProtocol(): string {
+	private function get_protocol(): string {
 		$proto = getenv( 'ECP_PROTO' );
 
 		return is_string( $proto ) ? $proto : self::PROTOCOL;
@@ -112,7 +134,7 @@ class EcpGatewayAPI {
 	 * @return string <p>Host name.</p>
 	 * @since 2.0.0
 	 */
-	private function getHost(): string {
+	private function get_host(): string {
 		$host = getenv( 'ECP_GATE_HOST' );
 
 		return is_string( $host ) ? $host : self::HOST;
@@ -124,7 +146,7 @@ class EcpGatewayAPI {
 	 * @return string <p>API version.</b>
 	 * @since 2.0.0
 	 */
-	private function getVersion(): string {
+	private function get_version(): string {
 		$version = getenv( 'ECP_GATE_VERSION' );
 
 		return is_string( $version ) ? $version : self::VERSION;
@@ -148,7 +170,7 @@ class EcpGatewayAPI {
 	 * @since 2.0.0
 	 */
 	final public function get( string $path ): array {
-		// Start the request and return the response
+		// Start the request and return the response.
 		return $this->execute( 'GET', $path );
 	}
 
@@ -158,19 +180,22 @@ class EcpGatewayAPI {
 	 *
 	 * @param string $request_type <p>The type of request being made.</p>
 	 * @param string $path <p>API request string.</p>
-	 * @param array $form [optional] <p>Form data for send. Default: blank array.</p>
+	 * @param array  $form [optional] <p>Form data for send. Default: blank array.</p>
 	 *
 	 * @return array <p>Response data as array.</p>
 	 * @since 2.0.0
 	 */
-	private function execute( string $request_type, string $path, array $form = [] ): array {
+	private function execute( string $request_type, string $path, array $form = array() ): array {
 		$full_path = $this->get_url( $path );
 
-		ecp_debug( 'Started API request.', [
-			'type' => $request_type,
-			'path' => $full_path,
-			'form' => $form
-		] );
+		ecp_debug(
+			'Started API request.',
+			array(
+				'type' => $request_type,
+				'path' => $full_path,
+				'form' => $form,
+			)
+		);
 
 		switch ( $request_type ) {
 			case 'GET':
@@ -189,23 +214,23 @@ class EcpGatewayAPI {
 
 		$response_data = json_decode( $response_data, true );
 
-		if ( $response_data === null ) {
-			$response_data = [
-				'json_parse_error' => json_last_error_msg()
-			];
+		if ( null === $response_data ) {
+			$response_data = array(
+				'json_parse_error' => json_last_error_msg(),
+			);
 		}
 
 		ecp_debug( 'API request executed. Status code: ' . $status_code . '. Response:', $response_data );
 
-		$result = $status_code === 200
+		$result = self::HTTP_OK === $status_code
 			? $response_data
-			: [
-				EcpGatewayInfoStatus::FIELD_ERRORS => [
-					[
+			: array(
+				EcpGatewayInfoStatus::FIELD_ERRORS => array(
+					array(
 						EcpGatewayInfoError::FIELD_MESSAGE => 'Communication error',
-					]
-				]
-			];
+					),
+				),
+			);
 
 		if ( is_array( $result ) ) {
 			return $result;
@@ -221,7 +246,7 @@ class EcpGatewayAPI {
 			$response_data
 		);
 
-		return [];
+		return array();
 	}
 
 	/**
@@ -239,21 +264,22 @@ class EcpGatewayAPI {
 	/**
 	 * <h2>Returns the request properties.</h2>
 	 *
+	 * @param array $body [optional] <p>Request body data. Default: blank array.</p>
 	 * @return array <p>Request properties.</b>
 	 * @since 2.2.1
 	 */
-	private function get_args( array $body = [] ): array {
-		$args = [
+	private function get_args( array $body = array() ): array {
+		$args = array(
 			'timeout'     => '5',
 			'httpversion' => '1.0',
 			'blocking'    => true,
 			'headers'     => $this->headers,
-		];
+		);
 
 		if ( count( $body ) > 0 ) {
-			$body = json_encode( $body );
+			$body = wp_json_encode( $body );
 
-			if ( $body !== false ) {
+			if ( false !== $body ) {
 				$args['body'] = $body;
 			} else {
 				ecp_get_log()->alert( json_last_error_msg() );
@@ -268,33 +294,54 @@ class EcpGatewayAPI {
 	 * <h2>Performs an API POST request.</h2>
 	 *
 	 * @param string $path <p>API request string.</p>
-	 * @param array $form [optional] <p>Form data for send. Default: blank array.</p>
+	 * @param array  $form [optional] <p>Form data for send. Default: blank array.</p>
 	 *
 	 * @return array <p>Response data as array.</p>
 	 * @since 2.0.0
 	 */
-	final public function post( string $path, array $form = [] ): array {
-		// Start the request and return the response
+	final public function post( string $path, array $form = array() ): array {
+		// Start the request and return the response.
 		return $this->execute( 'POST', $path, $form );
 	}
 
-	protected function build_general_api_block(string $payment_id ): array {
-		return [
-			'general' => [
-				'payment_id' => $payment_id,
-				'project_id' => ecommpay()->get_project_id(),
-				'merchant_callback_url' => ecp_callback_url()
-			],
-			'interface_type' => ecommpay()->get_interface_type()
-		];
+	/**
+	 * <h2>Builds general API block data.</h2>
+	 *
+	 * @param string|null $payment_id [optional] <p>Payment ID. Default: null.</p>
+	 * @return array <p>General API block data.</p>
+	 * @since 2.0.0
+	 */
+	protected function build_general_api_block( string $payment_id = null ): array {
+		$block = array(
+			'general'        => array(
+				'project_id'            => ecommpay()->get_project_id(),
+				'merchant_callback_url' => ecp_callback_url(),
+			),
+			'interface_type' => ecommpay()->get_interface_type(),
+		);
+
+		if ( null !== $payment_id ) {
+			$block['general']['payment_id'] = $payment_id;
+		}
+
+		return $block;
 	}
 
-	protected function build_general_api_block_with_payment(string $payment_id, WC_Abstract_Order $order): array {
-		$api_data = $this->build_general_api_block($payment_id);
-		$api_data['payment'] = [
-			'amount' => ecp_price_multiply( abs( $order->get_total() ), $order->get_currency() ),
+	/**
+	 * <h2>Builds general API block data with payment information.</h2>
+	 *
+	 * @param string            $payment_id <p>Payment ID.</p>
+	 * @param WC_Abstract_Order $order <p>WooCommerce order object.</p>
+	 * @return array <p>General API block data with payment.</p>
+	 * @since 2.0.0
+	 */
+	protected function build_general_api_block_with_payment( string $payment_id, WC_Abstract_Order $order ): array {
+		$api_data            = $this->build_general_api_block( $payment_id );
+		$api_data['payment'] = array(
+			'amount'   => ecp_price_multiply( abs( $order->get_total() ), $order->get_currency() ),
 			'currency' => $order->get_currency(),
-		];
+		);
+
 		return $api_data;
 	}
 }

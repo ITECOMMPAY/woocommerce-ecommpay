@@ -17,6 +17,7 @@ defined( 'ABSPATH' ) || exit;
  * @package Ecp_Gateway/Exceptions
  */
 class EcpGatewayInvalidArgumentException extends EcpGatewayException {
+
 	/**
 	 * Argument name.
 	 *
@@ -72,24 +73,24 @@ class EcpGatewayInvalidArgumentException extends EcpGatewayException {
 	 * @return string[][]
 	 */
 	protected function prepare_message(): array {
-		return [
-			[
+		return array(
+			array(
 				$this->get_base_message(),
 				WC_Log_Levels::ALERT,
-			],
-			[
+			),
+			array(
 				sprintf( _x( 'Argument name: %s', 'Exception message', 'woo-ecommpay' ), $this->get_arg() ),
 				WC_Log_Levels::ERROR,
-			],
-			[
+			),
+			array(
 				sprintf( _x( 'Expected type: %s', 'Exception message', 'woo-ecommpay' ), $this->get_expected() ),
 				WC_Log_Levels::ERROR,
-			],
-			[
+			),
+			array(
 				sprintf( _x( 'Received type: %s', 'Exception message', 'woo-ecommpay' ), $this->get_received() ),
 				WC_Log_Levels::ERROR,
-			],
-		];
+			),
+		);
 	}
 
 	/**

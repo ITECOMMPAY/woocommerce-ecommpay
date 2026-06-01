@@ -44,7 +44,7 @@ function ecp_subscription_is_resubscribe( EcpGatewayOrder $order ): bool {
  * @return bool
  */
 function ecp_subscription_is_active(): bool {
-	return class_exists( 'WC_Subscriptions' ) && WC_Subscriptions::$name = 'subscription';
+	return class_exists( 'WC_Subscriptions' ) && 'subscription' === WC_Subscriptions::$name;
 }
 
 /**
@@ -59,7 +59,7 @@ function ecp_get_subscriptions_for_renewal_order( $order, bool $single = false )
 	if ( function_exists( 'wcs_get_subscriptions_for_renewal_order' ) ) {
 		add_filter(
 			EcpWCFilters::WOOCOMMERCE_ORDER_CLASS,
-			[ ecommpay(), 'type_wrapper' ],
+			array( ecommpay(), 'type_wrapper' ),
 			101,
 			2
 		);
@@ -68,7 +68,7 @@ function ecp_get_subscriptions_for_renewal_order( $order, bool $single = false )
 
 		remove_filter(
 			EcpWCFilters::WOOCOMMERCE_ORDER_CLASS,
-			[ ecommpay(), 'type_wrapper' ],
+			array( ecommpay(), 'type_wrapper' ),
 			101
 		);
 		if ( $single ) {
@@ -83,7 +83,7 @@ function ecp_get_subscriptions_for_renewal_order( $order, bool $single = false )
 		}
 	}
 
-	return [];
+	return array();
 }
 
 /**
@@ -98,7 +98,7 @@ function ecp_get_subscriptions_for_resubscribe_order( $order, bool $single = fal
 	if ( function_exists( 'wcs_get_subscriptions_for_resubscribe_order' ) ) {
 		add_filter(
 			EcpWCFilters::WOOCOMMERCE_ORDER_CLASS,
-			[ ecommpay(), 'type_wrapper' ],
+			array( ecommpay(), 'type_wrapper' ),
 			101,
 			2
 		);
@@ -107,14 +107,14 @@ function ecp_get_subscriptions_for_resubscribe_order( $order, bool $single = fal
 
 		remove_filter(
 			EcpWCFilters::WOOCOMMERCE_ORDER_CLASS,
-			[ ecommpay(), 'type_wrapper' ],
+			array( ecommpay(), 'type_wrapper' ),
 			101
 		);
 
 		return $single ? end( $subscriptions ) : $subscriptions;
 	}
 
-	return [];
+	return array();
 }
 
 function ecp_get_subscription_status_name( $status ) {
@@ -137,7 +137,7 @@ function ecp_get_subscriptions_for_order( $order ): array {
 		return wcs_get_subscriptions_for_order( $order );
 	}
 
-	return [];
+	return array();
 }
 
 /**

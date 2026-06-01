@@ -3,7 +3,9 @@
 namespace common\gateways;
 
 use common\exceptions\EcpGatewayErrorException;
+use common\exceptions\EcpGatewayLogicException;
 use common\helpers\EcpGatewayPaymentMethods;
+use common\includes\EcpGatewayOrder;
 use common\includes\filters\EcpAppendsFilters;
 use common\modules\EcpModuleRefund;
 use common\settings\EcpSettings;
@@ -21,13 +23,19 @@ defined( 'ABSPATH' ) || exit;
  * @category Class
  */
 class EcpCard extends EcpGateway {
-	protected const PAYMENT_METHOD = 'card';
+
+	/**
+	 * @var string Payment method code for Card
+	 * @since 3.0.0
+	 */
+	private const PAYMENT_METHOD_CODE = 'card';
+
 	/**
 	 * @override
 	 * @var string[]
 	 * @since 1.0.0
 	 */
-	public $supports = [
+	public $supports = array(
 		self::SUPPORT_SUBSCRIPTIONS,
 		self::SUPPORT_PRODUCTS,
 		self::SUPPORT_SUBSCRIPTION_CANCELLATION,
@@ -37,21 +45,31 @@ class EcpCard extends EcpGateway {
 		self::SUPPORT_SUBSCRIPTION_DATE_CHANGES,
 		self::SUPPORT_REFUNDS,
 		self::SUPPORT_MULTIPLE_SUBSCRIPTIONS,
-	];
+	);
 
 
 	/**
+	 * @inheritDoc
+	 * @return string
+	 * @since 3.0.0
+	 */
+	protected function get_payment_method_code(): string {
+		return self::PAYMENT_METHOD_CODE;
+	}
+
+	/**
 	 * <h2>ECOMMPAY Gateway constructor.</h2>
+	 *
+	 * @throws EcpGatewayLogicException
 	 */
 	public function __construct() {
-
-		$this->id = EcpSettingsCard::ID;
-		$this->method_title       = __( 'ECOMMPAY Cards', 'woo-ecommpay' );
-		$this->method_description = __( 'Accept card payments via ECOMMPAY.', 'woo-ecommpay' );
+		$this->id                     = EcpSettingsCard::ID;
+		$this->method_title_key       = 'ECOMMPAY Cards';
+		$this->method_description_key = 'Accept card payments via ECOMMPAY.';
 
 		parent::__construct();
 
-		if ( $this->get_option( EcpSettings::OPTION_MODE ) == EcpSettings::MODE_EMBEDDED ) {
+		if ( $this->get_option( EcpSettings::OPTION_MODE, EcpSettings::MODE_REDIRECT ) === EcpSettings::MODE_EMBEDDED ) {
 			$this->description = '<div id="ecommpay-loader-embedded"></div><div id="ecommpay-iframe-embedded"></div>';
 		}
 
@@ -64,24 +82,18 @@ class EcpCard extends EcpGateway {
 	 * @return array
 	 * @since 3.0.0
 	 */
-	public function apply_payment_args( $values, $order ): array {
-		$amount       = ecp_price_multiply( $order->get_total(), $order->get_currency() );
+	public function apply_payment_args( array $values, EcpGatewayOrder $order ): array {
 		$display_mode = $this->get_option( EcpSettings::OPTION_MODE, EcpSettings::MODE_REDIRECT );
 
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_OPERATION_TYPE, $values, $order );
-		// Setup Payment Page Operation Mode
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_OPERATION_MODE, $values, $amount > 0 ? self::MODE_PURCHASE : self::MODE_CARD_VERIFY );
-		// Setup Payment Page Force Mode
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, self::PAYMENT_METHOD );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CARD_OPERATION_TYPE, $values, $order );
+		$values = $this->apply_standard_payment_args( $values, $order );
 		// Setup Payment Page Display Mode
 		$values = apply_filters(
-			'ecp_append_display_mode',
+			EcpAppendsFilters::ECP_APPEND_DISPLAY_MODE,
 			$values,
 			$display_mode,
 			ecp_is_enabled( EcpSettings::OPTION_POPUP_MISS_CLICK, $this->id )
 		);
-		// Setup Recurring (Subscriptions)
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_RECURRING, $values, $order );
 
 		return parent::apply_payment_args( $values, $order );
 	}
@@ -97,31 +109,34 @@ class EcpCard extends EcpGateway {
 	 * @since 3.0.0
 	 */
 	public function process_payment( $order_id ): array {
-		$order      = ecp_get_order( $order_id );
-		$payment_id = $_POST['payment_id'];
+		$order = ecp_get_order( $order_id );
 
 		if ( empty( $order ) ) {
 			throw new EcpGatewayErrorException( 'Order is not found.' );
 		}
 
-		if ( ! empty ( $payment_id ) ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$payment_id = isset( $_POST['payment_id'] ) ? sanitize_text_field( wp_unslash( $_POST['payment_id'] ) ) : null;
+
+		if ( ! empty( $payment_id ) ) {
 			$order->set_payment_id( $payment_id );
 		}
 
 		$options          = ecp_payment_page()->get_request_url( $order, $this );
-		$payment_page_url = ecp_payment_page()->get_url() . '/payment?' . http_build_query( $options );
+		$payment_page_url = ecp_payment_page()->get_payment_url( $order, $this );
 
-		return [
+		return array(
 			'result'      => 'success',
-			'optionsJson' => json_encode( $options ),
+			'optionsJson' => wp_json_encode( $options ),
 			'redirect'    => $payment_page_url,
 			'order_id'    => $order_id,
-		];
+		);
 	}
 
 	/**
 	 * @override
 	 * @return bool <p><b>TRUE</b> on process completed successfully, <b>FALSE</b> otherwise.</p>
+	 * @throws EcpGatewayLogicException
 	 * @since 3.0.0
 	 */
 	public function process_refund( $order_id, $amount = null, $reason = '' ): bool {
@@ -135,6 +150,7 @@ class EcpCard extends EcpGateway {
 	 *
 	 * @return bool <p><b>TRUE</b> if a refund available for the order, or <b>FALSE</b> otherwise.</p>
 	 * @override
+	 * @throws EcpGatewayLogicException
 	 * @since 2.0.0
 	 */
 	public function can_refund_order( $order ): bool {

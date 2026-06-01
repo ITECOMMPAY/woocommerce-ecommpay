@@ -18,6 +18,7 @@ defined( 'ABSPATH' ) || exit;
  * @category Class
  */
 class EcpGatewayRefund extends OrderRefund {
+
 	use EcpGatewayOrderExtension;
 
 	/**
@@ -65,27 +66,33 @@ class EcpGatewayRefund extends OrderRefund {
 			ecp_get_log()->notice( __( 'Refund statuses from and to identical. Skip process.' ) );
 			ecp_get_log()->debug( __( 'Refund status:', 'woo-ecommpay' ), $old );
 
-			return [ 'from' => $old, 'to' => $status ];
+			return array(
+				'from' => $old,
+				'to'   => $status,
+			);
 		}
 
-		if ( $old !== '' && ! in_array( $old, $this->get_valid_ecp_statuses() ) ) {
+		if ( '' !== $old && ! in_array( $old, $this->get_valid_ecp_statuses(), true ) ) {
 			ecp_get_log()->warning( sprintf( __( 'Refund form status "%s" is not supported', 'woo-ecommpay' ), $old ) );
 			$old = 'initial';
 		}
 
-		if ( ! in_array( $status, $this->get_valid_ecp_statuses() ) ) {
+		if ( ! in_array( $status, $this->get_valid_ecp_statuses(), true ) ) {
 			ecp_get_log()->warning( sprintf( __( 'Refund to status "%s" is not supported', 'woo-ecommpay' ), $old ) );
 			$old = 'initial';
 		}
 
 		$this->set_ecp_meta( '_refund_status', $status );
-		$transition = [ 'from' => $old, 'to' => $status ];
+		$transition = array(
+			'from' => $old,
+			'to'   => $status,
+		);
 
-		if ( $note !== '' ) {
+		if ( '' !== $note ) {
 			$this->add_comment( $note );
 		}
 
-		ecp_get_log()->info( sprintf( __( 'Refund status transitions: [%s] => [%s]', 'woo-ecommpay' ), $old, $status ) );
+		ecp_get_log()->info( sprintf( __( 'Refund status transitions: [%1$s] => [%2$s]', 'woo-ecommpay' ), $old, $status ) );
 
 		return $transition;
 	}
@@ -109,7 +116,7 @@ class EcpGatewayRefund extends OrderRefund {
 	 * @since 2.0.0
 	 */
 	private function get_valid_ecp_statuses(): array {
-		return [ 'initial', 'completed', 'failed' ];
+		return array( 'initial', 'completed', 'failed' );
 	}
 
 	/**
@@ -127,7 +134,7 @@ class EcpGatewayRefund extends OrderRefund {
 	 */
 	private function add_comment( string $comment = '' ): void {
 		// Return if the comment is blank
-		if ( $comment === '' ) {
+		if ( '' === $comment ) {
 			return;
 		}
 
@@ -135,7 +142,7 @@ class EcpGatewayRefund extends OrderRefund {
 		ecp_get_log()->debug( __( 'Comment:', 'woo-ecommpay' ), $comment );
 		$reason = $this->get_reason();
 
-		if ( empty ( $reason ) ) {
+		if ( empty( $reason ) ) {
 			$reason = $comment;
 		} else {
 			$reason .= ' | ' . $comment;
@@ -152,7 +159,7 @@ class EcpGatewayRefund extends OrderRefund {
 
 			ecp_get_log()->info( __( 'Comment added to refund', 'woo-ecommpay' ) );
 		} catch ( Exception $e ) {
-			ecp_get_log()->error( __( '', 'woo-ecommpay' ) );
+			ecp_get_log()->error( __( 'Failed to add comment to refund:', 'woo-ecommpay' ) );
 			ecp_get_log()->error( $e->getMessage() );
 		}
 	}

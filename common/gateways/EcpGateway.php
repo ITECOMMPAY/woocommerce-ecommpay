@@ -2,6 +2,7 @@
 
 namespace common\gateways;
 
+use common\exceptions\EcpGatewayLogicException;
 use common\includes\EcpGatewayOrder;
 use common\includes\filters\EcpApiFilters;
 use common\includes\filters\EcpAppendsFilters;
@@ -24,24 +25,81 @@ defined( 'ABSPATH' ) || exit;
  */
 abstract class EcpGateway extends WC_Payment_Gateway {
 
-	protected const PROCESS_RESULT_SUCCESS = 'success';
-	protected const MODE_PURCHASE = 'purchase';
-	protected const MODE_CARD_VERIFY = 'card_verify';
 
-	protected const SUPPORT_PRODUCTS = 'products';
-	protected const SUPPORT_REFUNDS = 'refunds';
-	protected const SUPPORT_SUBSCRIPTIONS = 'subscriptions';
-	protected const SUPPORT_SUBSCRIPTION_CANCELLATION = 'subscription_cancellation';
-	protected const SUPPORT_SUBSCRIPTION_REACTIVATION = 'subscription_reactivation';
-	protected const SUPPORT_SUBSCRIPTION_SUSPENSION = 'subscription_suspension';
+	private const TRANSLATIONS_HOOK = 'plugins_loaded';
+
+	protected const PROCESS_RESULT_SUCCESS = 'success';
+	protected const MODE_PURCHASE          = 'purchase';
+	protected const MODE_CARD_VERIFY       = 'card_verify';
+
+	protected const SUPPORT_PRODUCTS                    = 'products';
+	protected const SUPPORT_REFUNDS                     = 'refunds';
+	protected const SUPPORT_SUBSCRIPTIONS               = 'subscriptions';
+	protected const SUPPORT_SUBSCRIPTION_CANCELLATION   = 'subscription_cancellation';
+	protected const SUPPORT_SUBSCRIPTION_REACTIVATION   = 'subscription_reactivation';
+	protected const SUPPORT_SUBSCRIPTION_SUSPENSION     = 'subscription_suspension';
 	protected const SUPPORT_SUBSCRIPTION_AMOUNT_CHANGES = 'subscription_amount_changes';
-	protected const SUPPORT_SUBSCRIPTION_DATE_CHANGES = 'subscription_date_changes';
-	protected const SUPPORT_MULTIPLE_SUBSCRIPTIONS = 'multiple_subscriptions';
-	private static ?EcpGateway $_instance = null;
+	protected const SUPPORT_SUBSCRIPTION_DATE_CHANGES   = 'subscription_date_changes';
+	protected const SUPPORT_MULTIPLE_SUBSCRIPTIONS      = 'multiple_subscriptions';
+	private const EMPTY_REFUND_ENDPOINT_PREFIX          = '';
+
+	public string $payment_method = '';
+
+	/**
+	 * Singleton instance.
+	 *
+	 * @var EcpGateway|null
+	 */
+	private static ?EcpGateway $instance = null;
 
 	public $id = EcpSettingsGeneral::ID;
 
-	public $supports = '';
+	public $supports = array();
+
+	/**
+	 * Untranslated method title key for lazy translation.
+	 *
+	 * @var string|null
+	 */
+	protected ?string $method_title_key = null;
+
+	/**
+	 * Untranslated method description key for lazy translation.
+	 *
+	 * @var string|null
+	 */
+	protected ?string $method_description_key = null;
+
+	/**
+	 * Returns payment method code for API.
+	 *
+	 * @return string|null Payment method code or null for gateways without fixed method
+	 * @since 3.0.0
+	 */
+	protected function get_payment_method_code(): ?string {
+		return null;
+	}
+
+	/**
+	 * Returns icon file name (without extension).
+	 * By default, equals to payment_method_code.
+	 *
+	 * @return string|null Icon file name or null if no icon
+	 * @since 3.0.0
+	 */
+	protected function get_icon_file_name(): ?string {
+		return $this->get_payment_method_code();
+	}
+
+	/**
+	 * Returns refund endpoint prefix for API.
+	 *
+	 * @return string Endpoint prefix or empty string for default endpoint
+	 * @since 3.0.0
+	 */
+	protected function get_refund_endpoint_prefix(): string {
+		return self::EMPTY_REFUND_ENDPOINT_PREFIX;
+	}
 
 	/**
 	 * <h2>Returns a new instance, if it does not already exist.</h2>
@@ -50,35 +108,99 @@ abstract class EcpGateway extends WC_Payment_Gateway {
 	 * @since 3.0.1
 	 */
 	public static function get_instance(): EcpGateway {
-		if ( null === self::$_instance ) {
-			static::$_instance = new static();
+		if ( null === self::$instance ) {
+			self::$instance = new static();
 		}
 
-		return static::$_instance;
+		return self::$instance;
 	}
 
+	/**
+	 * Get the method title with a lazy translation.
+	 *
+	 * @return string
+	 */
+	public function get_method_title(): string {
+		// In WP-CLI context or before init, return untranslated value to avoid early translation loading
+		if ( null !== $this->method_title_key && ( ( defined( 'WP_CLI' ) && WP_CLI ) || ! did_action( self::TRANSLATIONS_HOOK ) ) ) {
+			return $this->method_title_key;
+		}
+
+		// After init in web context, return translated value
+		if ( null !== $this->method_title_key && did_action( self::TRANSLATIONS_HOOK ) ) {
+			return __( $this->method_title_key, 'woo-ecommpay' ); // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+		}
+
+		return parent::get_method_title();
+	}
+
+	/**
+	 * Get the method description with lazy translation.
+	 *
+	 * @return string
+	 */
+	public function get_method_description(): string {
+		// In WP-CLI context or before init, return untranslated value to avoid early translation loading
+		if ( null !== $this->method_description_key && ( ( defined( 'WP_CLI' ) && WP_CLI ) || ! did_action( self::TRANSLATIONS_HOOK ) ) ) {
+			return $this->method_description_key;
+		}
+
+		// After init in web context, return translated value
+		if ( null !== $this->method_description_key && did_action( self::TRANSLATIONS_HOOK ) ) {
+			return __( $this->method_description_key, 'woo-ecommpay' ); // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+		}
+
+		return parent::get_method_description();
+	}
+
+	/**
+	* @throws EcpGatewayLogicException
+	*/
 	public function __construct() {
+
+		$payment_method_code = $this->get_payment_method_code();
+		if ( null !== $payment_method_code ) {
+			$this->payment_method = $payment_method_code;
+		}
+
+		// Set untranslated values for method_title and method_description
+		// They will be translated lazily via get_method_title() and get_method_description()
+		if ( null !== $this->method_title_key ) {
+			$this->method_title = $this->method_title_key;
+		}
+		if ( null !== $this->method_description_key ) {
+			$this->method_description = $this->method_description_key;
+		}
+
 		$this->has_fields        = false;
-		$this->title = $this->get_option( EcpSettings::OPTION_TITLE );
-		$this->order_button_text = $this->get_option( EcpSettings::OPTION_CHECKOUT_BUTTON_TEXT );
-		$this->enabled = $this->get_option( EcpSettings::OPTION_ENABLED );
+		$this->title             = $this->get_option( EcpSettings::OPTION_TITLE, '' );
+		$this->order_button_text = $this->get_option( EcpSettings::OPTION_CHECKOUT_BUTTON_TEXT, '' );
+		$this->enabled           = $this->get_option( EcpSettings::OPTION_ENABLED, EcpSettings::VALUE_DISABLED );
 		$this->icon              = $this->get_icon();
 
 		if ( $this->is_enabled( EcpSettings::OPTION_SHOW_DESCRIPTION ) ) {
-			$this->description = $this->get_option( EcpSettings::OPTION_DESCRIPTION );
+			$this->description = $this->get_option( EcpSettings::OPTION_DESCRIPTION, '' );
 		}
 
-		add_action( EcpWCFilters::WOOCOMMERCE_UPDATE_OPTIONS_PAYMENT_GATEWAYS . $this->id, [
-			EcpForm::get_instance(),
-			'save'
-		] );
-		add_filter( EcpAppendsFilters::ECP_APPEND_GATEWAY_ARGUMENTS . $this->id, [
-			$this,
-			'apply_payment_args'
-		], 10, 2 );
-		add_filter( EcpApiFilters::ECP_API_REFUND_ENDPOINT_PREFIX . $this->id, [ $this, 'get_refund_endpoint' ] );
-	}
+		add_action(
+			EcpWCFilters::WOOCOMMERCE_UPDATE_OPTIONS_PAYMENT_GATEWAYS . $this->id,
+			array(
+				EcpForm::get_instance(),
+				'save',
+			)
+		);
+		add_filter(
+			EcpAppendsFilters::ECP_APPEND_GATEWAY_ARGUMENTS . $this->id,
+			array(
+				$this,
+				'apply_payment_args',
+			),
+			10,
+			2
+		);
 
+		add_filter( EcpApiFilters::ECP_API_REFUND_ENDPOINT_PREFIX . $this->id, array( $this, 'get_refund_endpoint' ) );
+	}
 
 	/**
 	 * @inheritDoc
@@ -87,29 +209,29 @@ abstract class EcpGateway extends WC_Payment_Gateway {
 	 * @since 3.0.0
 	 */
 	public function get_icon(): ?string {
-		if ( ! $icon_path = $this->get_icon_path() ) {
+		$icon_path = $this->get_icon_path();
+		if ( ! $icon_path ) {
 			return null;
 		}
+
+		$alt_text = $this->payment_method ? $this->payment_method : ( $this->get_payment_method_code() ?? '' );
 
 		$icon_str = sprintf(
 			'<img src="%s" style="max-width: 50px" alt="%s" />',
 			$icon_path,
-			static::PAYMENT_METHOD
+			$alt_text
 		);
 
 		return apply_filters( 'woocommerce_gateway_icon', $icon_str, $this->id );
 	}
 
 	public function get_icon_path(): ?string {
-		if ( defined( static::class . '::ICON_NAME' ) ) {
-			$image_file_name = static::ICON_NAME . '.svg';
-		} elseif ( defined( static::class . '::PAYMENT_METHOD' ) ) {
-			$image_file_name = static::PAYMENT_METHOD . '.svg';
-		} else {
+		$icon_file_name = $this->get_icon_file_name();
+		if ( null === $icon_file_name ) {
 			return null;
 		}
 
-		return ecp_img_url( $image_file_name );
+		return ecp_img_url( $icon_file_name . '.svg' );
 	}
 
 	/**
@@ -136,8 +258,28 @@ abstract class EcpGateway extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Applies standard payment arguments common to all gateways.
+	 *
+	 * Handles operation mode selection (purchase vs card_verify based on amount),
+	 * force mode (payment method code), and recurring settings.
+	 *
+	 * @param array           $values Payment arguments array.
+	 * @param EcpGatewayOrder $order  Order object.
+	 *
+	 * @return array Modified payment arguments.
+	 * @since 3.0.0
+	 */
+	protected function apply_standard_payment_args( array $values, EcpGatewayOrder $order ): array {
+		$amount = ecp_price_multiply( $order->get_total(), $order->get_currency() );
+
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_OPERATION_MODE, $values, $amount > 0 ? self::MODE_PURCHASE : self::MODE_CARD_VERIFY );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, $this->get_payment_method_code() );
+		return apply_filters( EcpAppendsFilters::ECP_APPEND_RECURRING, $values, $order );
+	}
+
+	/**
+	 * @param array           $values
 	 * @param EcpGatewayOrder $order
-	 * @param array $values
 	 *
 	 * @return array
 	 */
@@ -152,7 +294,26 @@ abstract class EcpGateway extends WC_Payment_Gateway {
 	 * @since 3.0.0
 	 */
 	public function get_refund_endpoint( $order ): string {
-		return static::REFUND_ENDPOINT ?? '';
+		return $this->get_refund_endpoint_prefix();
+	}
+
+	/**
+	 * Common process_payment implementation for standard payment gateways
+	 * that redirect to the ECOMMPAY payment page without a pre-existing payment_id.
+	 *
+	 * @param int $order_id WooCommerce order ID.
+	 *
+	 * @return array Result array for WooCommerce checkout.
+	 */
+	protected function process_standard_payment( int $order_id ): array {
+		$order            = ecp_get_order( $order_id );
+		$payment_page_url = ecp_payment_page()->get_payment_url( $order, $this );
+
+		return array(
+			'result'   => self::PROCESS_RESULT_SUCCESS,
+			'redirect' => $payment_page_url,
+			'order_id' => $order_id,
+		);
 	}
 
 	/**
@@ -210,10 +371,13 @@ abstract class EcpGateway extends WC_Payment_Gateway {
 	 * <p>Overrides the base function and does nothing.</p>
 	 *
 	 * @override
+	 * @param array $form_fields
+	 * @param bool $echo
 	 * @return void
 	 * @since 3.0.0
 	 */
-	final public function generate_settings_html( $form_fields = [], $echo = true ): void {
+	// phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.echoFound
+	final public function generate_settings_html( $form_fields = array(), $echo = true ): void {
 	}
 
 	/**
@@ -222,10 +386,12 @@ abstract class EcpGateway extends WC_Payment_Gateway {
 	 *
 	 * @override
 	 * @return void
+	 * @throws EcpGatewayLogicException
 	 * @since 3.0.0
 	 */
 	public function admin_options(): void {
-		echo '<img src="' . ecp_img_url( 'ecommpay.svg' ) . '" alt="" class="ecp_logo right">';
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo '<img src="' . esc_url( ecp_img_url( 'ecommpay.svg' ) ) . '" alt="" class="ecp_logo right">';
 		echo '<h2>' . esc_html( $this->get_method_title() );
 		wc_back_link( __( 'Return to payments', 'woocommerce' ), admin_url( 'admin.php?page=wc-settings&tab=checkout' ) );
 		echo '</h2>';
@@ -239,9 +405,7 @@ abstract class EcpGateway extends WC_Payment_Gateway {
 	 * @return bool
 	 */
 	protected function is_gateway_with_subscription_only(): bool {
-		global $woocommerce;
-
-		$cart = $woocommerce->cart;
+		$cart = WC()->cart;
 
 		if ( ! isset( $cart ) || $cart->get_cart_contents_count() !== 1 ) {
 			return false;
@@ -251,12 +415,15 @@ abstract class EcpGateway extends WC_Payment_Gateway {
 		$first_item = array_shift( $cart_items );
 
 		$is_first_item_subscription = is_a( $first_item['data'], 'WC_Product_Subscription' )
-		                              || is_a( $first_item['data'], 'WC_Product_Subscription_Variation' );
+			|| is_a( $first_item['data'], 'WC_Product_Subscription_Variation' );
 
 		return ( $is_first_item_subscription && ! isset( $first_item['subscription_renewal']['renewal_order_id'] ) );
 	}
 
-	protected function init_subscription() {
+	/**
+	 * @throws EcpGatewayLogicException
+	 */
+	protected function init_subscription(): void {
 		// WooCommerce Subscriptions hooks/filters
 		if ( ! ecp_subscription_is_active() ) {
 			return;
@@ -265,7 +432,7 @@ abstract class EcpGateway extends WC_Payment_Gateway {
 		// On scheduled subscription
 		add_action(
 			'woocommerce_scheduled_subscription_payment_' . $this->id,
-			[ EcpModuleSubscription::get_instance(), 'scheduled_subscription_payment' ],
+			array( EcpModuleSubscription::get_instance(), 'scheduled_subscription_payment' ),
 			10,
 			2
 		);
@@ -273,26 +440,26 @@ abstract class EcpGateway extends WC_Payment_Gateway {
 		// On cancelled subscription
 		add_action(
 			'woocommerce_subscription_cancelled_' . $this->id,
-			[ EcpModuleSubscription::get_instance(), 'subscription_cancellation' ]
+			array( EcpModuleSubscription::get_instance(), 'subscription_cancellation' )
 		);
 
 		// On updated subscription
 		add_action(
 			'woocommerce_subscription_payment_method_updated_to_' . $this->id,
-			[
+			array(
 				EcpModuleSubscription::get_instance(),
-				'on_subscription_payment_method_updated_to_ecommpay'
-			],
+				'on_subscription_payment_method_updated_to_ecommpay',
+			),
 			10,
 			2
 		);
 
 		add_action(
 			'woocommerce_subscription_validate_payment_meta_' . $this->id,
-			[
+			array(
 				EcpModuleSubscription::get_instance(),
-				'woocommerce_subscription_validate_payment_meta'
-			],
+				'woocommerce_subscription_validate_payment_meta',
+			),
 			10,
 			2
 		);

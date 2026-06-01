@@ -2,8 +2,9 @@
 
 namespace common\gateways;
 
+use common\exceptions\EcpGatewayLogicException;
 use common\helpers\EcpGatewayPaymentMethods;
-use common\includes\filters\EcpAppendsFilters;
+use common\includes\EcpGatewayOrder;
 use common\modules\EcpModuleRefund;
 use common\settings\EcpSettingsGooglepay;
 use WC_Order;
@@ -19,14 +20,20 @@ defined( 'ABSPATH' ) || exit;
  * @category Class
  */
 class EcpGooglepay extends EcpGateway {
-	protected const PAYMENT_METHOD = 'google_pay_host';
+
+	/**
+	 * @var string Payment method code for Google Pay Host
+	 * @since 3.0.1
+	 */
+	private const PAYMENT_METHOD_CODE = 'google_pay_host';
+
 	/**
 	 * @inheritDoc
 	 * @override
 	 * @var string[]
 	 * @since 3.0.1
 	 */
-	public $supports = [
+	public $supports = array(
 		self::SUPPORT_PRODUCTS,
 		self::SUPPORT_REFUNDS,
 		self::SUPPORT_SUBSCRIPTIONS,
@@ -36,16 +43,27 @@ class EcpGooglepay extends EcpGateway {
 		self::SUPPORT_SUBSCRIPTION_AMOUNT_CHANGES,
 		self::SUPPORT_SUBSCRIPTION_DATE_CHANGES,
 		self::SUPPORT_MULTIPLE_SUBSCRIPTIONS,
-	];
+	);
 
 
 	/**
-	 * <h2>ECOMMPAY GooglePay Gateway constructor.</h2>
+	 * @inheritDoc
+	 * @return string
+	 * @since 3.0.1
+	 */
+	protected function get_payment_method_code(): string {
+		return self::PAYMENT_METHOD_CODE;
+	}
+
+	/**
+	 * <h2>ECOMMPAY Google Pay Gateway constructor.</h2>
+	 *
+	 * @throws EcpGatewayLogicException
 	 */
 	public function __construct() {
-		$this->id = EcpSettingsGooglepay::ID;
-		$this->method_title       = __( 'ECOMMPAY GooglePay', 'woo-ecommpay' );
-		$this->method_description = __( 'Accept payments via GooglePay.', 'woo-ecommpay' );
+		$this->id                     = EcpSettingsGooglepay::ID;
+		$this->method_title_key       = 'ECOMMPAY GooglePay';
+		$this->method_description_key = 'Accept payments via GooglePay.';
 
 		parent::__construct();
 
@@ -58,13 +76,8 @@ class EcpGooglepay extends EcpGateway {
 	 * @return array
 	 * @since 3.0.1
 	 */
-	public function apply_payment_args( $values, $order ): array {
-		$amount = ecp_price_multiply( $order->get_total(), $order->get_currency() );
-
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_OPERATION_MODE, $values, $amount > 0 ? self::MODE_PURCHASE : self::MODE_CARD_VERIFY );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, self::PAYMENT_METHOD );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_RECURRING, $values, $order );
-
+	public function apply_payment_args( array $values, EcpGatewayOrder $order ): array {
+		$values = $this->apply_standard_payment_args( $values, $order );
 		return parent::apply_payment_args( $values, $order );
 	}
 
@@ -85,21 +98,14 @@ class EcpGooglepay extends EcpGateway {
 	 * @since 3.0.1
 	 */
 	public function process_payment( $order_id ): array {
-		$order            = ecp_get_order( $order_id );
-		$options          = ecp_payment_page()->get_request_url( $order, $this );
-		$payment_page_url = ecp_payment_page()->get_url() . '/payment?' . http_build_query( $options );
-
-		return [
-			'result' => self::PROCESS_RESULT_SUCCESS,
-			'redirect' => $payment_page_url,
-			'order_id' => $order_id,
-		];
+		return $this->process_standard_payment( $order_id );
 	}
 
 	/**
 	 * @inheritDoc
 	 * @override
 	 * @return bool <p><b>TRUE</b> on process completed successfully, <b>FALSE</b> otherwise.</p>
+	 * @throws EcpGatewayLogicException
 	 * @since 3.0.1
 	 */
 	public function process_refund( $order_id, $amount = null, $reason = '' ): bool {
@@ -114,6 +120,7 @@ class EcpGooglepay extends EcpGateway {
 	 *
 	 * @override
 	 * @return bool <p><b>TRUE</b> if a refund available for the order, or <b>FALSE</b> otherwise.</p>
+	 * @throws EcpGatewayLogicException
 	 * @since 3.0.1
 	 */
 	public function can_refund_order( $order ): bool {

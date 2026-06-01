@@ -55,8 +55,9 @@ function ecp_get_operation_type_name( string $status ): string {
 
 function generateNewPaymentId( ?WC_Order $order ): string {
 	$paymentId = uniqid( 'wp_' );
-	if ( $orderId = $order ? $order->get_id() : null ) {
-		$paymentId = $paymentId . '_' . (string)($orderId);
+	$orderId   = $order ? $order->get_id() : null;
+	if ( $orderId ) {
+		$paymentId = $paymentId . '_' . $orderId;
 	}
 	return $paymentId;
 }

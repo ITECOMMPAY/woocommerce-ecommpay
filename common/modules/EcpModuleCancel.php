@@ -1,6 +1,7 @@
 <?php
 
 namespace common\modules;
+
 defined( 'ABSPATH' ) || exit;
 
 use common\api\EcpGatewayAPIPayment;
@@ -18,9 +19,9 @@ use WC_Order;
 class EcpModuleCancel extends EcpGatewayRegistry {
 
 	protected function init(): void {
-		add_action( EcpApiFilters::WP_AJAX_ECP_PROCESS_CANCEL_ORDER, [ $this, 'process' ] );
+		add_action( EcpApiFilters::WP_AJAX_ECP_PROCESS_CANCEL_ORDER, array( $this, 'process' ) );
 
-		add_action( EcpWCFilters::WOOCOMMERCE_ORDER_STATUS_CANCELLED, [ $this, 'try_auto_cancel_payment' ] );
+		add_action( EcpWCFilters::WOOCOMMERCE_ORDER_STATUS_CANCELLED, array( $this, 'try_auto_cancel_payment' ) );
 	}
 
 	/**
@@ -28,19 +29,21 @@ class EcpModuleCancel extends EcpGatewayRegistry {
 	 * @throws Exception
 	 */
 	public function process( $order_id = null, bool $hide_ajax_message = false ): bool {
-
-		if ( ! current_user_can( 'administrator' ) ) {
-			wp_send_json_error( [ 'message' => 'Access denied.' ], 403 );
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			if ( ! $hide_ajax_message ) {
+				wp_send_json_error( array( 'message' => 'Access denied.' ), 403 );
+			}
 
 			return false;
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Internal call or verified externally
 		$order_id = ! empty( $order_id ) ? $order_id : $_POST['order_id']; // Both used in different cases
 
 		if ( empty( $order_id ) ) {
 			ecp_error( 'Order ID is missing.' );
 			if ( ! $hide_ajax_message ) {
-				wp_send_json_error( [ 'message' => 'Invalid order ID.' ] );
+				wp_send_json_error( array( 'message' => 'Invalid order ID.' ) );
 			}
 		}
 
@@ -48,7 +51,7 @@ class EcpModuleCancel extends EcpGatewayRegistry {
 		$order = ecp_get_order( $order_id );
 
 		try {
-			$api = new EcpGatewayAPIPayment();
+			$api     = new EcpGatewayAPIPayment();
 			$payment = $api->cancel( $order );
 
 			if ( $payment->get_request_id() === '' ) {

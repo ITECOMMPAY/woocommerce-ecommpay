@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
-    "types": ["applepayjs", "jquery"],
+    "types": ["applepayjs"],
     "typeRoots": ["node_modules/@types"],
     "jsx": "react-jsx",
-    "lib": ["decorators", "dom", "scripthost", "es2017"]
+    "lib": ["decorators", "dom", "scripthost", "es2017"],
+    "outDir": "plugin-ecommpay/build"
   },
   "include": ["src/**/*"]
 }

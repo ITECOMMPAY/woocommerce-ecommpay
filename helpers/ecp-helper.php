@@ -32,7 +32,7 @@ function ecp_version(): string {
 
 if ( ! function_exists( 'wp_version' ) ) {
 	function wp_version() {
-		include( ABSPATH . WPINC . '/version.php' );
+		include ABSPATH . WPINC . '/version.php';
 
 		/** @noinspection PhpUndefinedVariableInspection */
 		return $wp_version;
@@ -97,7 +97,7 @@ function ecp_img_url( $file_name ): string {
  * @return string
  */
 function ecp_settings_page_url( string $sub = EcpSettingsGeneral::ID ): string {
-	if ( ! in_array( $sub, EcpSettings::SETTINGS_TABS ) ) {
+	if ( ! in_array( $sub, EcpSettings::SETTINGS_TABS, true ) ) {
 		return admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . esc_attr( $sub ) );
 	}
 
@@ -132,7 +132,7 @@ function ecp_error_code_link( string $code ): string {
  */
 function ecp_admin_link(): string {
 	wc_get_logger();
-	$source = EcpGatewayLog::ECOMMPAY_DOMAIN;
+	$source    = EcpGatewayLog::ECOMMPAY_DOMAIN;
 	$handler   = new WC_Log_Handler_File();
 	$log_files = $handler->get_log_files();
 	$log_file  = '';
@@ -147,11 +147,14 @@ function ecp_admin_link(): string {
 		return '';
 	}
 
-	return add_query_arg( [
-		'page'     => 'wc-status',
-		'tab'      => 'logs',
-		'log_file' => $log_file
-	], admin_url( 'admin.php' ) );
+	return add_query_arg(
+		array(
+			'page'     => 'wc-status',
+			'tab'      => 'logs',
+			'log_file' => $log_file,
+		),
+		admin_url( 'admin.php' )
+	);
 }
 
 /**
@@ -160,8 +163,9 @@ function ecp_admin_link(): string {
  * @param string $path
  * @param array $args
  */
-function ecp_get_view( string $path, array $args = [] ) {
-	if ( is_array( $args ) && ! empty ( $args ) ) {
+function ecp_get_view( string $path, array $args = array() ) {
+	if ( is_array( $args ) && ! empty( $args ) ) {
+		// phpcs:ignore WordPress.PHP.DontExtract.extract_extract -- Used for view template variables
 		extract( $args );
 	}
 
@@ -194,10 +198,12 @@ function ecp_load_i18n(): void {
  * @return string Translated text.
  */
 function ecpL( string $text, string $context ): string {
+	// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText, WordPress.WP.I18n.NonSingularStringLiteralContext, WordPress.WP.I18n.NonSingularStringLiteralDomain -- Wrapper function
 	return _x( $text, $context, ECOMMPAY_LOCALE_DOMAIN );
 }
 
 function ecpTr( string $text ): string {
+	// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText, WordPress.WP.I18n.NonSingularStringLiteralDomain -- Wrapper function
 	return __( $text, ECOMMPAY_LOCALE_DOMAIN );
 }
 
@@ -212,11 +218,11 @@ function ecpTr( string $text ): string {
  */
 function ecp_is_enabled( string $key, string $payment_method = EcpSettingsGeneral::ID ): bool {
 	return ecommpay()
-		       ->get_pm_option(
-			       $payment_method,
-			       $key,
-			       EcpSettings::VALUE_DISABLED
-		       ) === EcpSettings::VALUE_ENABLED;
+				->get_pm_option(
+					$payment_method,
+					$key,
+					EcpSettings::VALUE_DISABLED
+				) === EcpSettings::VALUE_ENABLED;
 }
 
 /**
@@ -263,7 +269,7 @@ function ecp_array_insert_after( string $needle, array $haystack, string $new_ke
 
 	if ( array_key_exists( $needle, $haystack ) ) {
 
-		$new_array = [];
+		$new_array = array();
 
 		foreach ( $haystack as $key => $value ) {
 
@@ -286,7 +292,7 @@ function ecp_array_insert_after( string $needle, array $haystack, string $new_ke
  * @return string
  */
 function get_ecp_payment_method_icon( string $payment_type ): string {
-	$logos = [
+	$logos = array(
 		'card'            => 'card.svg',
 		'alipay'          => 'alipay.svg',
 		'apple_pay'       => 'apple_pay_core.svg',
@@ -295,7 +301,7 @@ function get_ecp_payment_method_icon( string $payment_type ): string {
 		'crypto'          => 'crypto.svg',
 		'google-pay'      => 'google_pay.png',
 		'google-pay-host' => 'google_pay.svg',
-		'humm'			  => 'humm.svg',
+		'humm'            => 'humm.svg',
 		'jeton-wallet'    => 'jetonWallet.svg',
 		'mobile'          => 'mobile.svg',
 		'monetix-wallet'  => 'monetix-wallet.svg',
@@ -306,7 +312,7 @@ function get_ecp_payment_method_icon( string $payment_type ): string {
 		'skrill'          => 'skrill.svg',
 		'unionpay'        => 'unionpay.svg',
 		'webmoney'        => 'webmoney.svg',
-	];
+	);
 
 	if ( array_key_exists( trim( $payment_type ), $logos ) ) {
 		return ecp_img_url( $logos[ $payment_type ] );
@@ -323,24 +329,45 @@ function ecp_get_log(): EcpGatewayLog {
 	return EcpGatewayLog::get_instance();
 }
 
+/**
+ * Translates a string using the plugin text domain.
+ * Shorthand for __( $text, 'woo-ecommpay' ).
+ *
+ * Note: static string extractors (make-pot) cannot resolve variables passed to __().
+ * Use this helper only for strings that do not require translation (e.g. log messages).
+ * For translatable UI strings use __( 'literal', 'woo-ecommpay' ) directly.
+ *
+ * @param string $text Text to translate.
+ *
+ * @return string Translated text.
+ */
+function ecp_tr( string $text ): string {
+	// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText -- used for log messages only, not UI strings.
+	return __( $text, 'woo-ecommpay' );
+}
+
+// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Uses func_get_args() for variadic forwarding.
 function ecp_debug( ...$args ) {
 	ecp_get_log()->debug( ...func_get_args() );
 }
 
+// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Uses func_get_args() for variadic forwarding.
 function ecp_info( ...$args ) {
 	ecp_get_log()->info( ...func_get_args() );
 }
 
-function ecp_warning() {
+// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Uses func_get_args() for variadic arguments
+function ecp_warning( ...$args ) {
 	ecp_get_log()->warning( ...func_get_args() );
 }
 
+// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Spread operator usage
 function ecp_warn( ...$args ) {
 	ecp_warning( ...$args );
 }
 
 function ecp_error( ...$args ) {
-	ecp_get_log()->error( ...func_get_args() );
+	ecp_get_log()->error( ...$args );
 }
 
 /**
@@ -378,7 +405,7 @@ function ecp_payment_page(): EcpModulePaymentPage {
 function ecp_region_code( $country, $region ) {
 	$regions = WC()->countries->get_states( $country );
 
-	return array_search( $region, $regions );
+	return array_search( $region, $regions, true );
 }
 
 /**

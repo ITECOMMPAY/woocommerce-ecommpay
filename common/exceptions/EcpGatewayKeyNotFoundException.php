@@ -15,6 +15,7 @@ defined( 'ABSPATH' ) || exit;
  * @package Ecp_Gateway/Exceptions
  */
 class EcpGatewayKeyNotFoundException extends EcpGatewayException {
+
 	/**
 	 * Contain corrupted key name.
 	 *
@@ -60,23 +61,23 @@ class EcpGatewayKeyNotFoundException extends EcpGatewayException {
 	 * @return string[][]
 	 */
 	protected function prepare_message(): array {
-		return [
-			[
+		return array(
+			array(
 				$this->get_base_message(),
 				WC_Log_Levels::ALERT,
-			],
-			[
+			),
+			array(
 				sprintf( _x( 'Searched key: %s', 'Exception message', 'woo-ecommpay' ), $this->getKey() ),
 				WC_Log_Levels::ERROR,
-			],
-			[
+			),
+			array(
 				sprintf(
 					_x( 'Available keys: %s', 'Exception message', 'woo-ecommpay' ),
 					implode( ', ', $this->getAvailable() )
 				),
 				WC_Log_Levels::ERROR,
-			]
-		];
+			),
+		);
 	}
 
 	/**

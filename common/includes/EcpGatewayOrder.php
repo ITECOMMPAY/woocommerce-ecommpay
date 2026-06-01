@@ -30,38 +30,41 @@ class EcpGatewayOrder extends Order {
 	/**
 	 * Mark in order metadata for counting failed payments.
 	 */
-	public const META_FAILED_PAYMENT_COUNT = '_ecommpay_failed_payment_count';
+	public const META_FAILED_PAYMENT_COUNT  = '_ecommpay_failed_payment_count';
 	public const META_REFUND_ATTEMPTS_COUNT = '_ecommpay_refund_attempts_count';
 
 	/**
 	 * Transaction identifier in order metadata.
 	 */
-	public const META_TRANSACTION_ID = '_transaction_id';
-	private const CANCEL_ACTION = 'cancel';
-
-	private const STATUS_FAILED = 'failed';
-
-	/**
-	 * Mark in order metadata for counting changed payment method.
-	 */
+	public const META_TRANSACTION_ID               = '_transaction_id';
+	private const CANCEL_ACTION                    = 'cancel';
+	private const STATUS_FAILED                    = 'failed';
 	private const META_PAYMENT_METHOD_CHANGE_COUNT = '_ecommpay_payment_method_change_count';
-
-	private const ORDER_PAY_ECOMMPAY_ACTION_NAME = 'ecommpay_process';
+	private const ORDER_PAY_ECOMMPAY_ACTION_NAME   = 'ecommpay_process';
+	private const SQL_GET_ORDER_BY_PAYMENT_ID      = 'SELECT DISTINCT ID FROM %i as posts '
+		. 'LEFT JOIN %i as meta ON posts.ID = meta.post_id '
+		. 'WHERE meta.meta_value = %s AND meta.meta_key = %s';
+	private const ACTION_RENEW                     = 'renew';
+	private const ACTION_RECURRING                 = 'recurring';
+	private const ACTION_SUBSCRIPTION              = 'subscription';
+	private const STATUS_SUBSCRIBE                 = 'subscribe';
+	private const STATUS_SUCCESS                   = 'success';
 
 	/**
 	 * Payment statuses that require creating a new payment_id.
 	 */
-	private const STATUSES_REQUIRING_NEW_PAYMENT_ID = [
+	private const STATUSES_REQUIRING_NEW_PAYMENT_ID = array(
 		EcpGatewayPaymentStatus::DECLINE,
 		EcpGatewayPaymentStatus::EXPIRED,
 		EcpGatewayPaymentStatus::INTERNAL_ERROR,
 		EcpGatewayPaymentStatus::EXTERNAL_ERROR,
-	];
+	);
 
 	/**
 	 * @var ?EcpGatewayPayment
 	 */
 	private ?EcpGatewayPayment $payment = null;
+
 
 	/**
 	 * Returns the order ID based on the ID retrieved from the ECOMMPAY callback.
@@ -75,28 +78,38 @@ class EcpGatewayOrder extends Order {
 
 		$payment_id = $info->get_payment()->get_id();
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Payment ID from callback parameter
 		if ( ! $payment_id && isset( $_GET['payment_id'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Payment ID from callback parameter
 			$payment_id = sanitize_text_field( wp_unslash( $_GET['payment_id'] ) );
 		}
 
 		if ( ecp_HPOS_enabled() ) {
-			$orders = wc_get_orders( [
-				'limit'      => 1,
-				'meta_query' => [
-					[
-						'key'   => '_payment_id',
-						'value' => $payment_id,
-					],
-				],
-			] );
+			$orders = wc_get_orders(
+				array(
+					'limit'      => 1,
+					'meta_query' => array(
+						array(
+							'key'   => '_payment_id',
+							'value' => $payment_id,
+						),
+					),
+				)
+			);
 
 			return current( $orders ) ? current( $orders )->get_id() : false;
 		} else {
-			$query = "SELECT DISTINCT ID FROM $wpdb->posts as posts "
-			         . "LEFT JOIN $wpdb->postmeta as meta ON posts.ID = meta.post_id "
-			         . "WHERE meta.meta_value = %s AND meta.meta_key = %s";
+			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared
+			$query = $wpdb->prepare(
+				self::SQL_GET_ORDER_BY_PAYMENT_ID,
+				$wpdb->posts,
+				$wpdb->postmeta,
+				$payment_id,
+				'_payment_id'
+			);
 
-			return $wpdb->get_var( $wpdb->prepare( $query, $payment_id, '_payment_id' ) );
+			return $wpdb->get_var( $query );
+			// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
 		}
 	}
 
@@ -107,6 +120,7 @@ class EcpGatewayOrder extends Order {
 	 * <p>If no data is cached, we will fetch the transaction from the API and cache it.</p>
 	 *
 	 * @return EcpGatewayPayment Order payment
+	 * @throws EcpGatewayLogicException
 	 */
 	public function get_payment( $reload = false, $force = false ): ?EcpGatewayPayment {
 		if ( $reload || ! $this->payment ) {
@@ -120,14 +134,16 @@ class EcpGatewayOrder extends Order {
 	 * @return string
 	 */
 	public function create_payment_id(): string {
-		if ( $embeddedModePaymentId = $this->getEmbeddedModePaymentId() ) {
+		$embeddedModePaymentId = $this->getEmbeddedModePaymentId();
+		if ( $embeddedModePaymentId ) {
 			$paymentId = $embeddedModePaymentId;
 		} else {
 			// Check if we can reuse existing payment_id first.
-			if ( $reusablePaymentId = $this->get_reusable_payment_id() ) {
-				ecp_get_log()->info(
+			$reusablePaymentId = $this->get_reusable_payment_id();
+			if ( $reusablePaymentId ) {
+				ecp_info(
 					sprintf(
-						__( 'Reusing existing payment ID %s (status: %s)', 'woo-ecommpay' ),
+						ecp_tr( 'Reusing existing payment ID %1$s (status: %2$s)' ),
 						$reusablePaymentId,
 						$this->get_ecp_status()
 					)
@@ -141,7 +157,7 @@ class EcpGatewayOrder extends Order {
 		$this->set_ecp_payment_status( EcpGatewayPaymentStatus::INITIAL );
 		$this->save_meta_data();
 
-		ecp_get_log()->debug( __( 'New payment identifier created:', 'woo-ecommpay' ), $paymentId );
+		ecp_debug( ecp_tr( 'New payment identifier created:' ), $paymentId );
 
 		return $paymentId;
 	}
@@ -163,6 +179,7 @@ class EcpGatewayOrder extends Order {
 	}
 
 	private function getEmbeddedModePaymentId(): ?string {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Payment ID from payment gateway callback
 		return $_POST['payment_id'] ?? null;
 	}
 
@@ -174,13 +191,13 @@ class EcpGatewayOrder extends Order {
 	public function get_failed_ecommpay_payment_count(): int {
 		$count = $this->get_ecp_meta( self::META_FAILED_PAYMENT_COUNT );
 
-		if ( ! empty ( $count ) ) {
-			ecp_get_log()->debug( __( 'Count of failed payment attempts:', 'woo-ecommpay' ), $count );
+		if ( ! empty( $count ) ) {
+			ecp_debug( ecp_tr( 'Count of failed payment attempts:' ), $count );
 
 			return $count;
 		}
 
-		ecp_get_log()->debug( __( 'No failed payment attempts', 'woo-ecommpay' ) );
+		ecp_debug( ecp_tr( 'No failed payment attempts' ) );
 
 		return 0;
 	}
@@ -192,18 +209,18 @@ class EcpGatewayOrder extends Order {
 	 * @since 2.0.0
 	 */
 	public function get_subscriptions(): ?array {
-		ecp_get_log()->debug( __( 'Find subscription', 'woo-ecommpay' ) );
-		ecp_get_log()->debug( $this->get_id() );
+		ecp_debug( ecp_tr( 'Find subscription' ) );
+		ecp_debug( $this->get_id() );
 		$subscriptions = wcs_get_subscriptions_for_order( $this->get_id() );
 
 		if ( count( $subscriptions ) <= 0 ) {
-			ecp_get_log()->warning( __( 'Subscription is not found.', 'woo-ecommpay' ) );
-			ecp_get_log()->debug( __( 'Parent order ID:', 'woo-ecommpay' ), $this->get_id() );
+			ecp_warn( ecp_tr( 'Subscription is not found.' ) );
+			ecp_debug( ecp_tr( 'Parent order ID:' ), $this->get_id() );
 
 			return null;
 		}
 
-		$ecp_subscriptions = [];
+		$ecp_subscriptions = array();
 		foreach ( $subscriptions as $subscription ) {
 			$ecp_subscriptions[] = ecp_get_order( $subscription->get_id() );
 		}
@@ -211,9 +228,8 @@ class EcpGatewayOrder extends Order {
 		return $ecp_subscriptions;
 	}
 
-
 	/**
-	 * <h2>Returns not processed refund object.</h2>
+		* <h2>Returns not processed refund object.</h2>
 	 *
 	 * @return EcpGatewayRefund <p>Refund object.</b>
 	 * @throws EcpGatewayLogicException When the refund object is not found.
@@ -221,11 +237,11 @@ class EcpGatewayOrder extends Order {
 	 * @throws Exception
 	 */
 	public function find_unprocessed_refund(): EcpGatewayRefund {
-		ecp_get_log()->debug( __( 'Find order unprocessed refund.', 'woo-ecommpay' ) );
+		ecp_debug( ecp_tr( 'Find order unprocessed refund.' ) );
 
 		foreach ( $this->get_refunds() as $refund ) {
 			if ( ! $refund->get_ecp_transaction_id() ) {
-				ecp_get_log()->debug( __( 'Unprocessed refund found:', 'woo-ecommpay' ), $refund->get_id() );
+				ecp_debug( ecp_tr( 'Unprocessed refund found:' ), $refund->get_id() );
 
 				return $refund;
 			}
@@ -237,31 +253,99 @@ class EcpGatewayOrder extends Order {
 	/**
 	 * Get order refunds.
 	 *
-	 * @return EcpGatewayRefund[] array of WC_Order_Refund objects
-	 * @throws Exception
+	 * Caches only refund IDs in wp_cache (safe — WooCommerce only re-wraps objects,
+	 * not plain integers). Objects are always fetched fresh by ID via ecp_get_orders()
+	 * so they are always returned as EcpGatewayRefund instances.
+	 *
+	 * @return EcpGatewayRefund[] array of EcpGatewayRefund objects
 	 * @throws Exception
 	 * @since 2.0.0
 	 */
 	public function get_refunds(): array {
-		$cache_key   = WC_Cache_Helper::get_cache_prefix( 'orders' ) . 'refunds' . $this->get_id();
-		$cached_data = wp_cache_get( $cache_key, $this->cache_group );
+		$cache_key  = WC_Cache_Helper::get_cache_prefix( 'orders' ) . 'refund_ids' . $this->get_id();
+		$refund_ids = wp_cache_get( $cache_key, $this->cache_group );
 
-		if ( false !== $cached_data ) {
-			return $cached_data;
+		if ( false === $refund_ids ) {
+			$refunds    = $this->fetch_refunds_from_db();
+			$refund_ids = $this->extract_refund_ids( $refunds );
+			wp_cache_set( $cache_key, $refund_ids, $this->cache_group );
+		} else {
+			$refunds = $this->fetch_refunds_by_ids( $refund_ids );
 		}
 
-		/** @var EcpGatewayRefund[] $refunds */
-		$refunds = ecp_get_orders(
-			[
-				'type' => EcpModuleSubscription::SHOP_ORDER_REFUND,
+		return $this->filter_ecp_refunds( $refunds );
+	}
+
+	/**
+	 * Fetch all refunds for this order from the database.
+	 *
+	 * @return EcpGatewayRefund[]
+	 * @throws Exception
+	 */
+	private function fetch_refunds_from_db(): array {
+		return ecp_get_orders(
+			array(
+				'type'   => EcpModuleSubscription::SHOP_ORDER_REFUND,
 				'parent' => $this->get_id(),
-				'limit'  => - 1,
-			]
+				'limit'  => -1,
+			)
 		);
+	}
 
-		wp_cache_set( $cache_key, $refunds, $this->cache_group );
+	/**
+	 * Fetch refunds by their IDs (cache hit path).
+	 *
+	 * @param int[] $refund_ids
+	 *
+	 * @return EcpGatewayRefund[]
+	 * @throws Exception
+	 */
+	private function fetch_refunds_by_ids( array $refund_ids ): array {
+		if ( empty( $refund_ids ) ) {
+			return array();
+		}
 
-		return $refunds;
+		return ecp_get_orders(
+			array(
+				'type'          => EcpModuleSubscription::SHOP_ORDER_REFUND,
+				'post__in'      => $refund_ids,
+				'orderby'       => 'post__in',
+				'limit'         => -1,
+				'no_found_rows' => true,
+			)
+		);
+	}
+
+	/**
+	 * Extract IDs from a list of refund objects.
+	 *
+	 * @param EcpGatewayRefund[] $refunds
+	 * @return int[]
+	 */
+	private function extract_refund_ids( array $refunds ): array {
+		$ids = array();
+		foreach ( $refunds as $refund ) {
+			if ( $refund instanceof EcpGatewayRefund ) {
+				$ids[] = $refund->get_id();
+			}
+		}
+		return $ids;
+	}
+
+	/**
+	 * Filter a list of orders keeping only EcpGatewayRefund instances.
+	 *
+	 * @param array $refunds
+	 * @return EcpGatewayRefund[]
+	 */
+	private function filter_ecp_refunds( array $refunds ): array {
+		$result = array();
+		foreach ( $refunds as $refund ) {
+			if ( $refund instanceof EcpGatewayRefund ) {
+				$result[] = $refund;
+			}
+		}
+		return $result;
 	}
 
 	/**
@@ -273,17 +357,17 @@ class EcpGatewayOrder extends Order {
 	 * @throws Exception
 	 */
 	public function find_refund_by_request_id( string $request_id ): ?EcpGatewayRefund {
-		ecp_get_log()->debug( __( 'Find order refund by ECOMMPAY Request ID.', 'woo-ecommpay' ) );
-		ecp_get_log()->debug( __( 'Request ID:', 'woo-ecommpay' ), $request_id );
+		ecp_debug( ecp_tr( 'Find order refund by ECOMMPAY Request ID.' ) );
+		ecp_debug( ecp_tr( 'Request ID:' ), $request_id );
 
 		foreach ( $this->get_refunds() as $refund ) {
 			if ( $request_id === $refund->get_ecp_transaction_id() ) {
-				ecp_get_log()->info( __( 'Refund by request id found. Refund ID:', 'woo-ecommpay' ), $refund->get_id() );
+				ecp_info( ecp_tr( 'Refund by request id found. Refund ID:' ), $refund->get_id() );
 
 				return $refund;
 			}
 		}
-		ecp_get_log()->info( __( 'Refund by request id is NOT found. Request ID:', 'woo-ecommpay' ), $request_id );
+		ecp_info( ecp_tr( 'Refund by request id is NOT found. Request ID:' ), $request_id );
 
 		return null;
 	}
@@ -311,7 +395,7 @@ class EcpGatewayOrder extends Order {
 		$count = $this->get_failed_ecommpay_payment_count() + 1;
 		$this->set_ecp_meta( self::META_FAILED_PAYMENT_COUNT, $count );
 
-		ecp_get_log()->debug( __( 'Count of failed payment attempts increased:', 'woo-ecommpay' ), $count );
+		ecp_debug( ecp_tr( 'Count of failed payment attempts increased:' ), $count );
 
 		return $count;
 	}
@@ -326,7 +410,7 @@ class EcpGatewayOrder extends Order {
 		$count = $this->get_refund_attempts_count() + 1;
 		$this->set_ecp_meta( self::META_REFUND_ATTEMPTS_COUNT, $count );
 
-		ecp_get_log()->debug( __( 'Count of refund attempts increased:', 'woo-ecommpay' ), $count );
+		ecp_debug( ecp_tr( 'Count of refund attempts increased:' ), $count );
 
 		return $count;
 	}
@@ -339,13 +423,13 @@ class EcpGatewayOrder extends Order {
 	public function get_refund_attempts_count(): int {
 		$count = $this->get_ecp_meta( self::META_REFUND_ATTEMPTS_COUNT );
 
-		if ( ! empty ( $count ) ) {
-			ecp_get_log()->debug( __( 'Count of refund attempts:', 'woo-ecommpay' ), $count );
+		if ( ! empty( $count ) ) {
+			ecp_debug( ecp_tr( 'Count of refund attempts:' ), $count );
 
 			return $count;
 		}
 
-		ecp_get_log()->debug( __( 'No refund attempts', 'woo-ecommpay' ) );
+		ecp_debug( ecp_tr( 'No refund attempts' ) );
 
 		return 0;
 	}
@@ -371,7 +455,7 @@ class EcpGatewayOrder extends Order {
 	public function get_payment_method_change_count(): int {
 		$count = $this->get_ecp_meta( self::META_PAYMENT_METHOD_CHANGE_COUNT );
 
-		if ( ! empty ( $count ) ) {
+		if ( ! empty( $count ) ) {
 			return $count;
 		}
 
@@ -392,32 +476,17 @@ class EcpGatewayOrder extends Order {
 			return wcs_order_contains_subscription( $this );
 		}
 
-		ecp_get_log()->debug( __( 'The order does not contain subscription products', 'woo-ecommpay' ) );
+		ecp_debug( ecp_tr( 'The order does not contain subscription products' ) );
 
 		return false;
 	}
 
-
 	public function get_billing_address(): string {
-		return trim( implode( ' ', [ $this->get_billing_address_1(), $this->get_billing_address_2() ] ) );
+		return trim( implode( ' ', array( $this->get_billing_address_1(), $this->get_billing_address_2() ) ) );
 	}
 
 	public function get_billing_postcode( $context = 'view' ): string {
 		return trim( parent::get_billing_postcode( $context ) );
-	}
-
-	public function get_shipping_type(): string {
-		return '07';
-	}
-
-	public function get_shipping_name_indicator(): string {
-		return $this->get_billing_first_name() === $this->get_shipping_first_name()
-		       && $this->get_billing_last_name() === $this->get_shipping_last_name()
-			? '01' : '02';
-	}
-
-	public function get_shipping_address(): string {
-		return implode( ' ', [ $this->get_shipping_address_1(), $this->get_shipping_address_2() ] );
 	}
 
 	/**
@@ -427,7 +496,7 @@ class EcpGatewayOrder extends Order {
 	 * @return int|null
 	 */
 	public function append_order_comment( string $comment, int $parent_comment = 0 ) {
-		$commentData = [
+		$commentData = array(
 			'comment_post_ID'      => $this->get_id(),
 			'comment_author'       => 'ECOMMPAY',
 			'comment_agent'        => 'Gate2025',
@@ -438,7 +507,7 @@ class EcpGatewayOrder extends Order {
 			'comment_approved'     => 1,
 			'comment_parent'       => $parent_comment,
 			'user_id'              => 0,
-		];
+		);
 
 		$result = wp_insert_comment( $commentData );
 
@@ -455,28 +524,29 @@ class EcpGatewayOrder extends Order {
 	 * @param $action
 	 *
 	 * @return boolean
+	 * @throws EcpGatewayLogicException
 	 */
 	public function is_action_allowed( $action ): bool {
 		$state             = $this->get_ecp_status();
 		$remaining_balance = $this->get_payment()->get_remaining_balance();
 
-		$allowed_states = [
-			EcpGatewayOperationType::REFUND => [
+		$allowed_states = array(
+			EcpGatewayOperationType::REFUND => array(
 				EcpGatewayPaymentStatus::PARTIALLY_REVERSED,
 				EcpGatewayPaymentStatus::PARTIALLY_REFUNDED,
-				EcpGatewayPaymentStatus::SUCCESS
-			],
-			'renew'                         => [ EcpGatewayPaymentStatus::AWAITING_CAPTURE ],
-			'recurring'                        => [ 'subscribe' ],
-			'subscription'                     => [ 'success' ]
-		];
+				EcpGatewayPaymentStatus::SUCCESS,
+			),
+			self::ACTION_RENEW              => array( EcpGatewayPaymentStatus::AWAITING_CAPTURE ),
+			self::ACTION_RECURRING          => array( self::STATUS_SUBSCRIBE ),
+			self::ACTION_SUBSCRIPTION       => array( self::STATUS_SUCCESS ),
+		);
 
 		// We want to still allow captures if there is a remaining balance.
 		if ( EcpGatewayPaymentStatus::AWAITING_CAPTURE === $state && $remaining_balance > 0 && $action !== self::CANCEL_ACTION ) {
 			return true;
 		}
 
-		return in_array( $state, $allowed_states[ $action ] );
+		return in_array( $state, $allowed_states[ $action ], true );
 	}
 
 	public function needs_processing(): bool {

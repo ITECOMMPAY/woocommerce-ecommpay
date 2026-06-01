@@ -11,12 +11,11 @@ defined( 'ABSPATH' ) || exit;
  * @since    2.0.0
  * @package  Ecp_Gateway/Helpers
  * @category Class
- * @internal
  */
 class EcpGatewayPaymentStatus extends EcpAbstractApiObject {
+
 	/**
 	 * Internal initialization payment.
-	 * @internal
 	 */
 	public const INITIAL = 'initial';
 
@@ -160,33 +159,31 @@ class EcpGatewayPaymentStatus extends EcpAbstractApiObject {
 	 */
 	public const EXPIRED = 'expired';
 
-	private const HTML_UNDEFINED = 'Undefined';
-
 	// Status when customer can try pay one more time using cascading.
-	public const AWAITING_RETRY = 'awaiting retry';
-	public const AWAITING_CLEARING = 'awaiting clearing';
+	public const AWAITING_RETRY              = 'awaiting retry';
+	public const AWAITING_CLEARING           = 'awaiting clearing';
 	public const AWAITING_PARTIALLY_CLEARING = 'awaiting partially clearing';
-	public const CLEARING_PROCESSING = 'clearing processing';
-	public const AWAITING_CONFIRMATION = 'awaiting confirmation';
-	public const DECLINE_RENEWAL = 'decline renewal';
+	public const CLEARING_PROCESSING         = 'clearing processing';
+	public const AWAITING_CONFIRMATION       = 'awaiting confirmation';
+	public const DECLINE_RENEWAL             = 'decline renewal';
 
-	protected static array $names = [];
-	protected static array $codes = [];
+	protected static array $names = array();
+	protected static array $codes = array();
 
 	public static function get_status_code( $status ) {
 		return array_key_exists( $status, self::get_status_codes() )
 			? self::get_status_codes()[ $status ]
-			: self::HTML_UNDEFINED;
+			: '';
 	}
 
 	public static function get_status_name( $status ) {
 		return array_key_exists( $status, self::get_status_names() )
 			? self::get_status_names()[ $status ]
-			: self::HTML_UNDEFINED;
+			: '';
 	}
 
 	protected static function compile_names(): array {
-		return [
+		return array(
 			self::PROCESSING                     => _x( 'Processing', 'Payment status', 'woo-ecommpay' ),
 			self::AWAITING_APPROVAL              => _x( 'Awaiting approval', 'Payment status', 'woo-ecommpay' ),
 			self::AWAITING_CLARIFY               => _x( 'Awaiting clarify', 'Payment status', 'woo-ecommpay' ),
@@ -223,6 +220,6 @@ class EcpGatewayPaymentStatus extends EcpAbstractApiObject {
 			self::DECLINE_RENEWAL                => _x( 'Decline renewal', 'Payment status', 'woo-ecommpay' ),
 			// INTERNAL STATUS
 			self::INITIAL                        => _x( 'Awaiting payment', 'Payment status', 'woo-ecommpay' ),
-		];
+		);
 	}
 }

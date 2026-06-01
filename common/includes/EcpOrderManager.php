@@ -45,11 +45,14 @@ class EcpOrderManager {
 			foreach ( $callback->get_errors() as $error ) {
 				$errors_text .= sprintf(
 					'An error with code %s (%s) occurred. ',
-					$error['code'], $error['message']
+					$error['code'],
+					$error['message']
 				);
 			}
-			$order->add_order_note( $errors_text
-			                        . 'You can refer <a href="https://developers.ecommpay.com/en/en_platform_payment_info_codes.html" target="_blank">to the ECOMMPAY article</a> for more information.' );
+			$order->add_order_note(
+				$errors_text
+									. 'You can refer <a href="https://developers.ecommpay.com/en/en_platform_payment_info_codes.html" target="_blank">to the ECOMMPAY article</a> for more information.'
+			);
 		}
 	}
 
@@ -74,7 +77,8 @@ class EcpOrderManager {
 
 		switch ( $callback->get_operation()->get_type() ) {
 			case EcpGatewayOperationType::CAPTURE:
-				$order->add_order_note( $sum_equal
+				$order->add_order_note(
+					$sum_equal
 					? sprintf(
 						'The payment of %s was captured%s.',
 						$order->get_formatted_order_total(),
@@ -85,27 +89,32 @@ class EcpOrderManager {
 						$callback->get_payment()->get_sum()->get_formatted(),
 						$this->ecp_order_notes_former->get_dashboard_append_text( $callback, $order ),
 						$this->ecp_order_notes_former->get_dashboard_append_text_recommendation( $callback, $order )
-					) );
+					)
+				);
 				$this->complete_order( $callback, $order, $sum_less );
 				break;
 			case EcpGatewayOperationType::CANCEL:
 				if ( $sum_equal ) {
-					$order->add_order_note( sprintf(
-						'Payment authorization of %s was canceled%s.',
-						$order->get_formatted_order_total(),
-						$this->ecp_order_notes_former->get_dashboard_append_text( $callback, $order )
-					) );
+					$order->add_order_note(
+						sprintf(
+							'Payment authorization of %s was canceled%s.',
+							$order->get_formatted_order_total(),
+							$this->ecp_order_notes_former->get_dashboard_append_text( $callback, $order )
+						)
+					);
 					$this->cancel_order( $order );
-				} else if ( $sum_less ) {
+				} elseif ( $sum_less ) {
 					$remaining_amount = ecp_price_multiplied_to_float( $total_amount - $callback_amount, $callback_currency );
-					$order->add_order_note( sprintf(
-						'Payment authorization of %s  was canceled%s. The rest (%s %s) can be either captured or canceled. %s',
-						$order->get_formatted_order_total(),
-						$this->ecp_order_notes_former->get_dashboard_append_text( $callback, $order ),
-						$remaining_amount,
-						$callback_currency,
-						$this->ecp_order_notes_former->get_dashboard_append_text_recommendation( $callback, $order )
-					) );
+					$order->add_order_note(
+						sprintf(
+							'Payment authorization of %s  was canceled%s. The rest (%s %s) can be either captured or canceled. %s',
+							$order->get_formatted_order_total(),
+							$this->ecp_order_notes_former->get_dashboard_append_text( $callback, $order ),
+							$remaining_amount,
+							$callback_currency,
+							$this->ecp_order_notes_former->get_dashboard_append_text_recommendation( $callback, $order )
+						)
+					);
 				}
 				break;
 			default:
@@ -124,12 +133,14 @@ class EcpOrderManager {
 	 * @return void
 	 */
 	public function add_decline_order_note( EcpGatewayInfoCallback $callback, EcpGatewayOrder $order, string $operation ): void {
-		$order->add_order_note( sprintf(
-			'%s operation%s was declined: %s',
-			ucfirst( $operation ),
-			$this->ecp_order_notes_former->get_dashboard_append_text( $callback, $order ),
-			$callback->get_operation()->get_message()
-		) );
+		$order->add_order_note(
+			sprintf(
+				'%s operation%s was declined: %s',
+				ucfirst( $operation ),
+				$this->ecp_order_notes_former->get_dashboard_append_text( $callback, $order ),
+				$callback->get_operation()->get_message()
+			)
+		);
 	}
 
 	/**
@@ -156,9 +167,12 @@ class EcpOrderManager {
 		if ( ! $skip_amount_check && ( ! $is_amount_equal || ! $is_currency_equal ) ) {
 			$message = sprintf(
 				'The payment amount does not match the order amount. The order has %s %s. The payment has %s %s',
-				$order->get_total(), $order_currency, $callback->get_payment_amount(), $payment_currency
+				$order->get_total(),
+				$order_currency,
+				$callback->get_payment_amount(),
+				$payment_currency
 			);
-			$order->add_order_note( __( $message, 'woo-ecommpay' ) );
+			$order->add_order_note( $message );
 		}
 	}
 
@@ -211,11 +225,14 @@ class EcpOrderManager {
 	}
 
 	public function log_order_data( EcpGatewayOrder $order ) {
-		ecp_debug( ecpTr( 'Order info: ' ), [
-			'ID'             => $order->get_id(),
-			'Payment ID'     => $order->get_payment_id(),
-			'Transaction ID' => $order->get_ecp_transaction_id()
-		] );
+		ecp_debug(
+			ecpTr( 'Order info: ' ),
+			array(
+				'ID'             => $order->get_id(),
+				'Payment ID'     => $order->get_payment_id(),
+				'Transaction ID' => $order->get_ecp_transaction_id(),
+			)
+		);
 	}
 
 	/**
@@ -259,7 +276,7 @@ class EcpOrderManager {
 		ecp_get_log()->debug( __( 'Order has subscriptions', 'woo-ecommpay' ) );
 		$subscriptions = $order->get_subscriptions();
 
-		if ( $subscriptions === null ) {
+		if ( null === $subscriptions ) {
 			return;
 		}
 

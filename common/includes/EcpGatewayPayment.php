@@ -4,6 +4,7 @@ namespace common\includes;
 
 use common\exceptions\EcpGatewayAPIException;
 use common\helpers\EcpGatewayOperationStatus;
+use common\helpers\EcpGatewayOperationType;
 use common\helpers\EcpGatewayPaymentStatus;
 use common\helpers\EcpGatewayPaymentStatusTransition;
 use common\models\EcpGatewayInfoAccount;
@@ -12,6 +13,7 @@ use common\models\EcpGatewayInfoCustomer;
 use common\models\EcpGatewayInfoError;
 use common\models\EcpGatewayInfoOperation;
 use common\models\EcpGatewayInfoPayment;
+use DateTime;
 use DateTimeInterface;
 use Exception;
 use JsonSerializable;
@@ -29,7 +31,6 @@ defined( 'ABSPATH' ) || exit;
  * @category Class
  */
 class EcpGatewayPayment implements JsonSerializable {
-
 
 	/**
 	 * <h2>Status transition.</h2>
@@ -50,7 +51,7 @@ class EcpGatewayPayment implements JsonSerializable {
 	 *
 	 * @var EcpGatewayInfoOperation[]
 	 */
-	private array $operations = [];
+	private array $operations = array();
 
 	/**
 	 * <h2>Customer information.</h2>
@@ -78,12 +79,12 @@ class EcpGatewayPayment implements JsonSerializable {
 	 *
 	 * @var EcpGatewayInfoError[]
 	 */
-	private array $errors = [];
+	private array $errors = array();
 
 	/**
 	 * <h2>Payment information.</h2>
 	 *
-	 * @var EcpGatewayInfoPayment
+	 * @var EcpGatewayInfoPayment|null
 	 */
 	private ?EcpGatewayInfoPayment $info = null;
 
@@ -99,12 +100,16 @@ class EcpGatewayPayment implements JsonSerializable {
 		$this->order = $order;
 	}
 
-	public static function stub( $order ): EcpGatewayPayment {
+	public static function stub( EcpGatewayOrder $order ): EcpGatewayPayment {
 		$obj = new static( $order );
-		$obj->set_info( new EcpGatewayInfoPayment( [
-			'status' => EcpGatewayPaymentStatus::INITIAL,
-			'method' => 'Not selected',
-		] ) );
+		$obj->set_info(
+			new EcpGatewayInfoPayment(
+				array(
+					'status' => EcpGatewayPaymentStatus::INITIAL,
+					'method' => 'Not selected',
+				)
+			)
+		);
 
 		return $obj;
 	}
@@ -154,11 +159,11 @@ class EcpGatewayPayment implements JsonSerializable {
 		}
 
 		$this->status_transition = new EcpGatewayPaymentStatusTransition(
-			[
-				'old' => $old_status,
-				'new' => $new_status,
-				'note' => $note
-			]
+			array(
+				'old'  => $old_status,
+				'new'  => $new_status,
+				'note' => $note,
+			)
 		);
 
 		if ( ! $this->status_transition->is_changed() ) {
@@ -342,7 +347,7 @@ class EcpGatewayPayment implements JsonSerializable {
 	 * @return static Current payment object.
 	 * @since 2.0.0
 	 */
-	public function set_operations( array $operations = [] ): EcpGatewayPayment {
+	public function set_operations( array $operations = array() ): EcpGatewayPayment {
 		foreach ( $operations as $operation ) {
 			$this->add_operation( $operation );
 		}
@@ -364,6 +369,7 @@ class EcpGatewayPayment implements JsonSerializable {
 
 			// Find operation in current information
 			if ( $origin->get_request_id() === $operation->get_request_id() ) {
+				$origin_date = null;
 				if ( ! $origin->try_get_date( $origin_date ) ) {
 					ecp_get_log()->debug(
 						__( 'Old operation date is not exists. Update operation.', 'woo-ecommpay' )
@@ -375,6 +381,7 @@ class EcpGatewayPayment implements JsonSerializable {
 					return;
 				}
 
+				$operation_date = null;
 				if ( ! $operation->try_get_date( $operation_date ) ) {
 					ecp_get_log()->debug(
 						__( 'New operation date is not exists. Skip update operation.', 'woo-ecommpay' )
@@ -382,6 +389,9 @@ class EcpGatewayPayment implements JsonSerializable {
 
 					return;
 				}
+
+				/** @var DateTime $origin_date */
+				/** @var DateTime $operation_date */
 
 				ecp_get_log()->debug(
 					__( 'Find. Check operation last date', 'woo-ecommpay' ),
@@ -392,7 +402,7 @@ class EcpGatewayPayment implements JsonSerializable {
 
 					ecp_get_log()->debug(
 						sprintf(
-							__( 'New operation date [%s] is less then old operation date [%s]', 'woo-ecommpay' ),
+							__( 'New operation date [%1$s] is less then old operation date [%2$s]', 'woo-ecommpay' ),
 							$operation_date->format( DateTimeInterface::RFC1123 ),
 							$origin_date->format( DateTimeInterface::RFC1123 )
 						)
@@ -403,7 +413,7 @@ class EcpGatewayPayment implements JsonSerializable {
 
 				ecp_get_log()->debug(
 					sprintf(
-						__( 'New operation date [%s] is great then old operation date [%s]. Skip update', 'woo-ecommpay' ),
+						__( 'New operation date [%1$s] is great then old operation date [%2$s]. Skip update', 'woo-ecommpay' ),
 						$operation_date->format( DateTimeInterface::RFC1123 ),
 						$origin_date->format( DateTimeInterface::RFC1123 )
 					)
@@ -450,7 +460,7 @@ class EcpGatewayPayment implements JsonSerializable {
 	 */
 	public function get_first_operation(): EcpGatewayInfoOperation {
 		$operations = $this->operations;
-		usort( $operations, [ $this, 'sort_operation' ] );
+		usort( $operations, array( $this, 'sort_operation' ) );
 
 		return $operations[0];
 	}
@@ -483,9 +493,16 @@ class EcpGatewayPayment implements JsonSerializable {
 	public function get_remaining_balance() {
 		$balance = $this->get_balance();
 
-		$authorized_operations = array_filter( $this->operations, function ( $operation ) {
-			return in_array( $operation->get_type(), [ 'auth', 'recurring' ] );
-		} );
+		$authorized_operations = array_filter(
+			$this->operations,
+			static function ( EcpGatewayInfoOperation $operation ) {
+				return in_array(
+					$operation->get_type(),
+					array( EcpGatewayOperationType::AUTH, EcpGatewayOperationType::RECURRING ),
+					true
+				);
+			}
+		);
 
 		if ( empty( $authorized_operations ) ) {
 			return null;
@@ -597,10 +614,12 @@ class EcpGatewayPayment implements JsonSerializable {
 	 */
 	public function get_info(): EcpGatewayInfoPayment {
 		if ( ! $this->info ) {
-			$this->info = new EcpGatewayInfoPayment( [
-				'status' => EcpGatewayPaymentStatus::INITIAL,
-				'method' => 'Not selected',
-			] );
+			$this->info = new EcpGatewayInfoPayment(
+				array(
+					'status' => EcpGatewayPaymentStatus::INITIAL,
+					'method' => 'Not selected',
+				)
+			);
 		}
 
 		return $this->info;
@@ -627,7 +646,7 @@ class EcpGatewayPayment implements JsonSerializable {
 	 */
 	public function get_code() {
 		if ( count( $this->errors ) > 0 ) {
-			$codes = [];
+			$codes = array();
 
 			foreach ( $this->errors as $error ) {
 				$codes[] = $error->get_code();
@@ -650,7 +669,7 @@ class EcpGatewayPayment implements JsonSerializable {
 	public function get_message() {
 		/** @var EcpGatewayInfoError[] $errors */
 		if ( count( $this->errors ) > 0 ) {
-			$messages = [];
+			$messages = array();
 			foreach ( $errors as $error ) {
 				$messages[] = $error->get_message();
 			}
@@ -674,19 +693,25 @@ class EcpGatewayPayment implements JsonSerializable {
 	 * @since 3.3.2
 	 */
 	public function jsonSerialize(): array {
-		return [
+		return array(
 			'payment_id' => $this->get_id(),
 			'info'       => $this->info ? $this->info->to_array() : null,
 			'customer'   => $this->customer ? $this->customer->to_array() : null,
 			'account'    => $this->account ? $this->account->to_array() : null,
 			'acs'        => $this->acs ? $this->acs->to_array() : null,
-			'operations' => array_map(static function (EcpGatewayInfoOperation $operation): array {
-				return $operation->to_array();
-			}, $this->operations ),
-			'errors'     => array_map( static function ( EcpGatewayInfoError $error ): array {
-				return $error->to_array();
-			}, $this->errors ),
-		];
+			'operations' => array_map(
+				static function ( EcpGatewayInfoOperation $operation ): array {
+					return $operation->to_array();
+				},
+				$this->operations
+			),
+			'errors'     => array_map(
+				static function ( EcpGatewayInfoError $error ): array {
+					return $error->to_array();
+				},
+				$this->errors
+			),
+		);
 	}
 
 	/**

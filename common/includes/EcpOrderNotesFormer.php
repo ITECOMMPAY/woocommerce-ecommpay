@@ -5,6 +5,7 @@ namespace common\includes;
 use common\models\EcpGatewayInfoCallback;
 
 class EcpOrderNotesFormer {
+
 	private EcpCallbacksHandler $ecp_callbacks_handler;
 
 	public function __construct( EcpCallbacksHandler $ecp_callbacks_handler ) {
@@ -30,6 +31,5 @@ class EcpOrderNotesFormer {
 	 */
 	public function get_dashboard_append_text( EcpGatewayInfoCallback $callback, EcpGatewayOrder $order ): string {
 		return ( $this->ecp_callbacks_handler->is_callback_from_dashboard( $callback, $order ) ? ' via Dashboard of ECOMMPAY' : '' );
-
 	}
 }

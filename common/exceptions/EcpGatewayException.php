@@ -17,6 +17,7 @@ defined( 'ABSPATH' ) || exit;
  * @internal
  */
 abstract class EcpGatewayException extends Exception {
+
 	/**
 	 * <h2>Base exception message.</h2>
 	 *

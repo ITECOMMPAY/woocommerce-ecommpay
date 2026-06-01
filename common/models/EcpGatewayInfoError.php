@@ -18,7 +18,6 @@ defined( 'ABSPATH' ) || exit;
  */
 class EcpGatewayInfoError extends EcpGatewayJson {
 
-
 	/**
 	 * Label for unified error code
 	 */
@@ -97,10 +96,10 @@ class EcpGatewayInfoError extends EcpGatewayJson {
 	 * @inheritDoc
 	 */
 	protected function unpackRules(): array {
-		return [
-			self::FIELD_CODE => function ( $value ) {
+		return array(
+			self::FIELD_CODE => static function ( $value ) {
 				return (int) $value;
 			},
-		];
+		);
 	}
 }

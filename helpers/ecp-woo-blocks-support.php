@@ -35,45 +35,54 @@ use common\settings\EcpSettingsMore;
 use common\settings\EcpSettingsPayPal;
 use common\settings\EcpSettingsPayPalPayLater;
 
-add_action( 'before_woocommerce_init', function () {
-	if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
-		FeaturesUtil::declare_compatibility(
-			'cart_checkout_blocks',
-			ECP_PLUGIN_PATH
-		);
+add_action(
+	'before_woocommerce_init',
+	function () {
+		if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
+			FeaturesUtil::declare_compatibility(
+				'cart_checkout_blocks',
+				ECP_PLUGIN_PATH
+			);
+		}
 	}
-} );
+);
+
 
 // Blocks Support
-add_action( 'woocommerce_blocks_loaded', function () {
+add_action(
+	'woocommerce_blocks_loaded',
+	function () {
 
-	if ( class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
-		add_action(
-			'woocommerce_blocks_payment_method_type_registration',
-			function ( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
-				$gateways = [
-					EcpSettingsCard::ID           => new EcpCard(),
-					EcpSettingsPayPal::ID         => new EcpPayPal(),
-					EcpSettingsPayPalPayLater::ID => new EcpPayPalPayLater(),
-					EcpSettingsKlarna::ID         => new EcpKlarna(),
-					EcpSettingsBlik::ID               => new EcpBlik(),
-					EcpSettingsIdeal::ID          => new EcpIdeal(),
-					EcpSettingsBanks::ID          => new EcpBanks(),
-					EcpSettingsHumm::ID           => new EcpHumm(),
-					EcpSettingsBrazilOnline_Banks::ID => new EcpBrazilOnlineBanks(),
-					EcpSettingsGooglepay::ID      => new EcpGooglepay(),
-					EcpSettingsApplepay::ID       => new EcpApplepay(),
-					EcpSettingsDirectDebitBACS::ID    => new EcpDirectDebitBACS(),
-					EcpSettingsDirectDebitSEPA::ID    => new EcpDirectDebitSEPA(),
-					EcpSettingsMore::ID               => new EcpMore(),
-				];
+		if ( class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
+			add_action(
+				'woocommerce_blocks_payment_method_type_registration',
+				function ( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
 
-				foreach ( $gateways as $id => $gateway ) {
-					$name = str_replace( 'ecommpay-', '', $id );
-					$payment_method_registry->register( new EcpGatewayBlocksSupport( $name, $gateway ) );
+					$gateway_classes = array(
+						EcpSettingsCard::ID               => EcpCard::class,
+						EcpSettingsPayPal::ID             => EcpPayPal::class,
+						EcpSettingsPayPalPayLater::ID     => EcpPayPalPayLater::class,
+						EcpSettingsKlarna::ID             => EcpKlarna::class,
+						EcpSettingsBlik::ID               => EcpBlik::class,
+						EcpSettingsIdeal::ID              => EcpIdeal::class,
+						EcpSettingsBanks::ID              => EcpBanks::class,
+						EcpSettingsHumm::ID               => EcpHumm::class,
+						EcpSettingsBrazilOnline_Banks::ID => EcpBrazilOnlineBanks::class,
+						EcpSettingsGooglepay::ID          => EcpGooglepay::class,
+						EcpSettingsApplepay::ID           => EcpApplepay::class,
+						EcpSettingsDirectDebitBACS::ID    => EcpDirectDebitBACS::class,
+						EcpSettingsDirectDebitSEPA::ID    => EcpDirectDebitSEPA::class,
+						EcpSettingsMore::ID               => EcpMore::class,
+					);
+
+					foreach ( $gateway_classes as $id => $gateway_class ) {
+						// Prevent duplicate registration.
+						if ( ! $payment_method_registry->is_registered( $id ) ) {
+							$payment_method_registry->register( new EcpGatewayBlocksSupport( $id, $gateway_class ) );
+						}
+					}
 				}
-			}
-		);
+			);
+		}
 	}
-
-} );
+);

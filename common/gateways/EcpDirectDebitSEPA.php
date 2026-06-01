@@ -2,7 +2,9 @@
 
 namespace common\gateways;
 
+use common\exceptions\EcpGatewayLogicException;
 use common\helpers\EcpGatewayPaymentMethods;
+use common\includes\EcpGatewayOrder;
 use common\includes\filters\EcpAppendsFilters;
 use common\modules\EcpModuleRefund;
 use common\settings\EcpSettingsDirectDebitSEPA;
@@ -19,14 +21,20 @@ defined( 'ABSPATH' ) || exit;
  * @category Class
  */
 class EcpDirectDebitSEPA extends EcpGateway {
-	protected const PAYMENT_METHOD = 'directdebit-sepa';
+
+	/**
+	 * @var string Payment method code for Direct Debit SEPA
+	 * @since 3.4.3
+	 */
+	private const PAYMENT_METHOD_CODE = 'directdebit-sepa';
+
 	/**
 	 * @inheritDoc
 	 * @override
 	 * @var string[]
 	 * @since 3.4.3
 	 */
-	public $supports = [
+	public $supports = array(
 		self::SUPPORT_SUBSCRIPTIONS,
 		self::SUPPORT_PRODUCTS,
 		self::SUPPORT_SUBSCRIPTION_CANCELLATION,
@@ -36,16 +44,26 @@ class EcpDirectDebitSEPA extends EcpGateway {
 		self::SUPPORT_SUBSCRIPTION_DATE_CHANGES,
 		self::SUPPORT_REFUNDS,
 		self::SUPPORT_MULTIPLE_SUBSCRIPTIONS,
-	];
+	);
 
+	/**
+	 * @inheritDoc
+	 * @return string
+	 * @since 3.4.3
+	 */
+	protected function get_payment_method_code(): string {
+		return self::PAYMENT_METHOD_CODE;
+	}
 
 	/**
 	 * <h2>ECOMMPAY Gateway constructor.</h2>
+	 *
+	 * @throws EcpGatewayLogicException
 	 */
 	public function __construct() {
-		$this->id = EcpSettingsDirectDebitSEPA::ID;
-		$this->method_title       = __( 'ECOMMPAY Direct debit SEPA', 'woo-ecommpay' );
-		$this->method_description = __( 'Accept payments via Direct Debit Sepa.', 'woo-ecommpay' );
+		$this->id                     = EcpSettingsDirectDebitSEPA::ID;
+		$this->method_title_key       = 'ECOMMPAY Direct debit SEPA';
+		$this->method_description_key = 'Accept payments via Direct Debit Sepa.';
 
 		parent::__construct();
 
@@ -58,16 +76,9 @@ class EcpDirectDebitSEPA extends EcpGateway {
 	 * @return array
 	 * @since 3.4.3
 	 */
-	public function apply_payment_args( $values, $order ): array {
-		$amount = ecp_price_multiply( $order->get_total(), $order->get_currency() );
-
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_OPERATION_TYPE, $values, $order );
-		// Setup Payment Page Operation Mode
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_OPERATION_MODE, $values, $amount > 0 ? self::MODE_PURCHASE : self::MODE_CARD_VERIFY );
-		// Setup Payment Page Force Mode
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, self::PAYMENT_METHOD );
-		// Setup Recurring (Subscriptions)
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_RECURRING, $values, $order );
+	public function apply_payment_args( array $values, EcpGatewayOrder $order ): array {
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CARD_OPERATION_TYPE, $values, $order );
+		$values = $this->apply_standard_payment_args( $values, $order );
 
 		return parent::apply_payment_args( $values, $order );
 	}
@@ -83,21 +94,14 @@ class EcpDirectDebitSEPA extends EcpGateway {
 	 * @since 3.4.3
 	 */
 	public function process_payment( $order_id ): array {
-		$order            = ecp_get_order( $order_id );
-		$options          = ecp_payment_page()->get_request_url( $order, $this );
-		$payment_page_url = ecp_payment_page()->get_url() . '/payment?' . http_build_query( $options );
-
-		return [
-			'result' => self::PROCESS_RESULT_SUCCESS,
-			'redirect' => $payment_page_url,
-			'order_id' => $order_id,
-		];
+		return $this->process_standard_payment( $order_id );
 	}
 
 	/**
 	 * @inheritDoc
 	 * @override
 	 * @return bool <p><b>TRUE</b> on process completed successfully, <b>FALSE</b> otherwise.</p>
+	 * @throws EcpGatewayLogicException
 	 * @since 3.4.3
 	 */
 	public function process_refund( $order_id, $amount = null, $reason = '' ): bool {
@@ -112,6 +116,7 @@ class EcpDirectDebitSEPA extends EcpGateway {
 	 *
 	 * @override
 	 * @return bool <p><b>TRUE</b> if a refund available for the order, or <b>FALSE</b> otherwise.</p>
+	 * @throws EcpGatewayLogicException
 	 * @since 3.4.3
 	 */
 	public function can_refund_order( $order ): bool {

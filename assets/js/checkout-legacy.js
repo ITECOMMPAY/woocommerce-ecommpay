@@ -183,6 +183,8 @@ jQuery(document).ready(function () {
 	}
 
 	function onEmbeddedModeRedirect3dsParentPage(data) {
+		common.showOverlayLoader()
+
 		const form = document.createElement('form')
 		form.setAttribute('method', data.method)
 		form.setAttribute('action', data.url)

@@ -2,6 +2,7 @@
 
 namespace common\gateways;
 
+use common\includes\EcpGatewayOrder;
 use common\includes\filters\EcpAppendsFilters;
 use common\settings\EcpSettings;
 use common\settings\EcpSettingsMore;
@@ -18,29 +19,30 @@ defined( 'ABSPATH' ) || exit;
  * @category Class
  */
 class EcpMore extends EcpGateway {
+
 	/**
 	 * @inheritDoc
 	 * @override
 	 * @var string[]
 	 * @since 1.0.0
 	 */
-	public $supports = [
+	public $supports = array(
 		self::SUPPORT_PRODUCTS,
-	];
+	);
 
 
 	/**
 	 * <h2>ECOMMPAY Gateway constructor.</h2>
 	 */
 	public function __construct() {
-		$this->id = EcpSettingsMore::ID;
-		$this->method_title       = __( 'ECOMMPAY More payment methods', 'woo-ecommpay' );
-		$this->method_description = __( 'Open the payment page with all payment methods or select an additional alternative payment method.', 'woo-ecommpay' );
-		$this->has_fields         = false;
-		$this->title             = $this->get_option( EcpSettings::OPTION_TITLE );
-		$this->order_button_text = $this->get_option( EcpSettings::OPTION_CHECKOUT_BUTTON_TEXT );
-		$this->enabled           = $this->get_option( EcpSettings::OPTION_ENABLED );
-		$this->icon               = '';
+		$this->id                     = EcpSettingsMore::ID;
+		$this->method_title_key       = 'ECOMMPAY More payment methods';
+		$this->method_description_key = 'Open the payment page with all payment methods or select an additional alternative payment method.';
+		$this->has_fields             = false;
+		$this->title                  = $this->get_option( EcpSettings::OPTION_TITLE );
+		$this->order_button_text      = $this->get_option( EcpSettings::OPTION_CHECKOUT_BUTTON_TEXT );
+		$this->enabled                = $this->get_option( EcpSettings::OPTION_ENABLED );
+		$this->icon                   = '';
 
 		if ( $this->is_enabled( EcpSettings::OPTION_SHOW_DESCRIPTION ) ) {
 			$this->description = $this->get_option( EcpSettings::OPTION_DESCRIPTION );
@@ -55,10 +57,10 @@ class EcpMore extends EcpGateway {
 	 * @return array
 	 * @since 3.0.0
 	 */
-	public function apply_payment_args( $values, $order ): array {
+	public function apply_payment_args( array $values, EcpGatewayOrder $order ): array {
 		$force = $this->get_option( EcpSettings::OPTION_FORCE_CODE );
 
-		if ( $force !== null && $force !== '' ) {
+		if ( null !== $force && '' !== $force ) {
 			$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, $force );
 		}
 
@@ -72,15 +74,7 @@ class EcpMore extends EcpGateway {
 	 * @since 2.0.0
 	 */
 	public function process_payment( $order_id ): array {
-		$order            = ecp_get_order( $order_id );
-		$options          = ecp_payment_page()->get_request_url( $order, $this );
-		$payment_page_url = ecp_payment_page()->get_url() . '/payment?' . http_build_query( $options );
-
-		return [
-			'result' => self::PROCESS_RESULT_SUCCESS,
-			'redirect' => $payment_page_url,
-			'order_id' => $order_id,
-		];
+		return $this->process_standard_payment( $order_id );
 	}
 
 	/**

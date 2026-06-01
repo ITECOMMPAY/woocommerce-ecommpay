@@ -10,25 +10,25 @@ ecp_get_log()->emergency( 'Run update settings to version 2.0.3' );
 // Previous plugin settings
 $prev_settings = get_option( EcpGatewayInstall::SETTINGS_NAME, null );
 // New default settings
-$form_fields = EcpForm::get_instance()->get_default_settings();
-$all_fields  = array_column(
+$form_fields   = EcpForm::get_instance()->get_default_settings();
+$all_fields    = array_column(
 	EcpForm::get_instance()->get_all_form_fields(),
 	EcpSettings::FIELD_ID
 );
-$map         = [
+$migration_map = array(
 	'mode'       => EcpSettings::OPTION_MODE,
 	'project_id' => EcpSettingsGeneral::OPTION_PROJECT_ID,
 	'salt'       => EcpSettingsGeneral::OPTION_SECRET_KEY,
-	'test' => 'test',
-];
+	'test'       => 'test',
+);
 
 // Clean old unused settings via map
 foreach ( $prev_settings as $key => $value ) {
-	if ( array_key_exists( $key, $map ) ) {
-		$prev_settings[ $map[ $key ] ] = $value;
+	if ( array_key_exists( $key, $migration_map ) ) {
+		$prev_settings[ $migration_map[ $key ] ] = $value;
 	}
 
-	if ( ! in_array( $key, $all_fields ) ) {
+	if ( ! in_array( $key, $all_fields, true ) ) {
 		unset( $prev_settings[ $key ] );
 	}
 }

@@ -4,6 +4,7 @@ namespace common;
 
 defined( 'ABSPATH' ) || exit;
 
+use common\exceptions\EcpGatewayLogicException;
 use common\gateways\EcpApplepay;
 use common\gateways\EcpBanks;
 use common\gateways\EcpBlik;
@@ -24,6 +25,8 @@ use common\includes\EcpCallbacksHandler;
 use common\includes\EcpGatewayOrder;
 use common\includes\EcpGatewayRefund;
 use common\includes\EcpGatewaySubscription;
+use common\includes\filters\EcpApiFilters;
+use common\includes\filters\EcpFilters;
 use common\install\EcpGatewayInstall;
 use common\modules\EcpModuleAdminUI;
 use common\modules\EcpModuleAuth;
@@ -60,14 +63,14 @@ final class EcpCore extends WC_Settings_API {
 	 * @var string
 	 * @since 2.0.0
 	 */
-	public const WC_ECP_VERSION = '5.0.1';
+	public const WC_ECP_VERSION = '5.0.2';
 
 	public const ECOMMPAY_PAYMENT_METHOD = 'ecommpay';
 
 	/**
 	 * @var string
 	 */
-	public $id = EcpCore::ECOMMPAY_PAYMENT_METHOD;
+	public $id = self::ECOMMPAY_PAYMENT_METHOD;
 	/**
 	 * @var ?EcpForm
 	 */
@@ -89,7 +92,7 @@ final class EcpCore extends WC_Settings_API {
 	 * @var ?EcpCore
 	 */
 	private static ?EcpCore $instance = null;
-	private static array $classes = [
+	private static array $classes     = array(
 		EcpCard::class,
 		EcpApplepay::class,
 		EcpGooglepay::class,
@@ -104,7 +107,7 @@ final class EcpCore extends WC_Settings_API {
 		EcpHumm::class,
 		EcpBrazilOnlineBanks::class,
 		EcpMore::class,
-	];
+	);
 
 	/**
 	 * <h2>Adds action links inside the plugin overview.</h2>
@@ -113,9 +116,12 @@ final class EcpCore extends WC_Settings_API {
 	 * @since 2.0.0
 	 */
 	public static function add_action_links( array $links ): array {
-		return array_merge( [
-			'<a href="' . ecp_settings_page_url() . '">' . __( 'Settings', 'woo-ecommpay' ) . '</a>',
-		], $links );
+		return array_merge(
+			array(
+				'<a href="' . ecp_settings_page_url() . '">' . __( 'Settings', 'woo-ecommpay' ) . '</a>',
+			),
+			$links
+		);
 	}
 
 	/**
@@ -125,9 +131,9 @@ final class EcpCore extends WC_Settings_API {
 	 * @since 1.0.0
 	 */
 	public function get_interface_type(): array {
-		return [
+		return array(
 			'id' => self::INTERFACE_TYPE,
-		];
+		);
 	}
 
 	/**
@@ -151,26 +157,66 @@ final class EcpCore extends WC_Settings_API {
 			EcpModuleSubscription::get_instance();
 		}
 
-		add_action( 'woocommerce_api_wc_' . $this->id, [ EcpCallbacksHandler::class, 'handle' ] );
+		add_action( 'woocommerce_api_wc_' . $this->id, array( EcpCallbacksHandler::class, 'handle' ) );
 
 		$this->installation_hooks();
 
 		add_filter(
-			includes\filters\EcpFilters::FILTER_ACTION_LINKS,
-			[ $this, 'add_action_links' ]
+			EcpFilters::FILTER_ACTION_LINKS,
+			array( $this, 'add_action_links' )
 		);
 	}
 
 	public static function get_instance(): ?EcpCore {
 		if ( ! self::$instance ) {
-			self::$instance = new static();
+			self::$instance = new self();
 		}
 
 		return self::$instance;
 	}
 
+	/**
+	 * <h2>Returns the plugin version.</h2>
+	 *
+	 * @return string
+	 * @since 2.0.0
+	 */
+	public function get_version(): string {
+		return self::WC_ECP_VERSION;
+	}
+
+	/**
+	 * <h2>Returns the plugin path.</h2>
+	 *
+	 * @return string
+	 * @since 2.0.0
+	 */
+	public function get_plugin_path(): string {
+		return plugin_dir_path( __DIR__ );
+	}
+
+	/**
+	 * <h2>Returns the plugin URL.</h2>
+	 *
+	 * @return string
+	 * @since 2.0.0
+	 */
+	public function get_plugin_url(): string {
+		return plugin_dir_url( __DIR__ );
+	}
+
+	/**
+	 * <h2>Returns the assets URL.</h2>
+	 *
+	 * @return string
+	 * @since 2.0.0
+	 */
+	public function get_assets_url(): string {
+		return $this->get_plugin_url() . 'assets/';
+	}
+
 	private function set_payment_methods(): void {
-		$this->methods = [
+		$this->methods = array(
 			EcpSettingsCard::ID               => EcpCard::get_instance(),
 			EcpSettingsPayPal::ID             => EcpPayPal::get_instance(),
 			EcpSettingsPayPalPayLater::ID     => EcpPayPalPayLater::get_instance(),
@@ -178,14 +224,14 @@ final class EcpCore extends WC_Settings_API {
 			EcpSettingsBlik::ID               => EcpBlik::get_instance(),
 			EcpSettingsIdeal::ID              => EcpIdeal::get_instance(),
 			EcpSettingsBanks::ID              => EcpBanks::get_instance(),
-			EcpSettingsHumm::ID => EcpHumm::get_instance(),
+			EcpSettingsHumm::ID               => EcpHumm::get_instance(),
 			EcpSettingsBrazilOnline_Banks::ID => EcpBrazilOnlineBanks::get_instance(),
 			EcpSettingsGooglepay::ID          => EcpGooglepay::get_instance(),
-			EcpSettingsApplepay::ID => EcpApplepay::get_instance(),
+			EcpSettingsApplepay::ID           => EcpApplepay::get_instance(),
 			EcpSettingsDirectDebitBACS::ID    => EcpDirectDebitBACS::get_instance(),
 			EcpSettingsDirectDebitSEPA::ID    => EcpDirectDebitSEPA::get_instance(),
 			EcpSettingsMore::ID               => EcpMore::get_instance(),
-		];
+		);
 	}
 
 	/**
@@ -195,10 +241,10 @@ final class EcpCore extends WC_Settings_API {
 	 * @since 3.0.0
 	 */
 	private function installation_hooks(): void {
-		add_action( 'wp_ajax_ecommpay_run_data_upgrader', [ EcpGatewayInstall::get_instance(), 'ajax_run_upgrade' ] );
+		add_action( EcpApiFilters::WP_AJAX_ECOMMPAY_RUN_DATA_UPGRADER, array( EcpGatewayInstall::get_instance(), 'ajax_run_upgrade' ) );
 		add_action(
 			'in_plugin_update_message-woocommerce-ecommpay/woocommerce-ecommpay.php',
-			[ $this, 'in_plugin_update_message' ]
+			array( $this, 'in_plugin_update_message' )
 		);
 	}
 
@@ -220,19 +266,23 @@ final class EcpCore extends WC_Settings_API {
 		$settings = $this->get_option( $payment_method );
 
 		// Get option default if unset.
-		if ( ! isset ( $settings[ $key ] ) ) {
+		if ( ! isset( $settings[ $key ] ) ) {
 			$form_fields      = $this->get_form_fields();
-			$settings[ $key ] = isset ( $form_fields[ $key ] ) ? $this->get_field_default( $form_fields[ $key ] ) : '';
+			$settings[ $key ] = isset( $form_fields[ $key ] ) ? $this->get_field_default( $form_fields[ $key ] ) : '';
 		}
 
-		return ! is_null( $default ) && in_array( $settings[ $key ], [
-			'',
-			EcpSettings::VALUE_DISABLED
-		] ) ? $default : $settings[ $key ];
+		return ! is_null( $default ) && in_array(
+			$settings[ $key ],
+			array(
+				'',
+				EcpSettings::VALUE_DISABLED,
+			),
+			true
+		) ? $default : $settings[ $key ];
 	}
 
-	public function get_option( $key, $empty_value = [] ) {
-		if ( empty ( $this->settings ) ) {
+	public function get_option( $key, $empty_value = array() ) {
+		if ( empty( $this->settings ) ) {
 			$this->init_settings();
 		}
 
@@ -246,8 +296,11 @@ final class EcpCore extends WC_Settings_API {
 			: $empty_value;
 	}
 
+	/**
+	 * @throws EcpGatewayLogicException
+	 */
 	public function settings(): ?EcpForm {
-		if ( empty ( $this->form ) ) {
+		if ( empty( $this->form ) ) {
 			$this->form = EcpForm::get_instance();
 		}
 
@@ -260,10 +313,11 @@ final class EcpCore extends WC_Settings_API {
 	 *
 	 * @override
 	 * @return void
+	 * @throws EcpGatewayLogicException
 	 * @since 2.0.0
 	 */
 	public function admin_options(): void {
-		echo '<img src="' . ecp_img_url( 'ecommpay.svg' ) . '" alt="" class="ecp_logo right">';
+		echo '<img src="' . esc_url( ecp_img_url( 'ecommpay.svg' ) ) . '" alt="" class="ecp_logo right">';
 		echo '<h2>ECOMMPAY';
 		wc_back_link( __( 'Return to payments', 'woocommerce' ), admin_url( 'admin.php?page=wc-settings&tab=checkout' ) );
 		echo '</h2>';
@@ -284,7 +338,7 @@ final class EcpCore extends WC_Settings_API {
 	}
 
 	public function get_payment_methods(): ?array {
-		if ( empty ( $this->methods ) ) {
+		if ( empty( $this->methods ) ) {
 			$this->set_payment_methods();
 		}
 
@@ -309,7 +363,7 @@ final class EcpCore extends WC_Settings_API {
 	 * @since 3.0.0
 	 */
 	public function update_option( $key, $value = '' ): bool {
-		if ( empty ( $this->settings ) ) {
+		if ( empty( $this->settings ) ) {
 			$this->init_settings();
 		}
 

@@ -19,7 +19,6 @@ defined( 'ABSPATH' ) || exit;
  */
 class EcpGatewayInfoAccount extends EcpGatewayJson {
 
-
 	/**
 	 * Label for masked bank card or other account number.
 	 */
@@ -128,13 +127,13 @@ class EcpGatewayInfoAccount extends EcpGatewayJson {
 	}
 
 	protected function unpackRules(): array {
-		return [
-			self::FIELD_EXPIRY_MONTH => function ( $value ) {
+		return array(
+			self::FIELD_EXPIRY_MONTH => static function ( $value ) {
 				return (int) $value;
 			},
-			self::FIELD_EXPIRY_YEAR  => function ( $value ) {
+			self::FIELD_EXPIRY_YEAR  => static function ( $value ) {
 				return (int) $value;
-			}
-		];
+			},
+		);
 	}
 }

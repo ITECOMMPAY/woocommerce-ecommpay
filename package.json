@@ -1,14 +1,15 @@
 {
 	"name": "woocommerce-ecommpay",
 	"version": "1.0.0",
-	"description": "",
+	"description": "Ecommpay payment gateway for WooCommerce",
+	"author": "ECOMMPAY",
 	"scripts": {
 		"start": "wp-scripts start",
 		"build": "wp-scripts build",
 		"plugin-zip": "wp-scripts plugin-zip",
 		"check-engines": "wp-scripts check-engines",
 		"check-licenses": "wp-scripts check-licenses",
-		"format": "wp-scripts format",
+		"format": "wp-scripts format && prettier --write .",
 		"lint:css": "wp-scripts lint-style",
 		"lint:js": "wp-scripts lint-js",
 		"lint:md:docs": "wp-scripts lint-md-docs",
@@ -17,20 +18,16 @@
 		"test:e2e": "wp-scripts test-e2e",
 		"test:unit": "wp-scripts test-unit-js"
 	},
-	"author": "ECOMMPAY",
-	"license": "GPL-2.0-only",
 	"devDependencies": {
 		"@types/applepayjs": "^14.0.9",
-		"@types/jquery": "^4.0.0",
-		"@wordpress/scripts": "^26.19.0"
+		"@wordpress/scripts": "^26.19.0",
+		"prettier": "^3.4.1"
 	},
 	"dependencies": {
 		"@wordpress/element": "^5.27.0",
 		"@wordpress/html-entities": "^3.50.0",
+		"stylelint": "^17.11.0",
 		"use-debounce": "^10.0.0"
 	},
-	"resolutions": {
-		"@babel/runtime": "^7.26.10",
-		"@babel/core": "^7.26.10"
-	}
+	"packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319"
 }

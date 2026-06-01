@@ -17,6 +17,7 @@ defined( 'ABSPATH' ) || exit;
  * @category Class
  */
 class EcpGatewaySubscription extends WC_Subscription {
+
 	use EcpGatewayOrderExtension;
 
 	public function set_recurring_id( $recurring_id ) {

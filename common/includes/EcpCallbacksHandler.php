@@ -2,6 +2,7 @@
 
 namespace common\includes;
 
+use common\exceptions\EcpGatewayLogicException;
 use common\exceptions\EcpGatewaySignatureException;
 use common\helpers\EcpGatewayOperationStatus;
 use common\helpers\EcpGatewayOperationType;
@@ -14,6 +15,7 @@ use common\includes\callbackOperations\EcpContractRegistrationOperationHandler;
 use common\includes\callbackOperations\EcpRecurringOperationHandler;
 use common\includes\callbackOperations\EcpSaleOperationHandler;
 use common\includes\callbackOperations\EcpVerifyOperationHandler;
+use common\includes\filters\EcpApiFilters;
 use common\models\EcpGatewayInfoCallback;
 use common\modules\EcpModuleRefund;
 use Exception;
@@ -28,7 +30,6 @@ defined( 'ABSPATH' ) || exit;
  * @version  2.0.0
  * @package  Ecp_Gateway/Includes
  * @category Class
- * @internal
  */
 class EcpCallbacksHandler {
 	private const CALLBACKS_PRIORITY = 10;
@@ -40,18 +41,18 @@ class EcpCallbacksHandler {
 	 * @var string[]
 	 * @since 2.0.0
 	 */
-	private array $operations = [
-		EcpGatewayOperationType::SALE                  => 'woocommerce_ecommpay_callback_sale',
-		EcpGatewayOperationType::REFUND                => 'woocommerce_ecommpay_callback_refund',
-		EcpGatewayOperationType::REVERSAL              => 'woocommerce_ecommpay_callback_reversal',
-		EcpGatewayOperationType::RECURRING             => 'woocommerce_ecommpay_callback_recurring',
-		EcpGatewayOperationType::ACCOUNT_VERIFICATION  => 'woocommerce_ecommpay_callback_verify',
-		EcpGatewayOperationType::PAYMENT_CONFIRMATION  => 'woocommerce_ecommpay_callback_payment_confirmation',
-		EcpGatewayOperationType::CONTRACT_REGISTRATION => 'woocommerce_ecommpay_callback_contract_registration',
-		EcpGatewayOperationType::AUTH                  => 'woocommerce_ecommpay_callback_auth',
-		EcpGatewayOperationType::CAPTURE               => 'woocommerce_ecommpay_callback_capture',
-		EcpGatewayOperationType::CANCEL                => 'woocommerce_ecommpay_callback_cancel',
-	];
+	private array $operations = array(
+		EcpGatewayOperationType::SALE                  => EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_SALE,
+		EcpGatewayOperationType::REFUND                => EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_REFUND,
+		EcpGatewayOperationType::REVERSAL              => EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_REVERSAL,
+		EcpGatewayOperationType::RECURRING             => EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_RECURRING,
+		EcpGatewayOperationType::ACCOUNT_VERIFICATION  => EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_VERIFY,
+		EcpGatewayOperationType::PAYMENT_CONFIRMATION  => EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_PAYMENT_CONFIRMATION,
+		EcpGatewayOperationType::CONTRACT_REGISTRATION => EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_CONTRACT_REGISTRATION,
+		EcpGatewayOperationType::AUTH                  => EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_AUTH,
+		EcpGatewayOperationType::CAPTURE               => EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_CAPTURE,
+		EcpGatewayOperationType::CANCEL                => EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_CANCEL,
+	);
 	private EcpVerifyOperationHandler $ecp_verify_operation_handler;
 	private EcpAuthOperationHandler $auth_operation_handler;
 	private EcpSaleOperationHandler $ecp_sale_operation_handler;
@@ -68,6 +69,7 @@ class EcpCallbacksHandler {
 	 *
 	 * @param array $data <p>Callback data.</p>
 	 *
+	 * @throws EcpGatewayLogicException
 	 * @since 2.0.0
 	 */
 	private function __construct( array $data ) {
@@ -82,34 +84,64 @@ class EcpCallbacksHandler {
 		$this->ecp_capture_operation_handler = new EcpCaptureOperationHandler( $this );
 		$this->ecp_cancel_operation_handler  = new EcpCancelOperationHandler( $this );
 
-		add_action( 'woocommerce_ecommpay_callback_refund', [
-			EcpModuleRefund::get_instance(),
-			'handle'
-		], self::CALLBACKS_PRIORITY, 2 );
-		add_action( 'woocommerce_ecommpay_callback_reversal', [
-			EcpModuleRefund::get_instance(),
-			'handle'
-		], self::CALLBACKS_PRIORITY, 2 );
-		add_action( 'woocommerce_ecommpay_callback_sale', [ $this, 'sale' ], self::CALLBACKS_PRIORITY, 2 );
-		add_action( 'woocommerce_ecommpay_callback_auth', [ $this, 'auth' ], self::CALLBACKS_PRIORITY, 2 );
-		add_action( 'woocommerce_ecommpay_callback_cancel', [
-			$this,
-			'cancel'
-		], self::CALLBACKS_PRIORITY, 2 );
-		add_action( 'woocommerce_ecommpay_callback_capture', [
-			$this,
-			'capture'
-		], self::CALLBACKS_PRIORITY, 2 );
-		add_action( 'woocommerce_ecommpay_callback_recurring', [ $this, 'recurring' ], self::CALLBACKS_PRIORITY, 2 );
-		add_action( 'woocommerce_ecommpay_callback_verify', [ $this, 'verify' ], self::CALLBACKS_PRIORITY, 2 );
-		add_action( 'woocommerce_ecommpay_callback_payment_confirmation', [
-			$this,
-			'confirm'
-		], self::CALLBACKS_PRIORITY, 2 );
-		add_action( 'woocommerce_ecommpay_callback_contract_registration', [
-			$this,
-			'contract_registration'
-		], self::CALLBACKS_PRIORITY, 2 );
+		add_action(
+			EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_REFUND,
+			array(
+				EcpModuleRefund::get_instance(),
+				'handle',
+			),
+			self::CALLBACKS_PRIORITY,
+			2
+		);
+		add_action(
+			EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_REVERSAL,
+			array(
+				EcpModuleRefund::get_instance(),
+				'handle',
+			),
+			self::CALLBACKS_PRIORITY,
+			2
+		);
+		add_action( EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_SALE, array( $this, 'sale' ), self::CALLBACKS_PRIORITY, 2 );
+		add_action( EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_AUTH, array( $this, 'auth' ), self::CALLBACKS_PRIORITY, 2 );
+		add_action(
+			EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_CANCEL,
+			array(
+				$this,
+				'cancel',
+			),
+			self::CALLBACKS_PRIORITY,
+			2
+		);
+		add_action(
+			EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_CAPTURE,
+			array(
+				$this,
+				'capture',
+			),
+			self::CALLBACKS_PRIORITY,
+			2
+		);
+		add_action( EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_RECURRING, array( $this, 'recurring' ), self::CALLBACKS_PRIORITY, 2 );
+		add_action( EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_VERIFY, array( $this, 'verify' ), self::CALLBACKS_PRIORITY, 2 );
+		add_action(
+			EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_PAYMENT_CONFIRMATION,
+			array(
+				$this,
+				'confirm',
+			),
+			self::CALLBACKS_PRIORITY,
+			2
+		);
+		add_action(
+			EcpApiFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_CONTRACT_REGISTRATION,
+			array(
+				$this,
+				'contract_registration',
+			),
+			self::CALLBACKS_PRIORITY,
+			2
+		);
 
 		// Decode the body into JSON
 		$info = new EcpGatewayInfoCallback( $data );
@@ -132,14 +164,16 @@ class EcpCallbacksHandler {
 	private function get_order( EcpGatewayInfoCallback $info ): EcpGatewayOrder {
 		$payment_id = $info->get_payment()->get_id();
 
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- External webhook from ECOMMPAY, authenticated via cryptographic signature verification in check_signature()
 		if ( ! $payment_id && isset( $_GET['payment_id'] ) ) {
 			$payment_id = sanitize_text_field( wp_unslash( $_GET['payment_id'] ) );
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		$order_number = EcpGatewayOrder::get_order_id_from_callback( $info );
 		$order        = ecp_get_order( $order_number );
 
-		if ( ! $order ) {
+		if ( empty( $order ) ) {
 			// Print debug information to logs
 			$message = __( 'Order not found', 'woo-ecommpay' );
 			ecp_get_log()->error( $message );
@@ -152,19 +186,21 @@ class EcpCallbacksHandler {
 				ecp_get_log()->add( __( 'Error description:', 'woo-ecommpay' ), $error->get_description() );
 			}
 
-			ecp_get_log()->add( __( 'Response data: %s', 'woo-ecommpay' ), json_encode( $info ) );
+			/* translators: %s is the callback data in JSON format */
+			ecp_get_log()->add( sprintf( __( 'Response data: %s', 'woo-ecommpay' ), wp_json_encode( $info ) ) );
 
 			http_response_code( 404 );
-			die ( $message );
+			die( esc_html( $message ) );
 		}
 
 		$last_payment_id = $order->get_payment_id();
 
 		if ( $payment_id !== $last_payment_id ) {
-			$message =  sprintf('Order with payment id %s found but it already has a new payment id %s', $payment_id, $last_payment_id);
-			ecp_get_log()->info( __( $message, 'woo-ecommpay' ) );
+			/* translators: %1$s is the payment ID, %2$s is the existing payment ID */
+			$message = sprintf( __( 'Order with payment id %1$s found but it already has a new payment id %2$s', 'woo-ecommpay' ), $payment_id, $last_payment_id );
+			ecp_get_log()->info( $message );
 			http_response_code( 200 );
-			die ( $message );
+			die( esc_html( $message ) );
 		}
 
 		if ( ! $order->is_ecp() ) {
@@ -195,6 +231,7 @@ class EcpCallbacksHandler {
 			do_action( $this->operations[ $callback->get_operation()->get_type() ], $callback, $order );
 			$message = 'OK';
 		} else {
+			/* translators: %s is the operation type */
 			$message = sprintf(
 				__( 'Not supported operation type: %s', 'woo-ecommpay' ),
 				$callback->get_operation()->get_type()
@@ -206,7 +243,7 @@ class EcpCallbacksHandler {
 		do_action( 'ecp_accepted_callback_after_processing_' . $callback->get_operation()->get_type(), $order, $callback );
 
 		http_response_code( 200 );
-		die ( $message );
+		die( esc_html( $message ) );
 	}
 
 	/**
@@ -220,8 +257,8 @@ class EcpCallbacksHandler {
 
 		$data = json_decode( $body, true );
 
-		if ( $data === null ) {
-			$data = [ 'json_parse_error' => json_last_error_msg() ];
+		if ( null === $data ) {
+			$data = array( 'json_parse_error' => json_last_error_msg() );
 		}
 
 		ecp_debug( 'Incoming callback data:', $data );
@@ -245,14 +282,14 @@ class EcpCallbacksHandler {
 				ecp_get_log()->error( $message );
 
 				http_response_code( 400 );
-				die ( $message );
+				die( esc_html( $message ) );
 			}
 
 			ecp_get_log()->debug( __( 'Signature verified.', 'woo-ecommpay' ) );
 		} catch ( EcpGatewaySignatureException $e ) {
 			$e->write_to_logs();
 			http_response_code( 500 );
-			die ( $e->getMessage() );
+			die( esc_html( $e->getMessage() ) );
 		}
 	}
 
@@ -283,10 +320,10 @@ class EcpCallbacksHandler {
 				break;
 			case EcpGatewayOperationStatus::AWAITING_FINALIZATION:
 				$order->add_order_note( __( 'Direct debit request has been submitted successfully. Activation may take some time to complete.', 'woo-ecommpay' ) );
-				$this->processOperation( $callback, $order );
+				$this->process_operation( $callback, $order );
 				break;
 			default:
-				$this->processOperation( $callback, $order );
+				$this->process_operation( $callback, $order );
 				break;
 		}
 	}
@@ -298,7 +335,7 @@ class EcpCallbacksHandler {
 	 * @return void
 	 * @throws WC_Data_Exception
 	 */
-	private function processOperation( EcpGatewayInfoCallback $callback, EcpGatewayOrder $order ): void {
+	private function process_operation( EcpGatewayInfoCallback $callback, EcpGatewayOrder $order ): void {
 		switch ( $callback->get_operation()->get_status() ) {
 			case EcpGatewayOperationStatus::SUCCESS:
 				$this->order_manager->complete_order( $callback, $order );
@@ -307,8 +344,7 @@ class EcpCallbacksHandler {
 			case EcpGatewayOperationStatus::EXPIRED:
 			case EcpGatewayOperationStatus::INTERNAL_ERROR:
 			case EcpGatewayOperationStatus::EXTERNAL_ERROR:
-
-				// Prevents rewrite of the order status to Decline if the order is already paid by other payment method and has status Processing, Completed or On Hold.
+	// Prevents rewrite of the order status to Decline if the order is already paid by other payment method and has status Processing, Completed or On Hold.
 				if ( in_array( $order->get_status(), [ WCOrderStatus::ON_HOLD, WCOrderStatus::PROCESSING, WCOrderStatus::COMPLETED ], true ) ) {
 					$order->add_order_note( __( 'The payment has failed, but the order has already been paid by other payment method.', 'woo-ecommpay' ) );
 					$this->order_manager->append_order_errors( $callback, $order );

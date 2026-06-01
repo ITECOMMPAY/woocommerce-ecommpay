@@ -20,7 +20,6 @@ defined( 'ABSPATH' ) || exit;
  */
 class EcpGatewayInfoRecurring extends EcpGatewayJson {
 
-
 	/**
 	 * Label for COF payment ID.
 	 */
@@ -143,10 +142,10 @@ class EcpGatewayInfoRecurring extends EcpGatewayJson {
 	 * @inheritDoc
 	 */
 	protected function unpackRules(): array {
-		return [
-			self::FIELD_VALID_THRU => function ( $value ) {
+		return array(
+			self::FIELD_VALID_THRU => static function ( string $value ) {
 				return DateTime::createFromFormat( DateTimeInterface::RFC3339, $value );
-			}
-		];
+			},
+		);
 	}
 }

@@ -2,24 +2,24 @@
 Contributors: ECOMMPAY
 Tags: card payments, apple pay, google pay, open banking, subscriptions, paypal, humm, ideal, klarna, payment gateway, woocommerce
 Requires at least: 6.2
-Tested up to: 6.9
-Stable tag: 5.0.1
+Tested up to: 7.0
+Stable tag: 5.0.2
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Accept bank transfers, cards, local payment methods and cryptocurrencies. Boost conversion with a customisable checkout form. Enjoy 24/7 expert support.
+Accept bank transfers, cards, local payment methods and cryptocurrencies. Boost conversion with a customizable checkout form. Enjoy 24/7 expert support.
 
 == Description ==
-ECOMMPAY’s WooCommerce plugin is a complete growth-focused payment solution for merchants looking to dominate local markets or expand globally, maximise profits and reduce operational costs.
+ECOMMPAY’s WooCommerce plugin is a complete growth-focused payment solution for merchants looking to dominate local markets or expand globally, maximize profits and reduce operational costs.
 
-Accept card, bank, eWallet and crypto payments. Offer flexible subscriptions and recurring payment plans. Make payouts in any local currency and receive weekly or even more frequent settlements in EUR or GBP. Enjoy industry-leading support, low and transparent fees and advanced checkout form customisation options, including full localisation to any language.
+Accept card, bank, eWallet and crypto payments. Offer flexible subscriptions and recurring payment plans. Make payouts in any local currency and receive weekly or even more frequent settlements in EUR or GBP. Enjoy industry-leading support, low and transparent fees and advanced checkout form customization options, including full localization to any language.
 
 The plugin is available to every business in the EEA and the UK. The integration is quick and intuitive and usually takes 1-2 business days. Moving from another payment service provider? No worries. Our migration process is simple yet powerful enough to keep your subscriptions and recurring plans intact.
 
 == Feature highlights ==
 
 = Cards =
-Accept VISA, Mastercard, American Express or Union Pay. Maximise acceptance rates and avoid double conversion with Smart Payment Rooting and Cascading technologies on board.
+Accept VISA, Mastercard, American Express or Union Pay. Maximize acceptance rates and avoid double conversion with Smart Payment Rooting and Cascading technologies on board.
 = Open Banking =
 Let your customers pay with their bank of choice, reduce processing fees and eliminate the risk of chargebacks. Works with 2000+ banks in Europe and the UK.
 = Cryptocurrencies =
@@ -32,8 +32,8 @@ Offer your customers subscriptions or flexible recurring payment plans. Migrate 
 Create payment links with a few clicks and let your customers pay straight from their email, messenger apps or SMS.
 = Payouts =
 Make refunds or pay your suppliers and business partners in any currency. Payouts are delivered in 30 minutes after the approval.
-= Customisation =
-Fine-tune the look and feel of your checkout form to reach the maximum conversion. Customise the design, available payment methods and languages.
+= Customization =
+Fine-tune the look and feel of your checkout form to reach the maximum conversion. Customize the design, available payment methods and languages.
 = Support =
 Enjoy industry-leading support with an average response time of 15 minutes. We are always by your side to help with technical issues and share our knowledge of local markets.
 = Settlements =

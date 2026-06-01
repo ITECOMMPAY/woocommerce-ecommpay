@@ -12,42 +12,52 @@ class EcpGatewayBlocksSupport extends AbstractPaymentMethodType {
 	 * @var array
 	 */
 	public array $data;
-	protected string $payment_method;
+	protected string $gateway_class;
+	protected ?object $gateway_instance = null;
 
-	public function __construct( string $payment_method, $gateway ) {
-		$this->payment_method = $payment_method;
-		$this->name           = sprintf( 'ecommpay-%s', $this->payment_method );
-		$this->data           = [
-			'title'                => $gateway->settings['title'],
-			'icon'                 => $gateway->get_icon_path(),
-			'description' => $gateway->settings['show_description'] === EcpSettings::VALUE_ENABLED ? $gateway->settings['description'] : '',
-			'checkout_button_text' => $gateway->settings['checkout_button_text'],
-			'enabled'              => $gateway->settings['enabled'],
-			'supports'             => $gateway->supports,
-		];
+	public function __construct( string $name, string $gateway_class ) {
+		$this->name          = $name;
+		$this->gateway_class = $gateway_class;
+	}
 
-		if ( isset ( $gateway->settings['pp_mode'] ) ) {
-			$this->data['pp_mode'] = $gateway->settings['pp_mode'];
+	public function initialize() {
+		// Create gateway instance only when needed (after init hook).
+		$this->gateway_instance = new $this->gateway_class();
+
+		$this->data = array(
+			'title'                => $this->gateway_instance->settings['title'],
+			'icon'                 => $this->gateway_instance->get_icon_path(),
+			'description'          => $this->gateway_instance->settings['show_description'] === EcpSettings::VALUE_ENABLED ? $this->gateway_instance->settings['description'] : '',
+			'checkout_button_text' => $this->gateway_instance->settings['checkout_button_text'],
+			'enabled'              => $this->gateway_instance->settings['enabled'],
+			'supports'             => $this->gateway_instance->supports,
+		);
+
+		if ( isset( $this->gateway_instance->settings['pp_mode'] ) ) {
+			$this->data['pp_mode'] = $this->gateway_instance->settings['pp_mode'];
+		}
+
+		if ( isset( $this->gateway_instance->settings['pp_close_on_miss_click'] ) ) {
+			$this->data['pp_close_on_miss_click'] = $this->gateway_instance->settings['pp_close_on_miss_click'];
 		}
 
 		$this->data['pp_version'] = ecommpay()->get_general_option(
 			EcpSettingsGeneral::OPTION_PAYMENT_PAGE_VERSION,
 			EcpSettingsGeneral::PP_VERSION_LEGACY
 		);
-
-		if ( isset ( $gateway->settings['pp_close_on_miss_click'] ) ) {
-			$this->data['pp_close_on_miss_click'] = $gateway->settings['pp_close_on_miss_click'];
-		}
-	}
-
-	public function initialize() {
 	}
 
 	public function is_active(): bool {
+		if ( null === $this->gateway_instance ) {
+			$this->initialize();
+		}
 		return $this->data['enabled'] === EcpSettings::VALUE_ENABLED;
 	}
 
 	public function get_payment_method_data(): array {
+		if ( null === $this->gateway_instance ) {
+			$this->initialize();
+		}
 		return $this->data;
 	}
 }

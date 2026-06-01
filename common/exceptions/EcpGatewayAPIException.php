@@ -17,6 +17,7 @@ defined( 'ABSPATH' ) || exit;
  * @internal
  */
 class EcpGatewayAPIException extends EcpGatewayException {
+
 	/**
 	 * Contains the curl object instance.
 	 *
@@ -76,59 +77,59 @@ class EcpGatewayAPIException extends EcpGatewayException {
 	 * @since 2.0.0
 	 */
 	protected function prepare_message(): array {
-		$data = [
-			[ $this->get_base_message(), WC_Log_Levels::CRITICAL ],
-			[
+		$data = array(
+			array( $this->get_base_message(), WC_Log_Levels::CRITICAL ),
+			array(
 				sprintf( __( 'ECOMMPAY API Exception file: %s', 'woo-ecommpay' ), $this->getFile() ),
-				WC_Log_Levels::ERROR
-			],
-			[
+				WC_Log_Levels::ERROR,
+			),
+			array(
 				sprintf( __( 'ECOMMPAY API Exception line: %s', 'woo-ecommpay' ), $this->getLine() ),
-				WC_Log_Levels::ERROR
-			],
-			[
+				WC_Log_Levels::ERROR,
+			),
+			array(
 				sprintf( __( 'ECOMMPAY API Exception code: %s', 'woo-ecommpay' ), $this->getCode() ),
-				WC_Log_Levels::ERROR
-			],
-		];
+				WC_Log_Levels::ERROR,
+			),
+		);
 
 		if ( $this->get_curl_request_url() ) {
-			$data[] = [
+			$data[] = array(
 				sprintf(
 					__( 'ECOMMPAY API Exception Request URL: %s', 'woo-ecommpay' ),
 					$this->get_curl_request_url()
 				),
-				WC_Log_Levels::ERROR
-			];
+				WC_Log_Levels::ERROR,
+			);
 		}
 
 		if ( $this->get_curl_request_data() ) {
-			$data[] = [
+			$data[] = array(
 				sprintf(
 					__( 'ECOMMPAY API Exception Request DATA: %s', 'woo-ecommpay' ),
 					$this->get_curl_request_data()
 				),
-				WC_Log_Levels::ERROR
-			];
+				WC_Log_Levels::ERROR,
+			);
 		}
 
 		if ( $this->get_curl_response_data() ) {
-			$data[] = [
+			$data[] = array(
 				sprintf(
 					__( 'ECOMMPAY API Exception Response DATA: %s', 'woo-ecommpay' ),
 					$this->get_curl_response_data()
 				),
-				WC_Log_Levels::ERROR
-			];
+				WC_Log_Levels::ERROR,
+			);
 		}
 
-		$data[] = [
+		$data[] = array(
 			sprintf(
 				__( 'Stack trace: %s', 'woo-ecommpay' ),
 				implode( PHP_EOL, $this->get_trace_as_array_string() )
 			),
-			WC_Log_Levels::DEBUG
-		];
+			WC_Log_Levels::DEBUG,
+		);
 
 		return $data;
 	}
@@ -146,7 +147,7 @@ class EcpGatewayAPIException extends EcpGatewayException {
 	}
 
 	private function get_trace_as_array_string(): array {
-		$result = [ '' ];
+		$result = array( '' );
 
 		foreach ( $this->getTrace() as $i => $item ) {
 			$result[] = sprintf(
@@ -155,7 +156,7 @@ class EcpGatewayAPIException extends EcpGatewayException {
 				$item['class'] ?? '',
 				$item['type'] ?? '',
 				$item['function'],
-				implode( ', ', $this->prepare_trace_args( $item['args'] ?? [] ) ),
+				implode( ', ', $this->prepare_trace_args( $item['args'] ?? array() ) ),
 				$item['file'],
 				$item['line']
 			);
@@ -166,7 +167,7 @@ class EcpGatewayAPIException extends EcpGatewayException {
 
 	private function prepare_trace_args( $args ): array {
 		if ( ! is_array( $args ) ) {
-			return [];
+			return array();
 		}
 
 		foreach ( $args as &$arg ) {

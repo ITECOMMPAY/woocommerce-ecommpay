@@ -9,6 +9,7 @@ use common\models\EcpGatewayInfoCallback;
 use WC_Data_Exception;
 
 class EcpSaleOperationHandler implements EcpOperationHandlerInterface {
+
 	private EcpCallbacksHandler $ecp_callbacks_handler;
 
 	public function __construct( EcpCallbacksHandler $ecp_callbacks_handler ) {

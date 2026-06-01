@@ -12,6 +12,7 @@ namespace common\interfaces;
  * @internal
  */
 interface EcpGatewaySerializerInterface {
+
 	/**
 	 * <h2>Returns result of serialize object as string.</h2>
 	 *

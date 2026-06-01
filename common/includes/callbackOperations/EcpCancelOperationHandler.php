@@ -8,6 +8,7 @@ use common\interfaces\EcpOperationHandlerInterface;
 use common\models\EcpGatewayInfoCallback;
 
 class EcpCancelOperationHandler implements EcpOperationHandlerInterface {
+
 	private EcpCallbacksHandler $ecp_callbacks_handler;
 
 	public function __construct( EcpCallbacksHandler $ecp_callbacks_handler ) {

@@ -29,7 +29,7 @@ class EcpTabManager {
 	 *
 	 * @var EcpSettings[]
 	 */
-	public array $tabs = [];
+	public array $tabs = array();
 
 	/**
 	 * @return array
@@ -39,8 +39,8 @@ class EcpTabManager {
 	}
 
 	public function init_tabs() {
-		if ( empty ( $this->tabs ) ) {
-			$tabs = [
+		if ( empty( $this->tabs ) ) {
+			$tabs = array(
 				new EcpSettingsGeneral(),
 				new EcpSettingsProducts(),
 				new EcpSettingsSubscriptions(),
@@ -58,17 +58,56 @@ class EcpTabManager {
 				new EcpSettingsHumm(),
 				new EcpSettingsBrazilOnline_Banks(),
 				new EcpSettingsMore(),
-			];
+			);
 
 			$this->tabs = apply_filters( EcpHtmlFilters::ECP_GET_SETTINGS_PAGES, $tabs );
 		}
 	}
 
-	public function get_section() {
-		$current_tab = $_REQUEST['section'];
-		if ( ! empty( wc_get_var( $_REQUEST['sub'] ) ) ) {
-			$current_tab = $_REQUEST['sub'];
+	/**
+	 * Returns all registered tab IDs.
+	 *
+	 * @return string[]
+	 */
+	public function get_tab_ids(): array {
+		return array_map(
+			function ( EcpSettings $tab ) {
+				return $tab->get_id();
+			},
+			$this->tabs
+		);
+	}
+
+	/**
+	 * Returns the section ID if it is a known registered tab, or the fallback otherwise.
+	 *
+	 * @param string $section  Raw section value to validate.
+	 * @param string $fallback Fallback section ID.
+	 *
+	 * @return string
+	 */
+	public function resolve_section( string $section, string $fallback ): string {
+		if ( in_array( $section, $this->get_tab_ids(), true ) ) {
+			return $section;
 		}
+
+		return $fallback;
+	}
+
+	public function get_section(): string {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		$raw_section = wc_get_var( $_REQUEST['section'], EcpSettingsGeneral::ID );
+		$section     = ( ! is_array( $raw_section ) && '' !== (string) $raw_section )
+			? sanitize_key( (string) $raw_section )
+			: '';
+		$current_tab = $this->resolve_section( $section, EcpSettingsGeneral::ID );
+
+		$raw_sub = wc_get_var( $_REQUEST['sub'] );
+		if ( ! empty( $raw_sub ) && ! is_array( $raw_sub ) ) {
+			$sub         = sanitize_key( (string) $raw_sub );
+			$current_tab = $this->resolve_section( $sub, $current_tab );
+		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		return $current_tab;
 	}

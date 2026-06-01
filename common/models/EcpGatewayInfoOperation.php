@@ -20,7 +20,6 @@ defined( 'ABSPATH' ) || exit;
  */
 class EcpGatewayInfoOperation extends EcpGatewayJson {
 
-
 	/**
 	 * Label for unique ID of the operation
 	 */
@@ -88,7 +87,7 @@ class EcpGatewayInfoOperation extends EcpGatewayJson {
 	 *
 	 * @param array $data [optional] Json-data as array.
 	 */
-	public function __construct( array $data = [] ) {
+	public function __construct( array $data = array() ) {
 		$this->register( self::FIELD_SUM_INITIAL, EcpGatewayInfoSum::class );
 		$this->register( self::FIELD_SUM_CONVERTED, EcpGatewayInfoSum::class );
 		$this->register( self::FIELD_PROVIDER, EcpGatewayInfoProvider::class );
@@ -133,12 +132,15 @@ class EcpGatewayInfoOperation extends EcpGatewayJson {
 	/**
 	 * <h2>Returns the date and time the payment status was last updated.</h2>
 	 *
-	 * @return object|null
+	 * @return DateTimeInterface|null
 	 */
-	public function get_date(): ?object {
-		$this->try_get_object( $date, self::FIELD_DATE );
+	public function get_date(): ?DateTimeInterface {
+		$date = null;
+		if ( $this->try_get_object( $date, self::FIELD_DATE ) ) {
+			return $date;
+		}
 
-		return $date;
+		return null;
 	}
 
 	/**
@@ -243,24 +245,24 @@ class EcpGatewayInfoOperation extends EcpGatewayJson {
 	}
 
 	protected function packRules(): array {
-		return [
-			self::FIELD_DATE => function ( $value ) {
+		return array(
+			self::FIELD_DATE         => static function ( DateTimeInterface $value ) {
 				return $value->format( DateTimeInterface::RFC3339 );
 			},
-			self::FIELD_CREATED_DATE => function ( $value ) {
+			self::FIELD_CREATED_DATE => static function ( DateTimeInterface $value ) {
 				return $value->format( DateTimeInterface::RFC3339 );
 			},
-		];
+		);
 	}
 
 	protected function unpackRules(): array {
-		return [
-			self::FIELD_DATE         => function ( $value ) {
+		return array(
+			self::FIELD_DATE         => static function ( string $value ) {
 				return DateTime::createFromFormat( DateTimeInterface::RFC3339, $value );
 			},
-			self::FIELD_CREATED_DATE => function ( $value ) {
+			self::FIELD_CREATED_DATE => static function ( string $value ) {
 				return DateTime::createFromFormat( DateTimeInterface::RFC3339, $value );
-			}
-		];
+			},
+		);
 	}
 }

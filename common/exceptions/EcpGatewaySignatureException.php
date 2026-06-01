@@ -17,6 +17,7 @@ defined( 'ABSPATH' ) || exit;
  * @category Class
  */
 class EcpGatewaySignatureException extends EcpGatewayException {
+
 	/**
 	 * <p>The value or key of an invalid parameter</p>
 	 * @var string
@@ -47,23 +48,23 @@ class EcpGatewaySignatureException extends EcpGatewayException {
 	 * @return array[]
 	 */
 	protected function prepare_message(): array {
-		return [
-			[
+		return array(
+			array(
 				$this->get_base_message(),
-				WC_Log_Levels::ERROR
-			],
-			[
+				WC_Log_Levels::ERROR,
+			),
+			array(
 				sprintf( _x( 'Invalid parameter: %s', 'Exception message', 'woo-ecommpay' ), $this->getParameter() ),
 				WC_Log_Levels::ERROR,
-			],
-			[
+			),
+			array(
 				sprintf(
 					_x( 'Prohibited symbol: %s', 'Exception message', 'woo-ecommpay' ),
 					EcpSigner::VALUE_SEPARATOR
 				),
 				WC_Log_Levels::ERROR,
-			],
-		];
+			),
+		);
 	}
 
 	/**

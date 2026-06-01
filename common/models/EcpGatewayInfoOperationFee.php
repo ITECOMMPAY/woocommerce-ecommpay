@@ -18,7 +18,6 @@ defined( 'ABSPATH' ) || exit;
  */
 class EcpGatewayInfoOperationFee extends EcpGatewayJson {
 
-
 	/**
 	 * Label for amount of per-operation fee.
 	 */

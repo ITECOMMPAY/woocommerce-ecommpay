@@ -11,6 +11,7 @@ use common\models\EcpGatewayInfoCallback;
 use WC_Data_Exception;
 
 class EcpAuthOperationHandler implements EcpOperationHandlerInterface {
+
 	private EcpOrderManager $order_manager;
 
 	public function __construct( EcpOrderManager $ecp_order_manager ) {

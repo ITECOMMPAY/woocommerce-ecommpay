@@ -10,6 +10,7 @@ use common\helpers\EcpGatewayOperationStatus;
 use common\helpers\EcpGatewayOperationType;
 use common\helpers\EcpGatewayPaymentStatus;
 use common\helpers\EcpGatewayRegistry;
+use common\helpers\WCOrderStatus;
 use common\includes\EcpGatewayOrder;
 use common\includes\EcpGatewayPayment;
 use common\includes\EcpGatewayRefund;
@@ -29,7 +30,9 @@ defined( 'ABSPATH' ) || exit;
  * @category Class
  */
 class EcpModuleRefund extends EcpGatewayRegistry {
+
 	private const REFUND_DASHBOARD_REASON = 'The operation was performed via a Ecommpay dashboard';
+	private const ALLOWED_REFUND_STATUSES = array( WCOrderStatus::PROCESSING, WCOrderStatus::COMPLETED );
 
 	/**
 	 * <h2>Check refund available before saving WC_Order_Refund.</h2>
@@ -72,7 +75,7 @@ class EcpModuleRefund extends EcpGatewayRegistry {
 
 		try {
 			// Check if the transaction can be refunded
-			if ( ! in_array( $order->get_status(), [ 'processing', 'completed' ] ) ) {
+			if ( ! in_array( $order->get_status(), self::ALLOWED_REFUND_STATUSES, true ) ) {
 				throw new EcpGatewayLogicException(
 					__( 'Inappropriate order status. It should be "processing" or "complete".', 'woo-ecommpay' )
 				);
@@ -114,7 +117,7 @@ class EcpModuleRefund extends EcpGatewayRegistry {
 			// Create a payment instance and retrieve payment information
 			$payment = $order->get_payment( true );
 
-			if ( $payment->get_info()->get_sum()->get_amount() < ecp_price_multiply( $amount ) ) {
+			if ( ecp_price_multiply( $amount ) > $payment->get_info()->get_sum()->get_amount() ) {
 				throw new EcpGatewayLogicException(
 					sprintf(
 						__( 'Refund amount (%1$s) is greater than payment balance (%2$s).', 'woo-ecommpay' ),
@@ -132,7 +135,7 @@ class EcpModuleRefund extends EcpGatewayRegistry {
 			$refund->set_reason( $reason );
 
 			// Create and run API request
-			$api = new EcpGatewayAPIPayment();
+			$api     = new EcpGatewayAPIPayment();
 			$payment = $api->refund( $refund, $order );
 
 			if ( ! $payment ) {
@@ -158,10 +161,10 @@ class EcpModuleRefund extends EcpGatewayRegistry {
 			while ( $c < 10 ) {
 				ecp_get_log()->debug( 'Wait operation response...' );
 
-				// Reload object from database
+					// Reload object from database
 				$operation = $order->get_payment( true )->get_operation_by_request( $payment->get_request_id() );
 
-				if ( $operation !== null ) {
+				if ( null !== $operation ) {
 					ecp_get_log()->debug( 'Operation ID:', $operation->get_id() );
 					ecp_get_log()->debug( 'Last updated:', $operation->get_date()->format( 'D, d M Y H:i:s O' ) );
 					ecp_get_log()->debug( 'Operation status:', $operation->get_status() );
@@ -181,10 +184,10 @@ class EcpModuleRefund extends EcpGatewayRegistry {
 				}
 
 				// Status refund is processing. Wait next...
-				++ $c;
+				++$c;
 				sleep( 2 );
 			}
-		} catch ( EcpGatewayLogicException|EcpGatewayAPIException|WC_Data_Exception|Exception $e ) {
+		} catch ( EcpGatewayLogicException | EcpGatewayAPIException | WC_Data_Exception | Exception $e ) {
 			ecp_get_log()->error( 'Refund error occurred: ' . $e->getMessage() );
 			$e->write_to_logs();
 
@@ -225,15 +228,19 @@ class EcpModuleRefund extends EcpGatewayRegistry {
 		ecp_get_log()->debug( __( 'Payment ID:', 'woo-ecommpay' ), $order->get_payment_id() );
 
 		$operation = $callback->get_operation();
-		$refund = $order->find_refund_by_request_id( $operation->get_request_id() );
+		$refund    = $order->find_refund_by_request_id( $operation->get_request_id() );
 
 		if ( is_null( $refund ) ) {
-			$refund = ecp_get_refund( wc_create_refund( array(
-				'amount'         => $callback->get_operation_sum_initial_amount(),
-				'reason'         => self::REFUND_DASHBOARD_REASON,
-				'order_id'       => $order->get_id(),
-				'refund_payment' => false
-			) ) );
+			$refund = ecp_get_refund(
+				wc_create_refund(
+					array(
+						'amount'         => $callback->get_operation_sum_initial_amount(),
+						'reason'         => self::REFUND_DASHBOARD_REASON,
+						'order_id'       => $order->get_id(),
+						'refund_payment' => false,
+					)
+				)
+			);
 			$refund->update_status( 'initial' );
 			$refund->update_meta_data( '_transaction_id', $callback->get_operation()->get_request_id() );
 			$refund->save();
@@ -265,7 +272,7 @@ class EcpModuleRefund extends EcpGatewayRegistry {
 	 * @return void
 	 */
 	private function completed( EcpGatewayInfoCallback $callback, ?EcpGatewayOrder $order, ?EcpGatewayRefund $refund ): void {
-		ecp_get_log()->debug( __( 'Callback info:', 'woo-commerce' ), json_encode( $callback ) );
+		ecp_get_log()->debug( __( 'Callback info:', 'woo-commerce' ), wp_json_encode( $callback ) );
 
 		if ( ! is_null( $refund ) ) {
 			$this->complete_update_refund( $refund );
@@ -303,7 +310,7 @@ class EcpModuleRefund extends EcpGatewayRegistry {
 			);
 		}
 
-		$refund->update_status( 'completed', $comment );
+		$refund->update_status( WCOrderStatus::COMPLETED, $comment );
 		$refund->save();
 
 		ecp_get_log()->info( __( 'Refund update completed:', 'woo-commerce' ), $refund->get_id() );
@@ -352,7 +359,7 @@ class EcpModuleRefund extends EcpGatewayRegistry {
 			);
 		}
 
-		$refund->update_status( 'failed' );
+		$refund->update_status( WCOrderStatus::FAILED );
 	}
 
 	/**
@@ -361,6 +368,6 @@ class EcpModuleRefund extends EcpGatewayRegistry {
 	 */
 	protected function init(): void {
 		// register hooks for refund operation
-		add_action( 'woocommerce_create_refund', [ $this, 'before_create' ], 10, 2 );
+		add_action( 'woocommerce_create_refund', array( $this, 'before_create' ), 10, 2 );
 	}
 }

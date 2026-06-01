@@ -9,6 +9,7 @@ use common\helpers\EcpGatewayPaymentStatus;
 use common\helpers\EcpGatewayRegistry;
 use common\includes\EcpGatewayOrder;
 use common\includes\EcpGatewaySubscription;
+use common\includes\filters\EcpApiFilters;
 use common\install\EcpGatewayInstall;
 use common\models\EcpGatewayInfoSum;
 use common\settings\EcpSettingsGeneral;
@@ -25,32 +26,33 @@ defined( 'ABSPATH' ) || exit;
  * @category Class
  */
 class EcpModuleAdminUI extends EcpGatewayRegistry {
-	public const ACTION_BUTTON_CLASS = 'ecp-action-button';
+
+	public const ACTION_BUTTON_CLASS       = 'ecp-action-button';
 	public const WP_REFUND_BUTTON_SELECTOR = '.button.refund-items';
 
 	public const ACTION_REFRESH = 'refresh';
 	public const ACTION_CAPTURE = 'capture';
-	public const ACTION_CANCEL = 'cancel';
-	public const ACTION_REFUND = 'refund';
+	public const ACTION_CANCEL  = 'cancel';
+	public const ACTION_REFUND  = 'refund';
 
 	/**
 	 * List of all allowed payment actions for AJAX requests
 	 */
-	private const ALLOWED_ACTIONS = [
+	private const ALLOWED_ACTIONS = array(
 		self::ACTION_REFRESH,
 		self::ACTION_CAPTURE,
 		self::ACTION_CANCEL,
 		self::ACTION_REFUND,
-	];
+	);
 
 	/**
 	 * List of allowed payment actions that perform API calls
 	 */
-	private const ALLOWED_API_ACTIONS = [
+	private const ALLOWED_API_ACTIONS = array(
 		self::ACTION_CAPTURE,
 		self::ACTION_CANCEL,
 		self::ACTION_REFUND,
-	];
+	);
 
 	/**
 	 * <h2>Adds a new "Payment" column to "Orders" list.</h2>
@@ -61,13 +63,13 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 	 * @since  2.0.0
 	 */
 	public function add_column_headers_to_order_list( array $columns ): array {
-		$reordered_columns = [];
+		$reordered_columns = array();
 
 		// Inserting columns to a specific location
 		foreach ( $columns as $key => $column ) {
 			$reordered_columns[ $key ] = $column;
 
-			if ( $key === 'order_status' ) {
+			if ( 'order_status' === $key ) {
 				// Inserting after "Status" column
 				$reordered_columns['ecommpay_payment_info'] = __( 'Payment', 'woo-ecommpay' );
 			}
@@ -95,14 +97,18 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 		}
 
 		// Show transaction ID on the overview
-		if ( ! in_array( $type, [
-			EcpModuleSubscription::SHOP_ORDER,
-			EcpModuleSubscription::SHOP_SUBSCRIPTION
-		] ) ) {
+		if ( ! in_array(
+			$type,
+			array(
+				EcpModuleSubscription::SHOP_ORDER,
+				EcpModuleSubscription::SHOP_SUBSCRIPTION,
+			),
+			true
+		) ) {
 			return;
 		}
 
-		if ( $column !== 'ecommpay_payment_info' ) {
+		if ( 'ecommpay_payment_info' !== $column ) {
 			return;
 		}
 
@@ -119,9 +125,12 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 			$status = $order->get_ecp_status();
 		}
 
-		ecp_get_view( 'html-order-table-payment-data.php', [
-			'payment_status' => $status,
-		] );
+		ecp_get_view(
+			'html-order-table-payment-data.php',
+			array(
+				'payment_status' => $status,
+			)
+		);
 	}
 
 	/**
@@ -134,22 +143,24 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 		global $post;
 
 		if ( is_null( $post ) ) {
-			if ( ! isset ( $_GET['id'] ) ) {
-				return [ null, null ];
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This is an admin page with proper capabilities check
+			if ( ! isset( $_GET['id'] ) ) {
+				return array( null, null );
 			}
 
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This is an admin page with proper capabilities check
 			$order = ecp_get_order( $_GET['id'] );
 			$type  = ecp_get_order_type( $order );
 
 			if ( ! $order ) {
-				return [ null, null ];
+				return array( null, null );
 			}
 		} else {
 			$order = ecp_get_order( $post->ID );
 			$type  = ecp_get_order_type( $order );
 		}
 
-		return [ $order, $type ];
+		return array( $order, $type );
 	}
 
 	/**
@@ -186,14 +197,18 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 		}
 
 		// Show transaction ID on the overview
-		if ( ! in_array( $type, [
-			EcpModuleSubscription::SHOP_ORDER,
-			EcpModuleSubscription::SHOP_SUBSCRIPTION
-		] ) ) {
+		if ( ! in_array(
+			$type,
+			array(
+				EcpModuleSubscription::SHOP_ORDER,
+				EcpModuleSubscription::SHOP_SUBSCRIPTION,
+			),
+			true
+		) ) {
 			return;
 		}
 
-		if ( $column !== 'ecommpay_payment_info' ) {
+		if ( 'ecommpay_payment_info' !== $column ) {
 			return;
 		}
 
@@ -211,9 +226,12 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 		}
 		ecp_get_log()->debug( $order->get_id() );
 		ecp_get_log()->debug( $status );
-		ecp_get_view( 'html-order-table-payment-data.php', [
-			'payment_status' => $status,
-		] );
+		ecp_get_view(
+			'html-order-table-payment-data.php',
+			array(
+				'payment_status' => $status,
+			)
+		);
 	}
 
 	/**
@@ -229,10 +247,10 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 			return;
 		}
 
-		$allowed_order_types = [
+		$allowed_order_types = array(
 			EcpModuleSubscription::SHOP_ORDER,
 			EcpModuleSubscription::SHOP_SUBSCRIPTION,
-		];
+		);
 
 		if ( ! in_array( $type, $allowed_order_types, true ) || ! $order->is_ecp() ) {
 			return;
@@ -241,24 +259,24 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 		add_meta_box(
 			'ecommpay-payment-info',
 			__( 'ECOMMPAY Payment', 'woo-ecommpay' ),
-			[ $this, 'meta_box_payment_info' ],
-			[
+			array( $this, 'meta_box_payment_info' ),
+			array(
 				EcpModuleSubscription::SHOP_ORDER,
-				wc_get_page_screen_id( EcpModuleSubscription::SHOP_ORDER )
-			],
+				wc_get_page_screen_id( EcpModuleSubscription::SHOP_ORDER ),
+			),
 			'side',
 			'high'
 		);
 
-		if (ecp_subscription_is_active()) {
+		if ( ecp_subscription_is_active() ) {
 			add_meta_box(
 				'ecommpay-payment-actions',
 				__( 'ECOMMPAY Subscription', 'woo-ecommpay' ),
-				[ $this, 'meta_box_subscription' ],
-				[
+				array( $this, 'meta_box_subscription' ),
+				array(
 					EcpModuleSubscription::SHOP_SUBSCRIPTION,
-					wc_get_page_screen_id( EcpModuleSubscription::SHOP_SUBSCRIPTION )
-				],
+					wc_get_page_screen_id( EcpModuleSubscription::SHOP_SUBSCRIPTION ),
+				),
 				'side',
 				'high'
 			);
@@ -287,9 +305,9 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 		do_action( 'woocommerce_ecommpay_meta_box_payment_info_before_content', $order );
 
 		try {
-			$payment       = $order->get_payment();
-			$codeByMapping = EcpGatewayPaymentMethods::get_code( $order->get_payment_system() );
-			$ps            = empty ( $codeByMapping ) ? $order->get_payment_system() : $codeByMapping;
+			$payment         = $order->get_payment();
+			$code_by_mapping = EcpGatewayPaymentMethods::get_code( $order->get_payment_system() );
+			$ps              = empty( $code_by_mapping ) ? $order->get_payment_system() : $code_by_mapping;
 			/** @var ?EcpGatewayInfoSum $sum */
 			$amount = $payment->get_info()->try_get_sum( $sum )
 				? $sum->get_formatted()
@@ -297,7 +315,7 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 
 			ecp_get_view(
 				'html-meta-box-payment-info.php',
-				[
+				array(
 					'status'            => $order->get_ecp_status(),
 					'status_name'       => ecp_get_payment_status_name( $order->get_ecp_status() ),
 					'operation_type'    => ecp_get_operation_type_name( $payment->get_current_type() ),
@@ -308,7 +326,7 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 					'logo'              => get_ecp_payment_method_icon( $ps ),
 					'amount'            => $amount,
 					'is_test'           => $order->get_is_test(),
-				]
+				)
 			);
 		} catch ( Exception $e ) {
 			$this->write_meta_box_error( $e );
@@ -362,12 +380,12 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 
 			ecp_get_view(
 				'html-meta-box-subscription.php',
-				[
+				array(
 					'status'       => $order->get_status(),
 					'recurring_id' => $recurring_id,
 					'logo'         => get_ecp_payment_method_icon( $parent->get_payment_system() ),
 					'is_test'      => $order->get_is_test(),
-				]
+				)
 			);
 		} catch ( Exception $e ) {
 			$this->write_meta_box_error( $e );
@@ -386,31 +404,33 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 			wp_enqueue_script(
 				'ecommpay-backend',
 				ecp_js_url( 'backend.js' ),
-				[ 'jquery' ],
-				ecp_version()
+				array( 'jquery' ),
+				ecp_version(),
+				true
 			);
 
 			wp_localize_script(
 				'ecommpay-backend',
 				'ajax_object',
-				[
+				array(
 					'ajax_url' => admin_url( 'admin-ajax.php' ),
-					'nonce'    => wp_create_nonce( 'ecommpay_manual_action' )
-				]
+					'nonce'    => wp_create_nonce( 'ecommpay_manual_action' ),
+				)
 			);
 		}
 
 		wp_enqueue_script(
 			'ecommpay-backend-notices',
 			ecp_js_url( 'backend-notices.js' ),
-			[ 'jquery' ],
-			ecp_version()
+			array( 'jquery' ),
+			ecp_version(),
+			true
 		);
 
 		wp_localize_script(
 			'ecommpay-backend-notices',
 			'wcEcpBackendNotices',
-			[ 'flush' => admin_url( 'admin-ajax.php?action=woocommerce_ecommpay_flush_runtime_errors' ) ]
+			array( 'flush' => admin_url( 'admin-ajax.php?action=woocommerce_ecommpay_flush_runtime_errors' ) )
 		);
 	}
 
@@ -424,10 +444,14 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 		/**
 		 * Enqueue on the shop order page
 		 */
-		if ( $order && in_array( $type, [
+		if ( $order && in_array(
+			$type,
+			array(
 				EcpModuleSubscription::SHOP_ORDER,
-				EcpModuleSubscription::SHOP_SUBSCRIPTION
-			] ) ) {
+				EcpModuleSubscription::SHOP_SUBSCRIPTION,
+			),
+			true
+		) ) {
 			return true;
 		}
 
@@ -447,7 +471,7 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 		$param_action = wc_get_var( $_REQUEST['ecommpay_action'] );
 		$param_post   = wc_get_var( $_REQUEST['post'] );
 
-		if ( $param_action === null || $param_post === null ) {
+		if ( null === $param_action || null === $param_post ) {
 			return;
 		}
 
@@ -483,7 +507,7 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 
 		try {
 			$transaction_info = $order->get_payment();
-			$api = new EcpGatewayAPIPayment();
+			$api              = new EcpGatewayAPIPayment();
 
 			// Based on the current transaction state, we check if the requested action is allowed
 			if ( ! $order->is_action_allowed( $param_action ) ) {
@@ -533,10 +557,12 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 	public function ajax_clear_log(): void {
 		if ( woocommerce_ecommpay_can_user_empty_logs() ) {
 			ecp_get_log()->clear();
-			echo json_encode( [
-				'status'  => 'success',
-				'message' => 'Logs successfully emptied'
-			] );
+			echo wp_json_encode(
+				array(
+					'status'  => 'success',
+					'message' => 'Logs successfully emptied',
+				)
+			);
 			exit();
 		}
 	}
@@ -550,18 +576,24 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 	public function ajax_flush_payment_cache(): void {
 		global $wpdb;
 		if ( woocommerce_ecommpay_can_user_flush_cache() ) {
-			$query = 'DELETE FROM ' . $wpdb->options . ' WHERE option_name LIKE \'_transient_wcqp_transaction_%\' OR option_name LIKE \'_transient_timeout_wcqp_transaction_%\';';
-
-			$wpdb->query( $query );
-			echo json_encode( [
-				'status'  => 'success',
-				'message' => 'The transaction cache has been cleared.'
-			] );
+			$wpdb->query(
+				$wpdb->prepare(
+					"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+					'_transient_wcqp_transaction_%',
+					'_transient_timeout_wcqp_transaction_%'
+				)
+			);
+			echo wp_json_encode(
+				array(
+					'status'  => 'success',
+					'message' => 'The transaction cache has been cleared.',
+				)
+			);
 			exit();
 		}
 	}
 
-	function ecp_payment_status_filter( $post_type ) {
+	public function ecp_payment_status_filter( $post_type ) {
 		if ( 'shop_order' !== $post_type ) {
 			return;
 		}
@@ -583,45 +615,50 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 		}
 
 		if ( empty( $statuses ) ) {
-			$statuses = [];
+			$statuses = array();
 		}
 
 		$statuses = array_combine(
 			$statuses,
 			array_map(
-				function ( $status ) {
+				static function ( string $status ) {
 					return EcpGatewayPaymentStatus::get_status_name( $status );
 				},
 				$statuses
 			)
 		);
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This is an admin page with proper capabilities check
 		$selected_value = $_GET['_payment_status'] ?? '';
 
 		asort( $statuses );
 
 		ecp_get_view(
-			'admin/sections/html-filter.php', [
+			'admin/sections/html-filter.php',
+			array(
 				'statuses'       => $statuses,
-				'selected_value' => $selected_value
-			]
+				'selected_value' => $selected_value,
+			)
 		);
 	}
 
-	function ecp_payment_status_filter_query( $query_args ): array {
+	public function ecp_payment_status_filter_query( $query_args ): array {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This is an admin page with proper capabilities check
 		if ( ! empty( $_GET['_payment_status'] ) ) {
-			$query_args['meta_query'][] = [
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This is an admin page with proper capabilities check
+			$query_args['meta_query'][] = array(
 				'key'     => '_payment_status',
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This is an admin page with proper capabilities check
 				'value'   => sanitize_text_field( $_GET['_payment_status'] ),
-				'compare' => '='
-			];
+				'compare' => '=',
+			);
 		}
 
 		return $query_args;
 	}
 
-	function ecp_add_order_buttons( $order ) {
-		ecp_get_view( 'admin/sections/html-buttons.php', [ 'order' => $order, ] );
+	public function ecp_add_order_buttons( $order ) {
+		ecp_get_view( 'admin/sections/html-buttons.php', array( 'order' => $order ) );
 	}
 
 	/**
@@ -632,43 +669,55 @@ class EcpModuleAdminUI extends EcpGatewayRegistry {
 	protected function init(): void {
 		// Add internal actions
 		add_action( 'init', 'ecp_load_i18n' );
-		add_action( 'add_meta_boxes', [ $this, 'add_meta_boxes' ] );
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_javascript_backend' ] );
-		add_action( 'admin_notices', [ EcpGatewayInstall::get_instance(), 'show_update_warning' ] );
+		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_javascript_backend' ) );
+		add_action( 'admin_notices', array( EcpGatewayInstall::get_instance(), 'show_update_warning' ) );
 
 		// Add WooCommerce actions.
-		add_action( 'wp_ajax_ecommpay_manual_transaction_actions', [ $this, 'ajax_manual_request_actions' ] );
-		add_action( 'wp_ajax_ecommpay_empty_logs', [ $this, 'ajax_clear_log' ] );
-		add_action( 'wp_ajax_ecommpay_flush_cache', [ $this, 'ajax_flush_payment_cache' ] );
+		add_action( EcpApiFilters::WP_AJAX_ECOMMPAY_MANUAL_TRANSACTION_ACTIONS, array( $this, 'ajax_manual_request_actions' ) );
+		add_action( EcpApiFilters::WP_AJAX_ECOMMPAY_EMPTY_LOGS, array( $this, 'ajax_clear_log' ) );
+		add_action( EcpApiFilters::WP_AJAX_ECOMMPAY_FLUSH_CACHE, array( $this, 'ajax_flush_payment_cache' ) );
 
 		$this->addOrdersPageColumnsFilters();
 
 		// Add filters only if setting parameter "ecommpay_orders_transaction_info" is on
 		if ( ecp_is_enabled( EcpSettingsGeneral::OPTION_TRANSACTION_INFO ) ) {
 			// For legacy order storage
-			add_filter( 'manage_edit-shop_order_columns', [ $this, 'filter_shop_order_posts_columns' ] );
-			add_filter( 'manage_shop_order_posts_custom_column', [ $this, 'apply_custom_order_data' ] );
-			add_filter( 'manage_shop_subscription_posts_custom_column', [ $this, 'apply_custom_order_data' ], 10, 2 );
+			add_filter( 'manage_edit-shop_order_columns', array( $this, 'filter_shop_order_posts_columns' ) );
+			add_filter( 'manage_shop_order_posts_custom_column', array( $this, 'apply_custom_order_data' ) );
+			add_filter( 'manage_shop_subscription_posts_custom_column', array( $this, 'apply_custom_order_data' ), 10, 2 );
 
 			// For High-Performance Order Storage feature
-			add_filter( 'manage_woocommerce_page_wc-orders_columns', [
-				$this,
-				'add_column_headers_to_order_list'
-			], 999 );
-			add_action( 'manage_woocommerce_page_wc-orders_custom_column', [
-				$this,
-				'add_column_contents_to_order_list'
-			], 999, 2 );
+			add_filter(
+				'manage_woocommerce_page_wc-orders_columns',
+				array(
+					$this,
+					'add_column_headers_to_order_list',
+				),
+				999
+			);
+			add_action(
+				'manage_woocommerce_page_wc-orders_custom_column',
+				array(
+					$this,
+					'add_column_contents_to_order_list',
+				),
+				999,
+				2
+			);
 		}
 	}
 
 	private function addOrdersPageColumnsFilters() {
-		add_action( 'woocommerce_order_list_table_restrict_manage_orders', [ $this, 'ecp_payment_status_filter' ] );
-		add_filter( 'woocommerce_order_list_table_prepare_items_query_args', [
-			$this,
-			'ecp_payment_status_filter_query'
-		] );
+		add_action( 'woocommerce_order_list_table_restrict_manage_orders', array( $this, 'ecp_payment_status_filter' ) );
+		add_filter(
+			'woocommerce_order_list_table_prepare_items_query_args',
+			array(
+				$this,
+				'ecp_payment_status_filter_query',
+			)
+		);
 
-		add_action( 'woocommerce_order_item_add_action_buttons', [ $this, 'ecp_add_order_buttons' ] );
+		add_action( 'woocommerce_order_item_add_action_buttons', array( $this, 'ecp_add_order_buttons' ) );
 	}
 }

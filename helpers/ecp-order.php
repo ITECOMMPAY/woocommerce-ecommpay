@@ -9,7 +9,7 @@ use common\includes\EcpGatewayRefund;
 use common\includes\EcpGatewaySubscription;
 use common\includes\filters\EcpWCFilters;
 
-const NON_DECIMAL_CURRENCIES = [
+const NON_DECIMAL_CURRENCIES = array(
 	'BIF',
 	'CLP',
 	'DJF',
@@ -27,7 +27,7 @@ const NON_DECIMAL_CURRENCIES = [
 	'XAF',
 	'XOF',
 	'XPF',
-];
+);
 
 function ecp_HPOS_enabled(): bool {
 	if ( ! class_exists( 'Automattic\WooCommerce\Utilities\OrderUtil' ) ) {
@@ -35,20 +35,6 @@ function ecp_HPOS_enabled(): bool {
 	}
 
 	return Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
-}
-
-function ecp_HPOS_sync_enabled() {
-	if ( ! function_exists( 'wc_get_container' ) ) {
-		return false;
-	}
-
-	if ( ! class_exists( 'Automattic\WooCommerce\Internal\DataStores\Orders\DataSynchronizer' ) ) {
-		return false;
-	}
-
-	$data_synchronizer = wc_get_container()->get( Automattic\WooCommerce\Internal\DataStores\Orders\DataSynchronizer::class );
-
-	return $data_synchronizer->data_sync_is_enabled();
 }
 
 /**
@@ -93,7 +79,7 @@ function ecp_price_custom_to_multiplied( $price, $currency ): int {
 	$decimal_separator  = get_option( 'woocommerce_price_decimal_sep' );
 	$thousand_separator = get_option( 'woocommerce_price_thousand_sep' );
 
-	$price = str_replace( [ $thousand_separator, $decimal_separator ], [ '', '.' ], $price );
+	$price = str_replace( array( $thousand_separator, $decimal_separator ), array( '', '.' ), $price );
 
 	return ecp_price_multiply( $price, $currency );
 }
@@ -132,16 +118,17 @@ function ecp_is_currency_using_decimals( $currency ): bool {
  * @return string
  */
 function ecp_callback_url( $post_id = null ): string {
-	$args = [ 'wc-api' => 'WC_Ecommpay' ];
+	$args = array( 'wc-api' => 'WC_Ecommpay' );
 
-	if ( $post_id !== null ) {
+	if ( null !== $post_id ) {
 		$args['order_post_id'] = $post_id;
 	}
 
 	$args = apply_filters( EcpWCFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_ARGS, $args, $post_id );
 
 	// For testing purposes
-	$callback_url = getenv( 'WORDPRESS_CALLBACK_URL' ) ?: home_url( '/' );
+	$wordpress_callback_url = getenv( 'WORDPRESS_CALLBACK_URL' );
+	$callback_url           = $wordpress_callback_url ? $wordpress_callback_url : home_url( '/' );
 
 	return apply_filters( EcpWCFilters::WOOCOMMERCE_ECOMMPAY_CALLBACK_URL, add_query_arg( $args, $callback_url ), $args, $post_id );
 }
@@ -154,7 +141,7 @@ function ecp_callback_url( $post_id = null ): string {
  * @return EcpGatewayOrder|EcpGatewayRefund|EcpGatewaySubscription
  */
 function ecp_get_order( $order ) {
-	$types    = [ 'shop_order', 'shop_order_refund', 'shop_subscription' ];
+	$types    = array( 'shop_order', 'shop_order_refund', 'shop_subscription' );
 	$is_order = OrderUtil::is_order( $order, $types );
 
 	if ( ! $is_order ) {
@@ -197,12 +184,12 @@ function ecp_get_order_type( $order ): ?string {
 function ecp_get_orders( array $params ): array {
 	$query      = new WC_Order_Query(
 		array_merge(
-			[ 'return' => 'ids' ],
+			array( 'return' => 'ids' ),
 			$params
 		)
 	);
 	$order_ids  = $query->get_orders();
-	$ecp_orders = [];
+	$ecp_orders = array();
 	foreach ( $order_ids as $order_id ) {
 		$ecp_orders[] = ecp_get_order( $order_id );
 	}
@@ -218,7 +205,7 @@ function ecp_get_orders( array $params ): array {
  * @return ?EcpGatewayRefund
  */
 function ecp_get_refund( WC_Order_Refund $refund = null ): ?EcpGatewayRefund {
-	if ( $refund === null ) {
+	if ( null === $refund ) {
 		return null;
 	}
 

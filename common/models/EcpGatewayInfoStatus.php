@@ -16,7 +16,6 @@ defined( 'ABSPATH' ) || exit;
  */
 class EcpGatewayInfoStatus extends EcpGatewayJson {
 
-
 	/**
 	 * Label for payment instrument information.
 	 */
@@ -65,7 +64,7 @@ class EcpGatewayInfoStatus extends EcpGatewayJson {
 	 *
 	 * @param array $data [optional] <p>JSON-data as array.</p>
 	 */
-	public function __construct( array $data = [] ) {
+	public function __construct( array $data = array() ) {
 		$this->register( self::FIELD_ACCOUNT, EcpGatewayInfoAccount::class );
 		$this->register( self::FIELD_ACS, EcpGatewayInfoACS::class );
 		$this->register( self::FIELD_CUSTOMER, EcpGatewayInfoCustomer::class );
@@ -140,12 +139,15 @@ class EcpGatewayInfoStatus extends EcpGatewayJson {
 	/**
 	 * <h2>Returns the payment information.</h2>
 	 *
-	 * @return EcpGatewayInfoPayment
+	 * @return EcpGatewayInfoPayment|null
 	 */
-	public function get_payment(): EcpGatewayInfoPayment {
-		$this->try_get_payment( $payment );
+	public function get_payment(): ?EcpGatewayInfoPayment {
+		$payment = null;
+		if ( $this->try_get_payment( $payment ) ) {
+			return $payment;
+		}
 
-		return $payment;
+		return null;
 	}
 
 	public function try_get_payment( &$payment ): bool {
@@ -180,24 +182,24 @@ class EcpGatewayInfoStatus extends EcpGatewayJson {
 	 * @inheritDoc
 	 */
 	protected function unpackRules(): array {
-		return [
-			self::FIELD_PROJECT_ID => function ( $value ) {
+		return array(
+			self::FIELD_PROJECT_ID => static function ( $value ) {
 				return (int) $value;
 			},
-			self::FIELD_OPERATIONS => function ( $value ) {
+			self::FIELD_OPERATIONS => static function ( array $value ) {
 				foreach ( $value as &$item ) {
 					$item = new EcpGatewayInfoOperation( $item );
 				}
 
 				return $value;
 			},
-			self::FIELD_ERRORS     => function ( $value ) {
+			self::FIELD_ERRORS     => static function ( array $value ) {
 				foreach ( $value as &$item ) {
 					$item = new EcpGatewayInfoError( $item );
 				}
 
 				return $value;
-			}
-		];
+			},
+		);
 	}
 }

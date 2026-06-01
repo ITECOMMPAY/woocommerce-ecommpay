@@ -107,7 +107,9 @@ class EcpGatewayArray implements ArrayAccess, Countable {
 	 * @since 2.0.0
 	 */
 	public function first() {
-		return array_key_first( $this->array );
+		$key = array_key_first( $this->array );
+
+		return $key !== null ? $this->array[ $key ] : null;
 	}
 
 	/**
@@ -136,6 +138,8 @@ class EcpGatewayArray implements ArrayAccess, Countable {
 	 * @since 2.0.0
 	 */
 	public function last() {
-		return array_key_last( $this->array );
+		$key = array_key_last( $this->array );
+
+		return $key !== null ? $this->array[ $key ] : null;
 	}
 }

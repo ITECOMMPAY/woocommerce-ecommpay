@@ -2,8 +2,8 @@
 
 namespace common\gateways;
 
+use common\includes\EcpGatewayOrder;
 use common\includes\filters\EcpAppendsFilters;
-use common\modules\EcpModuleRefund;
 use common\settings\EcpSettingsHumm;
 use WC_Order;
 
@@ -18,8 +18,18 @@ defined( 'ABSPATH' ) || exit;
  * @category Class
  */
 class EcpHumm extends EcpGateway {
-	protected const PAYMENT_METHOD = 'bnpl-humm';
-	protected const ICON_NAME = 'humm';
+
+	/**
+	 * @var string Payment method code for Humm
+	 * @since 3.0.0
+	 */
+	private const PAYMENT_METHOD_CODE = 'bnpl-humm';
+
+	/**
+	 * @var string Icon file name for Humm
+	 * @since 3.0.0
+	 */
+	private const ICON_FILE_NAME = 'humm';
 
 	/**
 	 * @inheritDoc
@@ -27,17 +37,35 @@ class EcpHumm extends EcpGateway {
 	 * @var string[]
 	 * @since 3.0.0
 	 */
-	public $supports = [
+	public $supports = array(
 		self::SUPPORT_PRODUCTS,
-	];
+	);
+
+	/**
+	 * @inheritDoc
+	 * @return string
+	 * @since 3.0.0
+	 */
+	protected function get_payment_method_code(): string {
+		return self::PAYMENT_METHOD_CODE;
+	}
+
+	/**
+	 * @inheritDoc
+	 * @return string
+	 * @since 3.0.0
+	 */
+	protected function get_icon_file_name(): string {
+		return self::ICON_FILE_NAME;
+	}
 
 	/**
 	 * <h2>ECOMMPAY Humm Gateway constructor.</h2>
 	 */
 	public function __construct() {
-		$this->id                 = EcpSettingsHumm::ID;
-		$this->method_title       = __( 'ECOMMPAY Humm', 'woo-ecommpay' );
-		$this->method_description = __( 'Accept payments via Humm.', 'woo-ecommpay' );
+		$this->id                     = EcpSettingsHumm::ID;
+		$this->method_title_key       = 'ECOMMPAY Humm';
+		$this->method_description_key = 'Accept payments via Humm.';
 
 		parent::__construct();
 	}
@@ -48,8 +76,8 @@ class EcpHumm extends EcpGateway {
 	 * @return array
 	 * @since 3.0.0
 	 */
-	public function apply_payment_args( $values, $order ): array {
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, self::PAYMENT_METHOD );
+	public function apply_payment_args( array $values, EcpGatewayOrder $order ): array {
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, $this->get_payment_method_code() );
 
 		return parent::apply_payment_args( $values, $order );
 	}
@@ -61,15 +89,7 @@ class EcpHumm extends EcpGateway {
 	 * @since 3.0.0
 	 */
 	public function process_payment( $order_id ): array {
-		$order            = ecp_get_order( $order_id );
-		$options          = ecp_payment_page()->get_request_url( $order, $this );
-		$payment_page_url = ecp_payment_page()->get_url() . '/payment?' . http_build_query( $options );
-
-		return [
-			'result'   => self::PROCESS_RESULT_SUCCESS,
-			'redirect' => $payment_page_url,
-			'order_id' => $order_id,
-		];
+		return $this->process_standard_payment( $order_id );
 	}
 
 	/**

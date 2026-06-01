@@ -19,7 +19,6 @@ defined( 'ABSPATH' ) || exit;
  */
 class EcpGatewayInfoACS extends EcpGatewayJson {
 
-
 	/**
 	 * Label for URL of the issuing bank ACS page.
 	 */

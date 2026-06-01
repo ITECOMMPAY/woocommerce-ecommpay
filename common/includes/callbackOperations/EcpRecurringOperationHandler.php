@@ -10,6 +10,7 @@ use common\models\EcpGatewayInfoCallback;
 use WC_Data_Exception;
 
 class EcpRecurringOperationHandler implements EcpOperationHandlerInterface {
+
 	private EcpCallbacksHandler $ecp_callbacks_handler;
 	private EcpOrderManager $order_manager;
 

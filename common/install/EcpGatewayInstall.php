@@ -34,10 +34,10 @@ class EcpGatewayInstall {
 	 * @var array
 	 * @since 2.0.0
 	 */
-	private static array $updates = [
+	private static array $updates = array(
 		'3.0.0' => __DIR__ . '/migrations/upgrade_settings_to_version_3.php',
-		'3.3.1' => __DIR__ . '/migrations/upgrade_orders_to_version_3.3.1.php'
-	];
+		'3.3.1' => __DIR__ . '/migrations/upgrade_orders_to_version_3.3.1.php',
+	);
 
 
 	/**
@@ -47,7 +47,7 @@ class EcpGatewayInstall {
 	 * @since 2.0.0
 	 */
 	public static function get_instance(): ?EcpGatewayInstall {
-		if ( self::$instance === null ) {
+		if ( null === self::$instance ) {
 			self::$instance = new static();
 		}
 
@@ -137,20 +137,20 @@ class EcpGatewayInstall {
 
 		if (
 			! wp_verify_nonce( $nonce, self::UPDATE_NONCE )
-			&& ! current_user_can( 'administrator' )
+			&& ! current_user_can( 'manage_options' )
 		) {
 			echo json_encode(
-				[
+				array(
 					'status'  => 'error',
-					'message' => __( 'You are not authorized to perform this action', 'woo-ecommpay' )
-				]
+					'message' => __( 'You are not authorized to perform this action', 'woo-ecommpay' ),
+				)
 			);
 			exit;
 		}
 
 		$this->update();
 
-		echo json_encode( [ 'status' => 'success' ] );
+		echo json_encode( array( 'status' => 'success' ) );
 		exit;
 	}
 
@@ -168,7 +168,7 @@ class EcpGatewayInstall {
 
 		foreach ( self::$updates as $new_version => $updater ) {
 			if ( version_compare( $this->get_version(), $new_version, '<' ) ) {
-				include( $updater );
+				include $updater;
 			}
 		}
 
@@ -199,7 +199,7 @@ class EcpGatewayInstall {
 		delete_option( self::VERSION_NAME );
 		add_option(
 			self::VERSION_NAME,
-			$version === null ? EcpCore::WC_ECP_VERSION : $version
+			null === $version ? EcpCore::WC_ECP_VERSION : $version
 		);
 	}
 
@@ -222,6 +222,4 @@ class EcpGatewayInstall {
 	public function create_run_upgrade_nonce(): string {
 		return wp_create_nonce( self::UPDATE_NONCE );
 	}
-
-
 }

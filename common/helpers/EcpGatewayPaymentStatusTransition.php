@@ -11,8 +11,9 @@ namespace common\helpers;
  * @category Class
  */
 class EcpGatewayPaymentStatusTransition extends EcpGatewayJson {
-	private const FIELD_NEW = 'new';
-	private const FIELD_OLD = 'old';
+
+	private const FIELD_NEW  = 'new';
+	private const FIELD_OLD  = 'old';
 	private const FIELD_NOTE = 'note';
 
 	public function get_note(): ?string {
@@ -38,17 +39,17 @@ class EcpGatewayPaymentStatusTransition extends EcpGatewayJson {
 	}
 
 	protected function unpackRules(): array {
-		return [
-			self::FIELD_OLD => function ( $value ) {
+		return array(
+			self::FIELD_OLD => static function ( string $value ) {
 				return ecp_is_payment_status( $value )
 					? $value
 					: EcpGatewayPaymentStatus::INITIAL;
 			},
-			self::FIELD_NEW => function ( $value ) {
+			self::FIELD_NEW => static function ( string $value ) {
 				return ecp_is_payment_status( $value )
 					? $value
 					: EcpGatewayPaymentStatus::INITIAL;
-			}
-		];
+			},
+		);
 	}
 }

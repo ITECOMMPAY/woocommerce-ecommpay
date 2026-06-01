@@ -28,11 +28,12 @@ trait EcpGatewayOrderExtension {
 	 * @return string
 	 */
 	public function get_payment_id(): string {
-		$meta_data = $this->get_ecp_meta( '_payment_id', false );
+		$meta_data   = $this->get_ecp_meta( '_payment_id', false );
 		$meta_object = end( $meta_data );
-		if ( is_object( $meta_object )) {
-            return $meta_object->value;
-        }
+		if ( is_object( $meta_object ) ) {
+			return $meta_object->value;
+		}
+
 		return $meta_object;
 	}
 

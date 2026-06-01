@@ -4,8 +4,18 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInite4c05b0bb73b38e1f311bab68b66e333
+class ComposerStaticInit592575a531f9f867831c651f3326c898
 {
+    public static $files = array (
+        'ae29c561d6343bb82f4de2dfd5fc66c2' => __DIR__ . '/../..' . '/helpers/ecp-helper.php',
+        'd02ca0adafcdf54ea144a91b9fef641a' => __DIR__ . '/../..' . '/helpers/ecp-order.php',
+        '740cfca55a12e3f2ecac22ca13256d52' => __DIR__ . '/../..' . '/helpers/ecp-payment.php',
+        'f085522e0bf686d918e323e3a348b74c' => __DIR__ . '/../..' . '/helpers/ecp-subscription.php',
+        'bad89d2a7577817bd533a67662e6c5d5' => __DIR__ . '/../..' . '/helpers/notices.php',
+        'b090c3852f50f280eec6f5b9a069e290' => __DIR__ . '/../..' . '/helpers/permissions.php',
+        '554a1d940bb409b1a674a6182208a6fe' => __DIR__ . '/../..' . '/helpers/ecp-woo-blocks-support.php',
+    );
+
     public static $prefixLengthsPsr4 = array (
         'c' => 
         array (
@@ -27,9 +37,9 @@ class ComposerStaticInite4c05b0bb73b38e1f311bab68b66e333
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInite4c05b0bb73b38e1f311bab68b66e333::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInite4c05b0bb73b38e1f311bab68b66e333::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInite4c05b0bb73b38e1f311bab68b66e333::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit592575a531f9f867831c651f3326c898::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit592575a531f9f867831c651f3326c898::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit592575a531f9f867831c651f3326c898::$classMap;
 
         }, null, ClassLoader::class);
     }

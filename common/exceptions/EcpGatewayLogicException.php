@@ -17,11 +17,11 @@ defined( 'ABSPATH' ) || exit;
 class EcpGatewayLogicException extends EcpGatewayException {
 
 	protected function prepare_message(): array {
-		return [
-			[
+		return array(
+			array(
 				$this->get_base_message(),
-				WC_Log_Levels::ERROR
-			]
-		];
+				WC_Log_Levels::ERROR,
+			),
+		);
 	}
 }

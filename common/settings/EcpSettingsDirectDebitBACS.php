@@ -13,10 +13,8 @@ defined( 'ABSPATH' ) || exit;
  * @version  3.4.3
  * @package  Ecp_Gateway/Settings
  * @category Class
- * @internal
  */
 class EcpSettingsDirectDebitBACS extends EcpSettings {
-
 
 	/**
 	 * Internal identifier
@@ -33,13 +31,13 @@ class EcpSettingsDirectDebitBACS extends EcpSettings {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->id    = self::ID;
-		$this->label = _x( 'Direct Debit BACS', 'Settings page', 'woo-ecommpay' );
-		$this->icon  = 'directdebit-bacs.svg';
+		$this->id        = self::ID;
+		$this->label_key = 'Direct Debit BACS';
+		$this->icon      = 'directdebit-bacs.svg';
 
 		parent::__construct();
 
-		add_filter( EcpFilters::ECP_PREFIX_GET_SETTINGS . $this->id, [ $this, 'get_settings_directdebit_bacs' ] );
+		add_filter( EcpFilters::ECP_PREFIX_GET_SETTINGS . $this->id, array( $this, 'get_settings_directdebit_bacs' ) );
 	}
 
 	/**
@@ -48,78 +46,54 @@ class EcpSettingsDirectDebitBACS extends EcpSettings {
 	 * @return array
 	 */
 	public function get_settings_directdebit_bacs(): array {
-		$settings = [
-			[
+		$settings = array(
+			array(
 				self::FIELD_ID    => self::DIRECTDEBIT_BACS_SETTINGS,
-				self::FIELD_TITLE => _x( 'Direct Debit BACS settings', 'Settings section', 'woo-ecommpay' ),
+				self::FIELD_TITLE => $this->safe_translate( 'Direct Debit BACS settings', 'Settings section' ),
 				self::FIELD_TYPE  => self::TYPE_START,
 				self::FIELD_DESC  => '',
-			],
-			[
+			),
+			array(
 				self::FIELD_ID      => self::OPTION_ENABLED,
-				self::FIELD_TITLE   => _x( 'Enable/Disable', 'Settings Direct Debit BACS payments', 'woo-ecommpay' ),
+				self::FIELD_TITLE   => $this->safe_translate( 'Enable/Disable', 'Settings Direct Debit BACS payments' ),
 				self::FIELD_TYPE    => self::TYPE_CHECKBOX,
-				self::FIELD_DESC    => _x( 'Enable', 'Settings Direct Debit BACS payments', 'woo-ecommpay' ),
-				self::FIELD_TIP     => _x(
-					'Before enabling the payment method please contact support@ecommpay.com',
-					'Settings Direct Debit BACS payments',
-					'woo-ecommpay'
-				),
+				self::FIELD_DESC    => $this->safe_translate( 'Enable', 'Settings Direct Debit BACS payments' ),
+				self::FIELD_TIP     => $this->safe_translate( 'Before enabling the payment method please contact support@ecommpay.com', 'Settings Direct Debit BACS payments' ),
 				self::FIELD_DEFAULT => self::VALUE_DISABLED,
-			],
-			[
+			),
+			array(
 				self::FIELD_ID      => self::OPTION_TITLE,
-				self::FIELD_TITLE   => _x( 'Title', 'Settings Direct Debit BACS payments', 'woo-ecommpay' ),
+				self::FIELD_TITLE   => $this->safe_translate( 'Title', 'Settings Direct Debit BACS payments' ),
 				self::FIELD_TYPE    => self::TYPE_TEXT,
-				self::FIELD_TIP     => _x(
-					'This controls the tittle which the user sees during checkout.',
-					'Settings Direct Debit BACS payments',
-					'woo-ecommpay'
-				),
-				self::FIELD_DEFAULT => _x( 'Direct Debit BACS', 'Settings Direct Debit BACS payments', 'woo-ecommpay' ),
-			],
-			[
+				self::FIELD_TIP     => $this->safe_translate( 'This controls the tittle which the user sees during checkout.', 'Settings Direct Debit BACS payments' ),
+				self::FIELD_DEFAULT => $this->safe_translate( 'Direct Debit BACS', 'Settings Direct Debit BACS payments' ),
+			),
+			array(
 				self::FIELD_ID      => self::OPTION_SHOW_DESCRIPTION,
-				self::FIELD_TITLE   => _x( 'Show Description', 'Settings Direct Debit BACS payments', 'woo-ecommpay' ),
+				self::FIELD_TITLE   => $this->safe_translate( 'Show Description', 'Settings Direct Debit BACS payments' ),
 				self::FIELD_TYPE    => self::TYPE_CHECKBOX,
-				self::FIELD_DESC    => _x(
-					'Display the payment method description which user sees during checkout.',
-					'Settings Direct Debit BACS payments',
-					'woo-ecommpay'
-				),
+				self::FIELD_DESC    => $this->safe_translate( 'Display the payment method description which user sees during checkout.', 'Settings Direct Debit BACS payments' ),
 				self::FIELD_DEFAULT => self::VALUE_ENABLED,
-			],
-			[
+			),
+			array(
 				self::FIELD_ID      => self::OPTION_DESCRIPTION,
-				self::FIELD_TITLE   => _x( 'Description', 'Settings Direct Debit BACS payments', 'woo-ecommpay' ),
+				self::FIELD_TITLE   => $this->safe_translate( 'Description', 'Settings Direct Debit BACS payments' ),
 				self::FIELD_TYPE    => self::TYPE_AREA,
-				self::FIELD_TIP     => _x(
-					'This controls the description which the user sees during checkout',
-					'Settings Direct Debit BACS payments',
-					'woo-ecommpay'
-				),
-				self::FIELD_DEFAULT => _x(
-					'You will be redirected to Direct Debit BACS.',
-					'Settings Direct Debit BACS payments',
-					'woo-ecommpay'
-				),
-			],
-			[
+				self::FIELD_TIP     => $this->safe_translate( 'This controls the description which the user sees during checkout', 'Settings Direct Debit BACS payments' ),
+				self::FIELD_DEFAULT => $this->safe_translate( 'You will be redirected to Direct Debit BACS.', 'Settings Direct Debit BACS payments' ),
+			),
+			array(
 				self::FIELD_ID      => self::OPTION_CHECKOUT_BUTTON_TEXT,
-				self::FIELD_TITLE   => _x( 'Order button text', 'Settings Direct Debit BACS payments', 'woo-ecommpay' ),
+				self::FIELD_TITLE   => $this->safe_translate( 'Order button text', 'Settings Direct Debit BACS payments' ),
 				self::FIELD_TYPE    => self::TYPE_TEXT,
-				self::FIELD_TIP     => _x(
-					'Text shown on the submit button when choosing payment method.',
-					'Settings Direct Debit BACS payments',
-					'woo-ecommpay'
-				),
-				self::FIELD_DEFAULT => _x( 'Go to payment', 'Settings Direct Debit BACS payments', 'woo-ecommpay' ),
-			],
-			[
+				self::FIELD_TIP     => $this->safe_translate( 'Text shown on the submit button when choosing payment method.', 'Settings Direct Debit BACS payments' ),
+				self::FIELD_DEFAULT => $this->safe_translate( 'Go to payment', 'Settings Direct Debit BACS payments' ),
+			),
+			array(
 				self::FIELD_ID   => self::DIRECTDEBIT_BACS_SETTINGS,
 				self::FIELD_TYPE => self::TYPE_END,
-			],
-		];
+			),
+		);
 
 		return apply_filters( 'ecp_' . $this->id . '_settings', $settings );
 	}

@@ -13,10 +13,8 @@ defined( 'ABSPATH' ) || exit;
  * @version  3.0.0
  * @package  Ecp_Gateway/Settings
  * @category Class
- * @internal
  */
 class EcpSettingsPayPal extends EcpSettings {
-
 
 	/**
 	 * Internal identifier
@@ -33,13 +31,13 @@ class EcpSettingsPayPal extends EcpSettings {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->id    = self::ID;
-		$this->label = _x( 'PayPal', 'Settings page', 'woo-ecommpay' );
-		$this->icon  = 'paypal-wallet.svg';
+		$this->id        = self::ID;
+		$this->label_key = 'PayPal';
+		$this->icon      = 'paypal-wallet.svg';
 
 		parent::__construct();
 
-		add_filter( EcpFilters::ECP_PREFIX_GET_SETTINGS . $this->id, [ $this, 'get_settings_paypal_methods' ] );
+		add_filter( EcpFilters::ECP_PREFIX_GET_SETTINGS . $this->id, array( $this, 'get_settings_paypal_methods' ) );
 	}
 
 	/**
@@ -48,78 +46,54 @@ class EcpSettingsPayPal extends EcpSettings {
 	 * @return array
 	 */
 	public function get_settings_paypal_methods(): array {
-		$settings = [
-			[
+		$settings = array(
+			array(
 				self::FIELD_ID    => self::PAYPAL_SETTINGS,
-				self::FIELD_TITLE => _x( 'PayPal settings', 'Settings section', 'woo-ecommpay' ),
+				self::FIELD_TITLE => $this->safe_translate( 'PayPal settings', 'Settings section' ),
 				self::FIELD_TYPE  => self::TYPE_START,
 				self::FIELD_DESC  => '',
-			],
-			[
+			),
+			array(
 				self::FIELD_ID      => self::OPTION_ENABLED,
-				self::FIELD_TITLE   => _x( 'Enable/Disable', 'Settings paypal payments', 'woo-ecommpay' ),
+				self::FIELD_TITLE   => $this->safe_translate( 'Enable/Disable', 'Settings paypal payments' ),
 				self::FIELD_TYPE    => self::TYPE_CHECKBOX,
-				self::FIELD_DESC    => _x( 'Enable', 'Settings paypal payments', 'woo-ecommpay' ),
-				self::FIELD_TIP     => _x(
-					'Before enabling the payment method please contact support@ecommpay.com',
-					'Settings paypal payments',
-					'woo-ecommpay'
-				),
-				self::FIELD_DEFAULT => self::VALUE_DISABLED
-			],
-			[
+				self::FIELD_DESC    => $this->safe_translate( 'Enable', 'Settings paypal payments' ),
+				self::FIELD_TIP     => $this->safe_translate( 'Before enabling the payment method please contact support@ecommpay.com', 'Settings paypal payments' ),
+				self::FIELD_DEFAULT => self::VALUE_DISABLED,
+			),
+			array(
 				self::FIELD_ID      => self::OPTION_TITLE,
-				self::FIELD_TITLE   => _x( 'Title', 'Settings paypal payments', 'woo-ecommpay' ),
+				self::FIELD_TITLE   => $this->safe_translate( 'Title', 'Settings paypal payments' ),
 				self::FIELD_TYPE    => self::TYPE_TEXT,
-				self::FIELD_TIP     => _x(
-					'This controls the tittle which the user sees during checkout.',
-					'Settings paypal payments',
-					'woo-ecommpay'
-				),
-				self::FIELD_DEFAULT => _x( 'PayPal', 'Settings paypal payments', 'woo-ecommpay' ),
-			],
-			[
+				self::FIELD_TIP     => $this->safe_translate( 'This controls the tittle which the user sees during checkout.', 'Settings paypal payments' ),
+				self::FIELD_DEFAULT => $this->safe_translate( 'PayPal', 'Settings paypal payments' ),
+			),
+			array(
 				self::FIELD_ID      => self::OPTION_SHOW_DESCRIPTION,
-				self::FIELD_TITLE   => _x( 'Show Description', 'Settings paypal payments', 'woo-ecommpay' ),
+				self::FIELD_TITLE   => $this->safe_translate( 'Show Description', 'Settings paypal payments' ),
 				self::FIELD_TYPE    => self::TYPE_CHECKBOX,
-				self::FIELD_DESC    => _x(
-					'Display the payment method description which user sees during checkout.',
-					'Settings paypal payments',
-					'woo-ecommpay'
-				),
+				self::FIELD_DESC    => $this->safe_translate( 'Display the payment method description which user sees during checkout.', 'Settings paypal payments' ),
 				self::FIELD_DEFAULT => self::VALUE_ENABLED,
-			],
-			[
+			),
+			array(
 				self::FIELD_ID      => self::OPTION_DESCRIPTION,
-				self::FIELD_TITLE   => _x( 'Description', 'Settings paypal payments', 'woo-ecommpay' ),
+				self::FIELD_TITLE   => $this->safe_translate( 'Description', 'Settings paypal payments' ),
 				self::FIELD_TYPE    => self::TYPE_AREA,
-				self::FIELD_TIP     => _x(
-					'This controls the description which the user sees during checkout.',
-					'Settings paypal payments',
-					'woo-ecommpay'
-				),
-				self::FIELD_DEFAULT => _x(
-					'You will be redirected to PayPal.',
-					'Settings paypal payments',
-					'woo-ecommpay'
-				),
-			],
-			[
+				self::FIELD_TIP     => $this->safe_translate( 'This controls the description which the user sees during checkout.', 'Settings paypal payments' ),
+				self::FIELD_DEFAULT => $this->safe_translate( 'You will be redirected to PayPal.', 'Settings paypal payments' ),
+			),
+			array(
 				self::FIELD_ID      => self::OPTION_CHECKOUT_BUTTON_TEXT,
-				self::FIELD_TITLE   => _x( 'Order button text', 'Settings paypal payments', 'woo-ecommpay' ),
+				self::FIELD_TITLE   => $this->safe_translate( 'Order button text', 'Settings paypal payments' ),
 				self::FIELD_TYPE    => self::TYPE_TEXT,
-				self::FIELD_TIP     => _x(
-					'Text shown on the submit button when choosing payment method.',
-					'Settings paypal payments',
-					'woo-ecommpay'
-				),
-				self::FIELD_DEFAULT => _x( 'Go to payment', 'Settings paypal payments', 'woo-ecommpay' ),
-			],
-			[
+				self::FIELD_TIP     => $this->safe_translate( 'Text shown on the submit button when choosing payment method.', 'Settings paypal payments' ),
+				self::FIELD_DEFAULT => $this->safe_translate( 'Go to payment', 'Settings paypal payments' ),
+			),
+			array(
 				self::FIELD_ID   => self::PAYPAL_SETTINGS,
 				self::FIELD_TYPE => self::TYPE_END,
-			],
-		];
+			),
+		);
 
 		return apply_filters( 'ecp_' . $this->id . '_settings', $settings );
 	}

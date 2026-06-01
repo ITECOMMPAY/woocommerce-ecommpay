@@ -22,7 +22,6 @@ defined( 'ABSPATH' ) || exit;
  */
 class EcpForm extends EcpGatewayRegistry {
 
-
 	private ?EcpSettingsManager $ecp_settings_manager;
 	private ?EcpFieldRenderer $ecp_field_renderer;
 	private ?EcpTabManager $ecp_tab_manager;
@@ -64,7 +63,7 @@ class EcpForm extends EcpGatewayRegistry {
 		wp_enqueue_script(
 			'ecp_settings',
 			ecp_js_url( 'settings' . $suffix . '.js' ),
-			[ 'jquery' ],
+			array( 'jquery' ),
 			ecp_version(),
 			true
 		);
@@ -72,20 +71,20 @@ class EcpForm extends EcpGatewayRegistry {
 		wp_localize_script(
 			'ecp_settings',
 			'ecp_settings_params',
-			[
+			array(
 				'nav_warning' => __(
 					'The changes you made will be lost if you navigate away from this page.',
 					'woo-ecommpay'
 				),
-			]
+			)
 		);
 
 		ecp_get_view(
 			'html-admin-settings.php',
-			[
+			array(
 				'current_tab' => $current_tab,
-				'tabs'        => apply_filters( 'ecp_settings_tabs_array', [] )
-			]
+				'tabs'        => apply_filters( 'ecp_settings_tabs_array', array() ),
+			)
 		);
 	}
 
@@ -98,7 +97,7 @@ class EcpForm extends EcpGatewayRegistry {
 	 */
 	public function output_fields( EcpSettings $options ) {
 		foreach ( $options->get_settings() as $value ) {
-			if ( ! isset ( $value['type'] ) ) {
+			if ( ! isset( $value['type'] ) ) {
 				continue;
 			}
 
@@ -119,9 +118,9 @@ class EcpForm extends EcpGatewayRegistry {
 	 * @return array Form field as array
 	 */
 	private function get_general_rendering_options( array $value, string $gateway ): array {
-		return [
-			'id'          => $value[ EcpSettings::FIELD_ID ],
-			'type'        => $value[ EcpSettings::FIELD_TYPE ],
+		return array(
+			'id'                       => $value[ EcpSettings::FIELD_ID ],
+			'type'                     => $value[ EcpSettings::FIELD_TYPE ],
 			'title'                    => $value[ EcpSettings::FIELD_TITLE ],
 			'tooltip'                  => $this->get_tooltip( $value ),
 			'css'                      => $value[ EcpSettings::FIELD_STYLE ],
@@ -133,7 +132,7 @@ class EcpForm extends EcpGatewayRegistry {
 			'placeholder'              => $value[ EcpSettings::FIELD_PLACEHOLDER ],
 			'suffix'                   => $value[ EcpSettings::FIELD_SUFFIX ],
 			EcpSettings::CHECKBOXGROUP => $value[ EcpSettings::CHECKBOXGROUP ],
-		];
+		);
 	}
 
 	/**
@@ -149,7 +148,7 @@ class EcpForm extends EcpGatewayRegistry {
 			return $value[ EcpSettings::FIELD_DESC ];
 		}
 
-		if ( ! empty ( $value[ EcpSettings::FIELD_TIP ] ) ) {
+		if ( ! empty( $value[ EcpSettings::FIELD_TIP ] ) ) {
 			return $value[ EcpSettings::FIELD_TIP ];
 		}
 
@@ -158,11 +157,12 @@ class EcpForm extends EcpGatewayRegistry {
 
 	private function get_option_value( array $value, string $gateway ) {
 		if (
-			$value[ EcpSettings::FIELD_GENERATE_VALUE ]	&&
+			isset( $value[ EcpSettings::FIELD_GENERATE_VALUE ] ) &&
 			is_callable( $value[ EcpSettings::FIELD_GENERATE_VALUE ] )
 		) {
 			return call_user_func( $value[ EcpSettings::FIELD_GENERATE_VALUE ] );
 		}
+
 		return $this->get_option( $value, $gateway );
 	}
 
@@ -207,10 +207,10 @@ class EcpForm extends EcpGatewayRegistry {
 
 	private function get_custom_attributes( $value ): array {
 		// Custom attribute handling.
-		$custom_attributes = [];
+		$custom_attributes = array();
 
 		if (
-			! empty ( $value[ EcpSettings::FIELD_CUSTOM ] )
+			! empty( $value[ EcpSettings::FIELD_CUSTOM ] )
 			&& is_array( $value[ EcpSettings::FIELD_CUSTOM ] )
 		) {
 			foreach ( $value[ EcpSettings::FIELD_CUSTOM ] as $attribute => $attribute_value ) {
@@ -232,7 +232,7 @@ class EcpForm extends EcpGatewayRegistry {
 	private function get_description( array $value ): string {
 		if (
 			true !== $value[ EcpSettings::FIELD_TIP ]
-			&& ! empty ( $value[ EcpSettings::FIELD_DESC ] )
+			&& ! empty( $value[ EcpSettings::FIELD_DESC ] )
 		) {
 			return $value[ EcpSettings::FIELD_DESC ];
 		}
@@ -261,17 +261,20 @@ class EcpForm extends EcpGatewayRegistry {
 	 * @since 2.0.3
 	 */
 	public function get_all_form_fields(): array {
-		$fields = [];
+		$fields = array();
 
 		foreach ( $this->ecp_tab_manager->tabs as $tab ) {
 			$fields = array_merge(
 				$fields,
 				apply_filters(
 					'woocommerce_settings_api_form_fields_' . $tab->get_id(),
-					array_map( [
-						$this,
-						'set_defaults'
-					], apply_filters( EcpFilters::ECP_PREFIX_GET_SETTINGS . $tab->get_id(), [] ) )
+					array_map(
+						array(
+							$this,
+							'set_defaults',
+						),
+						apply_filters( EcpFilters::ECP_PREFIX_GET_SETTINGS . $tab->get_id(), array() )
+					)
 				)
 			);
 		}
@@ -286,16 +289,23 @@ class EcpForm extends EcpGatewayRegistry {
 	 */
 	public function get_form_fields( $current_tab = null ): array {
 		if ( $current_tab === null ) {
-			$current_tab = wc_get_var( $_REQUEST['section'] );
-			$current_tab = $current_tab !== null ? sanitize_title( $current_tab ) : EcpSettingsGeneral::ID;
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Section tab is informational, not sensitive. Used only for UI navigation.
+			$raw_section = wc_get_var( $_REQUEST['section'] );
+			$section     = ( $raw_section !== null && ! is_array( $raw_section ) )
+				? sanitize_key( (string) $raw_section )
+				: '';
+			$current_tab = $this->ecp_tab_manager->resolve_section( $section, EcpSettingsGeneral::ID );
 		}
 
 		return apply_filters(
 			'woocommerce_settings_api_form_fields_' . $current_tab,
-			array_map( [
-				$this,
-				'set_defaults'
-			], apply_filters( EcpFilters::ECP_PREFIX_GET_SETTINGS . $current_tab, [] ) )
+			array_map(
+				array(
+					$this,
+					'set_defaults',
+				),
+				apply_filters( EcpFilters::ECP_PREFIX_GET_SETTINGS . $current_tab, array() )
+			)
 		);
 	}
 
@@ -307,7 +317,7 @@ class EcpForm extends EcpGatewayRegistry {
 	 * @return array
 	 */
 	public function set_defaults( array $field ): array {
-		if ( ! isset ( $field[ EcpSettings::FIELD_DEFAULT ] ) ) {
+		if ( ! isset( $field[ EcpSettings::FIELD_DEFAULT ] ) ) {
 			$field[ EcpSettings::FIELD_DEFAULT ] = '';
 		}
 
@@ -322,18 +332,18 @@ class EcpForm extends EcpGatewayRegistry {
 	public function admin_notice_settings(): void {
 		$this->init_settings();
 
-		$error_fields = [];
+		$error_fields = array();
 
-		$mandatory_fields = [
+		$mandatory_fields = array(
 			EcpSettingsGeneral::OPTION_PROJECT_ID => __( 'Project ID', 'woo-ecommpay' ),
-			EcpSettingsGeneral::OPTION_SECRET_KEY => __( 'Secret key', 'woo-ecommpay' )
-		];
+			EcpSettingsGeneral::OPTION_SECRET_KEY => __( 'Secret key', 'woo-ecommpay' ),
+		);
 
 		// Check mandatory parameters
 		foreach ( $mandatory_fields as $mandatory_field_setting => $mandatory_field_label ) {
 			$post_key    = 'woocommerce_ecommpay_' . $mandatory_field_setting;
 			$setting_key = $this->get_option(
-				[ 'id' => $mandatory_field_setting ],
+				array( 'id' => $mandatory_field_setting ),
 				EcpSettingsGeneral::ID
 			);
 
@@ -342,8 +352,8 @@ class EcpForm extends EcpGatewayRegistry {
 			}
 		}
 
-		if ( ! empty ( $error_fields ) ) {
-			ecp_get_view( 'html-notice-settings.php', [ 'errors' => $error_fields ] );
+		if ( ! empty( $error_fields ) ) {
+			ecp_get_view( 'html-notice-settings.php', array( 'errors' => $error_fields ) );
 		}
 	}
 
@@ -400,7 +410,7 @@ class EcpForm extends EcpGatewayRegistry {
 	}
 
 	public function normalize_field( $value ) {
-		$property = [
+		$property = array(
 			EcpSettings::FIELD_ID          => '',
 			EcpSettings::FIELD_TITLE       => '',
 			EcpSettings::FIELD_CLASS       => '',
@@ -411,11 +421,11 @@ class EcpForm extends EcpGatewayRegistry {
 			EcpSettings::FIELD_PLACEHOLDER => '',
 			EcpSettings::FIELD_SUFFIX      => '',
 			EcpSettings::FIELD_OPTIONS     => null,
-			EcpSettings::CHECKBOXGROUP => null,
-		];
+			EcpSettings::CHECKBOXGROUP     => null,
+		);
 
 		foreach ( $property as $key => $default ) {
-			if ( ! isset ( $value[ $key ] ) ) {
+			if ( ! isset( $value[ $key ] ) ) {
 				$value[ $key ] = $default;
 			}
 		}
@@ -434,44 +444,53 @@ class EcpForm extends EcpGatewayRegistry {
 	 * @inheritDoc
 	 */
 	protected function init(): void {
-		add_filter( EcpFilters::ECP_FIELD_NORMALISATION, [ $this, 'normalize_field' ] );
+		add_filter( EcpFilters::ECP_FIELD_NORMALISATION, array( $this, 'normalize_field' ) );
 
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_SECTION_START, [ $this, 'render_fieldset_start' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_SECTION_END, [ $this, 'render_fieldset_end' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_SECTION_DESCRIPTION, [
-			$this,
-			'render_field_description'
-		] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_SECTION_START, array( $this, 'render_fieldset_start' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_SECTION_END, array( $this, 'render_fieldset_end' ) );
+		add_action(
+			EcpHtmlFilters::ECP_HTML_RENDER_FIELD_SECTION_DESCRIPTION,
+			array(
+				$this,
+				'render_field_description',
+			)
+		);
 
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_TOGGLE_START, [ $this, 'render_toggle_start' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_TOGGLE_END, [ $this, 'render_toggle_end' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_TEXT, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_PASSWORD, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_DATETIME, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_DATETIME_LOCAL, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_DATE, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_MONTH, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_TIME, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_WEEK, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_NUMBER, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_EMAIL, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_URL, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_TEL, [ $this, 'render_field_input' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_COLOR, [ $this, 'render_field_color' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_TEXTAREA, [ $this, 'render_field_text' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_SELECT, [ $this, 'render_field_select' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_MULTISELECT, [ $this, 'render_field_select' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_RADIO, [ $this, 'render_field_radio' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_CHECKBOX, [ $this, 'render_field_checkbox' ] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_SINGLE_SELECT_PAGE, [
-			$this,
-			'render_field_single_select_page'
-		] );
-		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_SINGLE_SELECT_COUNTRY, [
-			$this,
-			'render_field_single_select_country'
-		] );
-		add_action( EcpWPFilters::WP_ADMIN_NOTICES_FILTER, [ $this, 'admin_notice_settings' ] );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_TOGGLE_START, array( $this, 'render_toggle_start' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_TOGGLE_END, array( $this, 'render_toggle_end' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_TEXT, array( $this, 'render_field_input' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_PASSWORD, array( $this, 'render_field_input' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_DATETIME, array( $this, 'render_field_input' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_DATETIME_LOCAL, array( $this, 'render_field_input' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_DATE, array( $this, 'render_field_input' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_MONTH, array( $this, 'render_field_input' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_TIME, array( $this, 'render_field_input' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_WEEK, array( $this, 'render_field_input' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_NUMBER, array( $this, 'render_field_input' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_EMAIL, array( $this, 'render_field_input' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_URL, array( $this, 'render_field_input' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_TEL, array( $this, 'render_field_input' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_COLOR, array( $this, 'render_field_color' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_TEXTAREA, array( $this, 'render_field_text' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_SELECT, array( $this, 'render_field_select' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_MULTISELECT, array( $this, 'render_field_select' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_RADIO, array( $this, 'render_field_radio' ) );
+		add_action( EcpHtmlFilters::ECP_HTML_RENDER_FIELD_CHECKBOX, array( $this, 'render_field_checkbox' ) );
+		add_action(
+			EcpHtmlFilters::ECP_HTML_RENDER_FIELD_SINGLE_SELECT_PAGE,
+			array(
+				$this,
+				'render_field_single_select_page',
+			)
+		);
+		add_action(
+			EcpHtmlFilters::ECP_HTML_RENDER_FIELD_SINGLE_SELECT_COUNTRY,
+			array(
+				$this,
+				'render_field_single_select_country',
+			)
+		);
+		add_action( EcpWPFilters::WP_ADMIN_NOTICES_FILTER, array( $this, 'admin_notice_settings' ) );
 
 		$this->ecp_tab_manager->init_tabs();
 	}

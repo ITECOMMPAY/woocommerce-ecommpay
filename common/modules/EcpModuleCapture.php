@@ -14,46 +14,57 @@ use Exception;
 
 class EcpModuleCapture extends EcpGatewayRegistry {
 
-	private const SUBSCRIPTION_TYPE = 'subscription';
+	private const SUBSCRIPTION_TYPE                 = 'subscription';
 	private const WP_AJAX_ECP_PROCESS_CAPTURE_ORDER = 'wp_ajax_ecp_process_capture_order';
 
 	protected function init(): void {
-		add_action( self::WP_AJAX_ECP_PROCESS_CAPTURE_ORDER, [ $this, 'process' ] );
+		add_action( self::WP_AJAX_ECP_PROCESS_CAPTURE_ORDER, array( $this, 'process' ) );
 	}
 
 	/**
 	 * @throws EcpGatewayAPIException
 	 * @throws Exception
 	 */
-	public function process( $order_id = null ): bool {
-
-		if ( ! current_user_can( 'administrator' ) ) {
-			wp_send_json_error( [ 'message' => 'Access denied.' ], 403 );
+	public function process( $order_id = null, bool $hide_ajax_message = false ): bool {
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			if ( ! $hide_ajax_message ) {
+				wp_send_json_error( array( 'message' => 'Access denied.' ), 403 );
+			}
 
 			return false;
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Internal call or verified externally
 		$order_id = ! empty( $order_id ) ? $order_id : $_POST['order_id']; // Both used in different cases
 
 		if ( empty( $order_id ) ) {
 			ecp_error( 'Order ID is missing.' );
-			wp_send_json_error( [ 'message' => 'Invalid order ID.' ] );
+			if ( ! $hide_ajax_message ) {
+				wp_send_json_error( array( 'message' => 'Invalid order ID.' ) );
+			}
+
+			return false;
 		}
 
 		ecp_debug( 'Processing capture for order ID: ' . $order_id );
 		$order = ecp_get_order( $order_id );
 
 		try {
-			$api = new EcpGatewayAPIPayment();
+			$api     = new EcpGatewayAPIPayment();
 			$payment = $api->capture( $order );
 
 			if ( $payment->get_request_id() === '' ) {
 				ecp_error( 'Capture error: ', $payment );
-				wp_send_json_error( 'Capture request declined by ECOMMPAY gateway.', 418 );
+				if ( ! $hide_ajax_message ) {
+					wp_send_json_error( 'Capture request declined by ECOMMPAY gateway.', 418 );
+				}
+
 				return false;
 			}
 
-			wp_send_json_success( 'Order captured successfully. ' . $order_id );
+			if ( ! $hide_ajax_message ) {
+				wp_send_json_success( 'Order captured successfully. ' . $order_id );
+			}
 			ecp_info( 'Capture completed for order ID: ' . $order_id );
 
 			return true;
@@ -99,13 +110,12 @@ class EcpModuleCapture extends EcpGatewayRegistry {
 				) ) {
 					$is_auto_capture_needed = false;
 				}
-			} else {
-				if ( ! (
+			} elseif ( ! (
 					( $product->is_virtual() && $virtualProductConfirmation ) ||
 					( $product->is_downloadable() && $downloadableProductConfirmation )
 				) ) {
+
 					$is_auto_capture_needed = false;
-				}
 			}
 		}
 

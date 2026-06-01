@@ -18,7 +18,6 @@ defined( 'ABSPATH' ) || exit;
  */
 class EcpGatewayInfoBilling extends EcpGatewayJson {
 
-
 	/**
 	 * Label for street address of the customer billing address.
 	 */
