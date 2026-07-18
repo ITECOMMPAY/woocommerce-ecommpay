@@ -65,7 +65,7 @@ jQuery(document).ready(function () {
 		configObj.onPaymentFail = redirectOnFail
 		configObj.onCardVerifyFail = redirectOnFail
 
-		common.loader().show()
+		window.ecpLoader.show()
 		common.scroll_to_notices()
 		runWidget(configObj)
 	}

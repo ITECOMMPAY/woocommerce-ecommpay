@@ -4,7 +4,7 @@
  * Plugin URI:        https://ecommpay.com
  * GitHub Plugin URI:
  * Description:       Easy payment from WooCommerce by different methods in single Payment Page.
- * Version:           5.0.2
+ * Version:           5.0.3
  * License:           GPL2
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       woo-ecommpay
@@ -19,6 +19,7 @@
 use common\install\EcpGatewayInstall;
 use common\modules\EcpModulePaymentPage;
 use common\WCDependencies;
+use common\helpers\EcpLoader;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -171,7 +172,8 @@ add_action(
 						)
 					);
 
-					wp_enqueue_style( 'ecommpay_loader_css', ecp_css_url( 'loader.css' ) );
+					$loader = new EcpLoader();
+					$loader->append_loader_on_page();
 				}
 			}
 		);

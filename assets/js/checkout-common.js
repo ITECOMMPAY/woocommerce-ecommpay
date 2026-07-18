@@ -30,7 +30,6 @@ jQuery( document ).ready(
 		// Shared state
 		window.ECP.isEmbeddedMode       = false
 		let targetForm                  = jQuery( 'form.checkout' )
-		let loader                      = jQuery( '#ecommpay-loader' )
 		window.ECP.isPaymentRunning     = false
 		window.ECP.paramsForEmbeddedPP  = false
 		window.ECP.clarificationRunning = false
@@ -115,10 +114,6 @@ jQuery( document ).ready(
 
 		function scroll_to_notices() {
 			let scrollElement = jQuery( '.woocommerce-NoticeGroup-updateOrderReview, .woocommerce-NoticeGroup-checkout' )
-
-			if ( ! scrollElement.length) {
-				scrollElement = loader
-			}
 
 			if (scrollElement.length) {
 				scrollElement[0].scrollIntoView( { behavior: 'smooth' } )
@@ -274,7 +269,7 @@ jQuery( document ).ready(
 		}
 
 		function onLoaded() {
-			loader.hide()
+			window.ecpLoader.hide()
 			jQuery( '#ecommpay-iframe-embedded' ).height( 'auto' )
 		}
 
@@ -313,11 +308,10 @@ jQuery( document ).ready(
 
 		// Export shared functions; version-specific scripts extend this object with
 		// showWidget / success / startEmbeddedIframeFlow in their own ready().
-		window.ECP.common               = {
+		window.ECP.common = {
 			ACTIONS,
 			postSafeMessage,
 			targetForm: () => targetForm,
-			loader: () => loader,
 			setLoader: (el) => { loader = el },
 			resetEmbeddedIframe,
 			isEcommpayCardPayment,

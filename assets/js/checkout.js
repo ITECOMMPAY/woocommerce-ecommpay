@@ -49,7 +49,7 @@ jQuery(document).ready(function () {
 		configObj.onShowLoader = common.showOverlayLoader
 		configObj.onHideLoader = common.hideOverlayLoader
 
-		common.loader().show()
+		window.ecpLoader.show()
 		common.scroll_to_notices()
 
 		window.ECP.widgetInstance = EPayWidget.runEmbedded(configObj)

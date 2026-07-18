@@ -8,6 +8,7 @@ use common\gateways\EcpGateway;
 use common\helpers\EcpGatewayOperationStatus;
 use common\helpers\EcpGatewayPaymentStatus;
 use common\helpers\EcpGatewayRegistry;
+use common\helpers\EcpLoader;
 use common\helpers\WCOrderStatus;
 use common\includes\EcpGatewayFormHandler;
 use common\includes\EcpGatewayOrder;
@@ -37,28 +38,12 @@ defined( 'ABSPATH' ) || exit;
  */
 class EcpModulePaymentPage extends EcpGatewayRegistry {
 
-	private const JS_TRUE  = 'true';
-	private const JS_FALSE = 'false';
-
-	/**
-	 * <h2>ECOMMPAY Payment Page URL protocol.</h2>
-	 *
-	 * @const
-	 * @var string
-	 * @since 2.0.0
-	 */
 	private const PROTOCOL = 'https';
+	private const HOST     = 'paymentpage.ecommpay.com';
 
-	private const SCRIPTS_VERSION = null;  // must be null
+	private const SCRIPTS_VERSION            = null;  // must be null
+	private const ORDER_RECEIVED_SCRIPT_NAME = 'ecommpay-order-received-script';
 
-	/**
-	 * <h2>ECOMMPAY Payment Page URL host name.</h2>
-	 *
-	 * @const
-	 * @var string
-	 * @since 2.0.0
-	 */
-	private const HOST = 'paymentpage.ecommpay.com';
 
 	private const FAILED_URI = '/checkout?payment_failed=1';
 
@@ -67,7 +52,6 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 
 	private const FORCE_PAYMENT_METHOD_CARD = 'card';
 	private const TARGET_ELEMENT_EMBEDDED   = 'ecommpay-iframe-embedded';
-	private const OVERLAY_LOADER_HTML       = '<div id="ecommpay-overlay-loader" class="ecommpay-loader-overlay" style="display: none;"><div class="lds-ecommpay"><div></div><div></div><div></div></div></div>';
 
 	/**
 	 * <h2>Stores line items to send to ECOMMPAY.</h2>
@@ -476,6 +460,7 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 	}
 
 	private function get_payment_status() {
+		check_ajax_referer( 'ecommpay_manual_action', 'nonce' );
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This is a public order page with safe GET parameters
 		$order_key = wc_get_var( $_GET['key'], '' );
 		$order_id  = wc_get_order_id_by_order_key( $order_key );
@@ -492,8 +477,8 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 			EcpGatewayPaymentStatus::AWAITING_CAPTURE,
 		);
 		$data      = array(
-			'callback_received' => in_array( $status, $statuses, true ),
-			'status'            => in_array(
+			'callbackReceived' => in_array( $status, $statuses, true ),
+			'isSuccessStatus'  => in_array(
 				$status,
 				array(
 					EcpGatewayPaymentStatus::SUCCESS,
@@ -612,25 +597,6 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 	}
 
 	/**
-	 * <h2></h2>
-	 *
-	 * @param string $content
-	 *
-	 * @return string
-	 * @since 2.0.0
-	 */
-	public function append_iframe_container( string $content ): string {
-		if ( ! is_checkout() ) {
-			return $content;
-		}
-
-		return '<div id="ecommpay-loader"><div class="lds-ecommpay"><div></div><div></div><div></div></div></div>'
-				. '<div id="ecommpay-iframe"></div><div id="woocommerce_ecommpay_checkout_page">'
-				. self::OVERLAY_LOADER_HTML
-				. $content . '</div>';
-	}
-
-	/**
 	 * <h2>Returns ECOMMPAY request form data for an order.</h2>
 	 *
 	 * @param EcpGatewayOrder $order <p>Order object.</p>
@@ -698,69 +664,36 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 		if ( ! is_wc_endpoint_url( 'order-received' ) ) {
 			return;
 		}
+
 		global $wp;
-		// If order_id is defined
-		if ( isset( $wp->query_vars['order-received'] ) && absint( $wp->query_vars['order-received'] ) > 0 ) :
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This is a public order page with safe GET parameters
-			$order_key = wc_get_var( $_GET['key'], '' );
-			$order_id  = wc_get_order_id_by_order_key( $order_key );
-			$order     = ecp_get_order( $order_id );
-			if ( ! $order || ! $order->is_ecp() ) {
-				return;
-			}
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$order_key = wc_get_var( $_GET['key'], '' );
+		$order_id  = wc_get_order_id_by_order_key( $order_key );
+		$order     = ecp_get_order( $order_id );
+		if ( ! $order || ! $order->is_ecp() ) {
+			return;
+		}
 
-			?>
-			<script type="text/javascript">
-				// order-receive page status (ty page or failed)
-				const order_is_failed = <?php echo ( WCOrderStatus::FAILED === $order->get_status() ) ? esc_js( self::JS_TRUE ) : esc_js( self::JS_FALSE ); ?>;
+		wp_enqueue_script(
+			self::ORDER_RECEIVED_SCRIPT_NAME,
+			ecp_js_url( 'order-received.js' ),
+			array(),
+			self::SCRIPTS_VERSION,
+			true
+		);
 
-				jQuery(document).ready(() => {
-					jQuery(document.body).append(
-						'<?php echo esc_js( self::OVERLAY_LOADER_HTML ); ?>',
-					)
-				})
+		wp_localize_script(
+			self::ORDER_RECEIVED_SCRIPT_NAME,
+			'ecpOrderReceivedData',
+			array(
+				'adminAjaxUrl'              => esc_url( admin_url( 'admin-ajax.php' ) ),
+				'isCurrentPageFailedStatus' => WCOrderStatus::FAILED === $order->get_status(),
+				'nonce'                     => wp_create_nonce( 'ecommpay_manual_action' ),
+			)
+		);
 
-				function showOverlayLoader() {
-					jQuery('#ecommpay-overlay-loader').show()
-				}
-
-				function hideOverlayLoader() {
-					jQuery('#ecommpay-overlay-loader').hide()
-				}
-
-				let result = {}
-
-				function get_status() {
-					jQuery.ajax({
-						type: 'POST',
-						url: '<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>' + window.location.search,
-						data: [{ 'name': 'action', 'value': 'get_payment_status' }],
-						dataType: 'json',
-						success: function(response) {
-							result = response
-						},
-						error: function() {
-							console.log('Error while getting order complete status')
-						},
-					})
-					if (result['callback_received']) {
-						if (!(result['status'] ^ order_is_failed)) {
-							location.reload()
-						} else {
-							hideOverlayLoader()
-							return
-						}
-					} else {
-						showOverlayLoader()
-					}
-					setTimeout(get_status, 400)
-				}
-
-				get_status()
-
-			</script>
-			<?php
-		endif;
+		$loader = new EcpLoader();
+		$loader->append_loader_on_page();
 	}
 
 	/**
@@ -830,9 +763,6 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 			)
 		);
 		add_action( EcpWPFilters::ENQUEUE_BLOCK_EDITOR_ASSETS, array( $this, 'include_new_checkout_scripts' ) );
-
-		// register hooks for additional container on checkout pages
-		add_filter( EcpWPFilters::THE_CONTENT, array( $this, 'append_iframe_container' ) );
 
 		add_action( EcpWPFilters::WP_HEAD, array( $this, 'wc_custom_redirect_after_purchase' ) );
 
