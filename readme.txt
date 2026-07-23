@@ -3,7 +3,7 @@ Contributors: ECOMMPAY
 Tags: card payments, apple pay, google pay, open banking, subscriptions, paypal, humm, ideal, klarna, payment gateway, woocommerce
 Requires at least: 6.2
 Tested up to: 7.0
-Stable tag: 5.0.3
+Stable tag: 5.0.4
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 

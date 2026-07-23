@@ -31,11 +31,11 @@ jQuery(document).ready(function () {
 				}
 				break
 			case 'failure':
-				common.hideOverlayLoader()
+				window.ECP.loader.hide()
 				common.show_error(result, 'Result failure')
 				break
 			default:
-				common.hideOverlayLoader()
+				window.ECP.loader.hide()
 				common.show_error(result, 'Invalid response')
 		}
 	}
@@ -46,11 +46,8 @@ jQuery(document).ready(function () {
 		configObj.onCheckSubmit = onCheckSubmit
 		configObj.onPaymentSuccess = onPaymentSuccess
 		configObj.onPaymentFail = onPaymentFail
-		configObj.onShowLoader = common.showOverlayLoader
-		configObj.onHideLoader = common.hideOverlayLoader
-
-		window.ecpLoader.show()
-		common.scroll_to_notices()
+		configObj.onShowLoader = window.ECP.loader.show
+		configObj.onHideLoader = window.ECP.loader.hide
 
 		window.ECP.widgetInstance = EPayWidget.runEmbedded(configObj)
 	}
@@ -199,15 +196,12 @@ jQuery(document).ready(function () {
 	}
 
 	function onPaymentSuccess() {
-		common.hideOverlayLoader()
 		if (window.ECP.redirectResult && window.ECP.redirectResult.redirect_success_enabled) {
 			window.location.replace(window.ECP.redirectResult.redirect_success_url)
 		}
 	}
 
 	function onPaymentFail() {
-		common.hideOverlayLoader()
-
 		if (window.ECP.redirectResult && window.ECP.redirectResult.redirect_fail_enabled) {
 			window.location.replace(window.ECP.redirectResult.redirect_fail_url)
 		} else {

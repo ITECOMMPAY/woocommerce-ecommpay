@@ -37,6 +37,15 @@ jQuery( document ).ready(
 
 		let pendingEmbeddedRequest = null
 
+		const embeddedLoader = {
+			show: function () {
+				jQuery('#ecommpay-loader-embedded').show()
+			},
+			hide: function () {
+				jQuery('#ecommpay-loader-embedded').hide()
+			}
+		}
+
 		jQuery( 'body' ).on(
 			'click',
 			SELECTORS.PLACE_ORDER,
@@ -50,7 +59,7 @@ jQuery( document ).ready(
 					window.ECP.common.startEmbeddedIframeFlow()
 					return
 				}
-				showOverlayLoader()
+				window.ECP.loader.show()
 
 				const extraData = ECP.order_id > 0 ? [{ name : 'order_id', value : ECP.order_id }] : []
 
@@ -59,7 +68,7 @@ jQuery( document ).ready(
 						extraData: extraData,
 						onSuccess: window.ECP.common.success,
 						onError: function (jqXHR, textStatus, errorThrown) {
-							hideOverlayLoader()
+							window.ECP.loader.hide()
 							submit_error( '<div class="woocommerce-error">' + errorThrown + '</div>' )
 						},
 					}
@@ -81,11 +90,7 @@ jQuery( document ).ready(
 
 		function resetEmbeddedIframe() {
 			window.ECP.paramsForEmbeddedPP = false
-			jQuery( '#ecommpay-iframe-embedded' ).height( 0 ).empty()
-			const $loaderEmbedded          = jQuery( '#ecommpay-loader-embedded' )
-			if ($loaderEmbedded.length) {
-				$loaderEmbedded.show()
-			}
+			embeddedLoader.show()
 			getParamsForCreateEmbeddedPP()
 		}
 
@@ -260,27 +265,19 @@ jQuery( document ).ready(
 			)
 		}
 
-		function showOverlayLoader() {
-			jQuery( '#ecommpay-overlay-loader' ).css( 'display', 'flex' )
-		}
-
-		function hideOverlayLoader() {
-			jQuery( '#ecommpay-overlay-loader' ).hide()
-		}
-
 		function onLoaded() {
-			window.ecpLoader.hide()
+			embeddedLoader.hide()
 			jQuery( '#ecommpay-iframe-embedded' ).height( 'auto' )
 		}
 
 		function onShowClarificationPage() {
 			window.ECP.clarificationRunning = true
-			hideOverlayLoader()
+			window.ECP.loader.hide()
 		}
 
 		/**
 		 * Shared loadEmbeddedIframe logic — performs the common setup
-		 * (empty div, set embedded mode, configure loader, bind payment-method
+		 * (empty div, set embedded mode, bind payment-method
 		 * change handler) and then delegates to the version-specific showWidget().
 		 */
 		function loadEmbeddedIframe() {
@@ -288,7 +285,6 @@ jQuery( document ).ready(
 			if (embeddedIframeDiv.length === 1 && window.ECP.paramsForEmbeddedPP) {
 				embeddedIframeDiv.empty()
 				window.ECP.isEmbeddedMode = true
-				window.ECP.common.setLoader( jQuery( '#ecommpay-loader-embedded' ) )
 				window.ECP.common.showWidget( window.ECP.paramsForEmbeddedPP )
 
 				jQuery( 'input[name="payment_method"]' ).off( 'change' ).on(
@@ -312,7 +308,6 @@ jQuery( document ).ready(
 			ACTIONS,
 			postSafeMessage,
 			targetForm: () => targetForm,
-			setLoader: (el) => { loader = el },
 			resetEmbeddedIframe,
 			isEcommpayCardPayment,
 			submit_error,
@@ -321,8 +316,7 @@ jQuery( document ).ready(
 			show_error,
 			back,
 			redirect,
-			showOverlayLoader,
-			hideOverlayLoader,
+			embeddedLoader,
 			onLoaded,
 			onShowClarificationPage,
 			loadEmbeddedIframe,

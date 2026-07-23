@@ -7,13 +7,13 @@ function getStatus() {
 		success: function(response) {
 			if (response.callbackReceived) {
 				if (response.isSuccessStatus ^ ecpOrderReceivedData.isCurrentPageFailedStatus) {
-					window.ecpLoader.hide()
+					window.ECP.loader.hide()
 					return
 				} else {
 					location.reload()
 				}
 			}
-			window.ecpLoader.show()
+			window.ECP.loader.show()
 			setTimeout(getStatus, 400)
 		},
 		error: function() {

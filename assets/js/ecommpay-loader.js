@@ -10,7 +10,12 @@ document.addEventListener('DOMContentLoaded', function() {
 	`)
 })
 
-window.ecpLoader = {
+
+if (window.ECP === undefined) {
+	window.ECP = {}
+}
+
+window.ECP.loader = {
 	show: function () {
 		jQuery('#ecommpay-overlay-loader').show()
 	},

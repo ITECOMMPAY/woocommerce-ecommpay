@@ -25,7 +25,7 @@ jQuery(document).ready(function () {
 						}
 					} catch (e) {
 						console.error('Failed to parse optionsJson:', e)
-						common.hideOverlayLoader()
+						window.ECP.loader.hide()
 						common.show_error({}, 'Invalid response')
 						break
 					}
@@ -33,11 +33,11 @@ jQuery(document).ready(function () {
 				common.redirect(result.redirect)
 				break
 			case 'failure':
-				common.hideOverlayLoader()
+				window.ECP.loader.hide()
 				common.show_error(result, 'Result failure')
 				break
 			default:
-				common.hideOverlayLoader()
+				window.ECP.loader.hide()
 				common.show_error(result, 'Invalid response')
 		}
 	}
@@ -56,8 +56,8 @@ jQuery(document).ready(function () {
 		configObj.onLoaded = common.onLoaded
 		configObj.onEmbeddedModeCheckValidationResponse = onEmbeddedModeCheckValidationResponse
 		configObj.onEnterKeyPressed = onEnterKeyPressed
-		configObj.onPaymentSent = common.showOverlayLoader
-		configObj.onSubmitClarificationForm = common.showOverlayLoader
+		configObj.onPaymentSent = window.ECP.loader.show
+		configObj.onSubmitClarificationForm = window.ECP.loader.show
 		configObj.onShowClarificationPage = common.onShowClarificationPage
 		configObj.onEmbeddedModeRedirect3dsParentPage = onEmbeddedModeRedirect3dsParentPage
 		configObj.onPaymentSuccess = redirectOnSuccess
@@ -65,8 +65,6 @@ jQuery(document).ready(function () {
 		configObj.onPaymentFail = redirectOnFail
 		configObj.onCardVerifyFail = redirectOnFail
 
-		window.ecpLoader.show()
-		common.scroll_to_notices()
 		runWidget(configObj)
 	}
 
@@ -116,7 +114,7 @@ jQuery(document).ready(function () {
 			parsedOptions = JSON.parse(result.optionsJson)
 		} catch (e) {
 			console.error('Failed to parse optionsJson in processOrderWithEmbeddedIframe:', e)
-			common.hideOverlayLoader()
+			window.ECP.loader.hide()
 			common.show_error({}, 'Invalid response')
 			return
 		}
@@ -168,13 +166,11 @@ jQuery(document).ready(function () {
 
 	function redirectOnSuccess() {
 		if (window.ECP.redirectResult.redirect_success_enabled) {
-			common.hideOverlayLoader()
 			window.location.replace(window.ECP.redirectResult.redirect_success_url)
 		}
 	}
 
 	function redirectOnFail() {
-		common.hideOverlayLoader()
 		if (window.ECP.redirectResult.redirect_fail_enabled) {
 			window.location.replace(window.ECP.redirectResult.redirect_fail_url)
 		} else {
@@ -183,8 +179,6 @@ jQuery(document).ready(function () {
 	}
 
 	function onEmbeddedModeRedirect3dsParentPage(data) {
-		common.showOverlayLoader()
-
 		const form = document.createElement('form')
 		form.setAttribute('method', data.method)
 		form.setAttribute('action', data.url)

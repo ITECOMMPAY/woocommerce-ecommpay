@@ -70,7 +70,7 @@ class EcpCard extends EcpGateway {
 		parent::__construct();
 
 		if ( $this->get_option( EcpSettings::OPTION_MODE, EcpSettings::MODE_REDIRECT ) === EcpSettings::MODE_EMBEDDED ) {
-			$this->description = '<div id="ecommpay-loader-embedded"></div><div id="ecommpay-iframe-embedded"></div>';
+			$this->description = '<div id="ecommpay-loader-embedded"><div class="lds-ecommpay"><div></div><div></div><div></div></div></div><div id="ecommpay-iframe-embedded"></div>';
 		}
 
 		$this->init_subscription();
