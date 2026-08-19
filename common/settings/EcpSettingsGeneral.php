@@ -29,11 +29,6 @@ class EcpSettingsGeneral extends EcpSettings {
 	public const PURCHASE_TYPE          = 'purchase_type';
 	public const AUTOMATIC_CANCELLATION = 'automatic_cancellation';
 
-	// ECOMMPAY Payment page version
-	public const OPTION_PAYMENT_PAGE_VERSION = 'payment_page_version';
-	public const PP_VERSION_LEGACY = 'v4';
-	public const PP_VERSION_MODERN = 'v5';
-
 	// ECOMMPAY Custom variables data
 	const CUSTOM_RECEIPT_DATA = 'receipt_data';
 
@@ -222,25 +217,10 @@ class EcpSettingsGeneral extends EcpSettings {
 				self::FIELD_TIP     => $this->safe_translate( 'Automatically complete the order in case of successful payment. Otherwise, the order will be in the Processing status.', 'Settings shop admin setup' ),
 				self::FIELD_DEFAULT => self::VALUE_DISABLED,
 			),
-			[
-				self::FIELD_ID      => self::OPTION_PAYMENT_PAGE_VERSION,
-				self::FIELD_TITLE   => _x( 'Payment page version', 'Settings shop admin setup', 'woo-ecommpay' ),
-				self::FIELD_TYPE    => self::TYPE_DROPDOWN,
-				self::FIELD_TIP     => _x(
-					'Select the version of the payment page to use.',
-					'Settings shop admin setup',
-					'woo-ecommpay'
-				),
-				self::FIELD_OPTIONS => array(
-					self::PP_VERSION_LEGACY => _x( 'v4', 'Payment page version', 'woo-ecommpay' ),
-					self::PP_VERSION_MODERN => _x( 'v5', 'Payment page version', 'woo-ecommpay' ),
-				),
-				self::FIELD_DEFAULT => self::PP_VERSION_LEGACY,
-			],
-			[
-				self::FIELD_ID => self::ADMIN_OPTIONS,
+			array(
+				self::FIELD_ID   => self::ADMIN_OPTIONS,
 				self::FIELD_TYPE => self::TYPE_END,
-			],
+			),
 
 			array(
 				self::FIELD_ID   => 'advanced',

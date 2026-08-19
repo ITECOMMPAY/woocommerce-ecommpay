@@ -38,8 +38,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	 *
 	 * @return void
 	 */
-	private function append_argument(string $key, $value, array &$values): void
-	{
+	private function append_argument( string $key, $value, array &$values ): void {
 		if ( $value === null ) {
 			return;
 		}
@@ -55,8 +54,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	 * @return array <p>Payment data with version information.</p>
 	 * @since 2.0.0
 	 */
-	public function append_versions(array $data): array
-	{
+	public function append_versions( array $data ): array {
 		$this->append_argument( '_plugin_version', EcpCore::WC_ECP_VERSION, $data );
 		$this->append_argument( '_wordpress_version', wp_version(), $data );
 		$this->append_argument( '_woocommerce_version', wc_version(), $data );
@@ -72,8 +70,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	 * @return array <p>Payment data with project ID.</p>
 	 * @since 2.0.0
 	 */
-	public function append_project_id(array $data): array
-	{
+	public function append_project_id( array $data ): array {
 		$this->append_argument( 'project_id', ecommpay()->get_project_id(), $data );
 
 		return $data;
@@ -88,8 +85,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	 * @return array <p>Payment data with interface type.</p>
 	 * @since 2.0.0
 	 */
-	public function append_interface_type(array $data, bool $encode = false): array
-	{
+	public function append_interface_type( array $data, bool $encode = false ): array {
 		$this->append_argument(
 			'interface_type',
 			$encode ? json_encode( ecommpay()->get_interface_type() ) : ecommpay()->get_interface_type(),
@@ -290,16 +286,16 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	 * @since 3.0.0
 	 */
 	public function append_operation_type( array $values, EcpGatewayOrder $order = null ): array {
-		$mode = ecommpay()->get_general_option(
+		$operation_type = ecommpay()->get_general_option(
 			EcpSettingsGeneral::PURCHASE_TYPE,
 			EcpSettingsGeneral::PURCHASE_TYPE_SALE
 		);
 
-		if ( $mode === EcpSettingsGeneral::PURCHASE_TYPE_AUTH && EcpModuleCapture::is_auto_capture_needed( $order ) ) {
-			$mode = EcpSettingsGeneral::PURCHASE_TYPE_SALE;
+		if ( $operation_type === EcpSettingsGeneral::PURCHASE_TYPE_AUTH && EcpModuleCapture::is_auto_capture_needed( $order ) ) {
+			$operation_type = EcpSettingsGeneral::PURCHASE_TYPE_SALE;
 		}
 
-		$this->append_argument( 'operation_type', $mode, $values );
+		$this->append_argument( 'operation_type', $operation_type, $values );
 
 		return $values;
 	}
@@ -534,13 +530,12 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	 * @return array <p>Payment page language settings.</p>
 	 * @since 2.0.0
 	 */
-	public function append_language(array $values): array
-	{
+	public function append_language( array $values ): array {
 		switch ( ecommpay()->get_general_option( EcpSettingsGeneral::OPTION_LANGUAGE, 'by_customer_browser' ) ) {
 			case EcpSettingsGeneral::LANG_BY_CUSTOMER:
 				return $values;
 			case EcpSettingsGeneral::LANG_BY_WORDPRESS:
-				$lang = get_bloginfo( "language" );
+				$lang = get_bloginfo( 'language' );
 				if ( strpos( $lang, '-' ) !== false ) {
 					list( $lang, ) = explode( '-', $lang, 2 );
 				}
@@ -566,8 +561,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	 * @return array <p>Payment page custom settings.</p>
 	 * @since 2.0.0
 	 */
-	public function append_custom_variables(array $values, EcpGatewayOrder $order): array
-	{
+	public function append_custom_variables( array $values, EcpGatewayOrder $order ): array {
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ID, $values, $order );
 
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_PHONE, $values, $order );
@@ -590,8 +584,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	 * @return array <p>An array of the recurring data if available, or an empty array.</p>
 	 * @since 2.0.0
 	 */
-	public function append_recurring(array $values, EcpGatewayOrder $order): array
-	{
+	public function append_recurring( array $values, EcpGatewayOrder $order ): array {
 		if ( ! ecp_subscription_is_active() ) {
 			return $values;
 		}
@@ -617,11 +610,11 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 			$amount += $subscription->get_total();
 		}
 
-		$recurring = [
+		$recurring = array(
 			'register' => true,
 			'type'     => EcpGatewayRecurringTypes::AUTO,
-			'amount' => ecp_price_multiply( $amount, $order->get_currency() ),
-		];
+			'amount'   => ecp_price_multiply( $amount, $order->get_currency() ),
+		);
 
 		$this->filter_clean( $recurring );
 
@@ -702,21 +695,21 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	 * @return array
 	 */
 	public function receipt_data( WC_Order $order ): array {
-		$total_tax = abs($order->get_total_tax());
-		$total_price = abs($order->get_total());
+		$total_tax   = abs( $order->get_total_tax() );
+		$total_price = abs( $order->get_total() );
 
 		return $total_tax > 0
-			? [
+			? array(
 				// Item positions.
 				'positions'        => $this->get_positions( $order ),
 				// Total tax amount per payment.
-				'total_tax_amount' => ecp_price_multiply($total_tax, $order->get_currency()),
-				'common_tax' => $total_price !== $total_tax ? round($total_tax / ($total_price - $total_tax), 2) : 0,
-			]
-			: [
+				'total_tax_amount' => ecp_price_multiply( $total_tax, $order->get_currency() ),
+				'common_tax'       => $total_price !== $total_tax ? round( $total_tax / ( $total_price - $total_tax ), 2 ) : 0,
+			)
+			: array(
 				// Item positions.
-				'positions' => $this->get_positions( $order )
-			];
+				'positions' => $this->get_positions( $order ),
+			);
 	}
 
 	/**
@@ -727,7 +720,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	 * @return array
 	 */
 	private function get_positions( WC_Order $order ): array {
-		$positions = [];
+		$positions = array();
 
 		foreach ( $order->get_items() as $item ) {
 			$positions[] = $this->get_receipt_position( $item, $order->get_currency() );
@@ -746,17 +739,17 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	 */
 	private function get_receipt_position( WC_Order_Item $item, string $currency ): array {
 		if ( ! $item instanceof WC_Order_Item_Product ) {
-			return [];
+			return array();
 		}
 
 		$quantity    = abs( $item->get_quantity() );
 		$price       = abs( $item->get_total() );
 		$description = esc_attr( $item->get_name() );
 
-		$data = [
+		$data = array(
 			// Required. Amount of the positions.
 			'amount' => ecp_price_multiply( $quantity > 0 ? $price / $quantity : $price, $currency ),
-		];
+		);
 
 		if ( $quantity > 0 ) {
 			// Quantity of the goods or services. Multiple of: 0.000001.
@@ -768,13 +761,13 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 			$data['description'] = $this->limit_length( $description, 255 );
 		}
 
-		$total_tax = abs($item->get_total_tax());
+		$total_tax = abs( $item->get_total_tax() );
 
-		if ($total_tax > 0) {
+		if ( $total_tax > 0 ) {
 			// Tax percentage for the position. Multiple of: 0.01.
-			$data['tax'] = $price !== 0 ? round($total_tax / $price, 2) : 0;
+			$data['tax'] = $price !== 0 ? round( $total_tax / $price, 2 ) : 0;
 			// Tax amount for the position.
-			$data['tax_amount'] = ecp_price_multiply($total_tax / $quantity, $currency);
+			$data['tax_amount'] = ecp_price_multiply( $total_tax / $quantity, $currency );
 		}
 
 		return $data;
@@ -808,67 +801,106 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	 */
 	protected function init(): void {
 		// register filters for appending payment arguments
-		add_filter( EcpAppendsFilters::ECP_APPEND_PROJECT_ID, [ $this, 'append_project_id' ] );
-		add_filter( EcpAppendsFilters::ECP_APPEND_INTERFACE_TYPE, [ $this, 'append_interface_type' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_OPERATION_TYPE, [
-			$this,
-			'append_operation_type'
-		], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_OPERATION_MODE, [ $this, 'append_operation_mode' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, [ $this, 'append_force_mode' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_DISPLAY_MODE, [ $this, 'append_display_mode' ], 10, 3 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_LANGUAGE_CODE, [ $this, 'append_language' ] );
-		add_filter( EcpAppendsFilters::ECP_APPEND_MERCHANT_SUCCESS_URL, [
-			$this,
-			'append_merchant_success_url'
-		], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_MERCHANT_FAIL_URL, [ $this, 'append_merchant_fail_url' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_REDIRECT_RETURN_URL, [
-			$this,
-			'append_redirect_return_url'
-		], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_MERCHANT_RETURN_URL, [
-			$this,
-			'append_merchant_return_url'
-		], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_REDIRECT_SUCCESS_URL, [
-			$this,
-			'append_redirect_success_url'
-		], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_REDIRECT_FAIL_URL, [ $this, 'append_redirect_fail_url' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_MERCHANT_CALLBACK_URL, [ $this, 'append_merchant_callback_url' ] );
-		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_DATA, [ $this, 'append_customer_data' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ID, [ $this, 'append_customer_id' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_PHONE, [ $this, 'append_customer_phone' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_EMAIL, [ $this, 'append_customer_email' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_LAST_NAME, [
-			$this,
-			'append_customer_last_name'
-		], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_FIRST_NAME, [
-			$this,
-			'append_customer_first_name'
-		], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_COUNTRY, [ $this, 'append_customer_country' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_STATE, [ $this, 'append_customer_state' ], 10, 2 );
-		add_filter( EcpFilters::ECP_APPEND_CUSTOMER_CITY, [ $this, 'append_customer_city' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ADDRESS, [ $this, 'append_customer_address' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ZIP, [ $this, 'append_customer_zip' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_AVS_DATA, [ $this, 'append_avs_data' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_DATA, [ $this, 'append_billing_data' ], 10, 2 );
-		add_filter( EcpFilters::ECP_APPEND_BILLING_ADDRESS, [ $this, 'append_billing_address' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_CITY, [ $this, 'append_billing_city' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_COUNTRY, [ $this, 'append_billing_country' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_POSTAL, [ $this, 'append_billing_postal' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_ADDITIONAL_VARIABLES, [
-			$this,
-			'append_custom_variables'
-		], 10, 2 );
-		add_filter( EcpFilters::ECP_PAYMENT_PAGE_CLEAN_PARAMETERS, [ $this, 'filter_clean' ] );
-		add_filter( EcpAppendsFilters::ECP_APPEND_RECURRING, [ $this, 'append_recurring' ], 10, 2 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_RECEIPT_DATA, [ $this, 'filter_receipt_data' ], 10, 3 );
-		add_filter( EcpAppendsFilters::ECP_APPEND_VERSIONS, [ $this, 'append_versions' ] );
-		add_filter( EcpAppendsFilters::ECP_APPEND_SIGNATURE, [ $this, 'append_signature' ] );
+		add_filter( EcpAppendsFilters::ECP_APPEND_PROJECT_ID, array( $this, 'append_project_id' ) );
+		add_filter( EcpAppendsFilters::ECP_APPEND_INTERFACE_TYPE, array( $this, 'append_interface_type' ), 10, 2 );
+		add_filter(
+			EcpAppendsFilters::ECP_APPEND_OPERATION_TYPE,
+			array(
+				$this,
+				'append_operation_type',
+			),
+			10,
+			2
+		);
+		add_filter( EcpAppendsFilters::ECP_APPEND_OPERATION_MODE, array( $this, 'append_operation_mode' ), 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, array( $this, 'append_force_mode' ), 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_DISPLAY_MODE, array( $this, 'append_display_mode' ), 10, 3 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_LANGUAGE_CODE, array( $this, 'append_language' ) );
+		add_filter(
+			EcpAppendsFilters::ECP_APPEND_MERCHANT_SUCCESS_URL,
+			array(
+				$this,
+				'append_merchant_success_url',
+			),
+			10,
+			2
+		);
+		add_filter( EcpAppendsFilters::ECP_APPEND_MERCHANT_FAIL_URL, array( $this, 'append_merchant_fail_url' ), 10, 2 );
+		add_filter(
+			EcpAppendsFilters::ECP_APPEND_REDIRECT_RETURN_URL,
+			array(
+				$this,
+				'append_redirect_return_url',
+			),
+			10,
+			2
+		);
+		add_filter(
+			EcpAppendsFilters::ECP_APPEND_MERCHANT_RETURN_URL,
+			array(
+				$this,
+				'append_merchant_return_url',
+			),
+			10,
+			2
+		);
+		add_filter(
+			EcpAppendsFilters::ECP_APPEND_REDIRECT_SUCCESS_URL,
+			array(
+				$this,
+				'append_redirect_success_url',
+			),
+			10,
+			2
+		);
+		add_filter( EcpAppendsFilters::ECP_APPEND_REDIRECT_FAIL_URL, array( $this, 'append_redirect_fail_url' ), 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_MERCHANT_CALLBACK_URL, array( $this, 'append_merchant_callback_url' ) );
+		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_DATA, array( $this, 'append_customer_data' ), 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ID, array( $this, 'append_customer_id' ), 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_PHONE, array( $this, 'append_customer_phone' ), 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_EMAIL, array( $this, 'append_customer_email' ), 10, 2 );
+		add_filter(
+			EcpAppendsFilters::ECP_APPEND_CUSTOMER_LAST_NAME,
+			array(
+				$this,
+				'append_customer_last_name',
+			),
+			10,
+			2
+		);
+		add_filter(
+			EcpAppendsFilters::ECP_APPEND_CUSTOMER_FIRST_NAME,
+			array(
+				$this,
+				'append_customer_first_name',
+			),
+			10,
+			2
+		);
+		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_COUNTRY, array( $this, 'append_customer_country' ), 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_STATE, array( $this, 'append_customer_state' ), 10, 2 );
+		add_filter( EcpFilters::ECP_APPEND_CUSTOMER_CITY, array( $this, 'append_customer_city' ), 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ADDRESS, array( $this, 'append_customer_address' ), 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ZIP, array( $this, 'append_customer_zip' ), 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_AVS_DATA, array( $this, 'append_avs_data' ), 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_DATA, array( $this, 'append_billing_data' ), 10, 2 );
+		add_filter( EcpFilters::ECP_APPEND_BILLING_ADDRESS, array( $this, 'append_billing_address' ), 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_CITY, array( $this, 'append_billing_city' ), 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_COUNTRY, array( $this, 'append_billing_country' ), 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_POSTAL, array( $this, 'append_billing_postal' ), 10, 2 );
+		add_filter(
+			EcpAppendsFilters::ECP_APPEND_ADDITIONAL_VARIABLES,
+			array(
+				$this,
+				'append_custom_variables',
+			),
+			10,
+			2
+		);
+		add_filter( EcpFilters::ECP_PAYMENT_PAGE_CLEAN_PARAMETERS, array( $this, 'filter_clean' ) );
+		add_filter( EcpAppendsFilters::ECP_APPEND_RECURRING, array( $this, 'append_recurring' ), 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_RECEIPT_DATA, array( $this, 'filter_receipt_data' ), 10, 3 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_VERSIONS, array( $this, 'append_versions' ) );
+		add_filter( EcpAppendsFilters::ECP_APPEND_SIGNATURE, array( $this, 'append_signature' ) );
 	}
-
 }

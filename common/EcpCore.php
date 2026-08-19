@@ -63,7 +63,7 @@ final class EcpCore extends WC_Settings_API {
 	 * @var string
 	 * @since 2.0.0
 	 */
-	public const WC_ECP_VERSION = '5.0.4';
+	public const WC_ECP_VERSION = '5.0.5';
 
 	public const ECOMMPAY_PAYMENT_METHOD = 'ecommpay';
 
@@ -258,11 +258,11 @@ final class EcpCore extends WC_Settings_API {
 		return (int) ecommpay()->get_general_option( EcpSettingsGeneral::OPTION_PROJECT_ID );
 	}
 
-	public function get_general_option( $key, $default = null ) {
-		return $this->get_pm_option( EcpSettingsGeneral::ID, $key, $default );
+	public function get_general_option( $key, $default_value = null ) {
+		return $this->get_pm_option( EcpSettingsGeneral::ID, $key, $default_value );
 	}
 
-	public function get_pm_option( $payment_method, $key, $default = null ) {
+	public function get_pm_option( $payment_method, $key, $default_value = null ) {
 		$settings = $this->get_option( $payment_method );
 
 		// Get option default if unset.
@@ -271,14 +271,14 @@ final class EcpCore extends WC_Settings_API {
 			$settings[ $key ] = isset( $form_fields[ $key ] ) ? $this->get_field_default( $form_fields[ $key ] ) : '';
 		}
 
-		return ! is_null( $default ) && in_array(
+		return ! is_null( $default_value ) && in_array(
 			$settings[ $key ],
 			array(
 				'',
 				EcpSettings::VALUE_DISABLED,
 			),
 			true
-		) ? $default : $settings[ $key ];
+		) ? $default_value : $settings[ $key ];
 	}
 
 	public function get_option( $key, $empty_value = array() ) {

@@ -47,7 +47,6 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 
 	private const FAILED_URI = '/checkout?payment_failed=1';
 
-	private const FRAME_MODE_IFRAME   = 'iframe';
 	private const FRAME_MODE_EMBEDDED = 'embedded';
 
 	private const FORCE_PAYMENT_METHOD_CARD = 'card';
@@ -125,11 +124,7 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 				wp_send_json( $result );
 				break;
 			case 'get_data_for_payment_form':
-				if ( self::is_modern_embedded_mode() ) {
-					$this->get_data_for_payment_form();
-				} else {
-					$this->get_legacy_data_for_payment_form();
-				}
+				$this->get_data_for_payment_form();
 				break;
 			case 'get_payment_status':
 				$this->get_payment_status();
@@ -185,23 +180,16 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 	}
 
 	/**
-	 * <h2>Check if payment page v5 embedded mode is configured.</h2>
+	 * <h2>Check if payment page embedded mode is configured.</h2>
 	 *
-	 * @return bool True if card display mode is embedded and PP version is v5.
+	 * @return bool True if card display mode is embedded.
 	 * @since 3.2.0
 	 */
-	public static function is_modern_embedded_mode(): bool {
-		$card_settings        = ecommpay()->get_option( EcpSettingsCard::ID );
-		$card_display_mode    = $card_settings[ EcpSettings::OPTION_MODE ] ?? EcpSettings::MODE_EMBEDDED;
-		$payment_page_version = ecommpay()->get_general_option(
-			EcpSettingsGeneral::OPTION_PAYMENT_PAGE_VERSION,
-			EcpSettingsGeneral::PP_VERSION_LEGACY
-		);
+	public static function is_embedded_mode(): bool {
+		$card_settings     = ecommpay()->get_option( EcpSettingsCard::ID );
+		$card_display_mode = $card_settings[ EcpSettings::OPTION_MODE ] ?? EcpSettings::MODE_EMBEDDED;
 
-		return (
-			$card_display_mode === EcpSettings::MODE_EMBEDDED &&
-			$payment_page_version === EcpSettingsGeneral::PP_VERSION_MODERN
-		);
+		return $card_display_mode === EcpSettings::MODE_EMBEDDED;
 	}
 
 	/**
@@ -256,40 +244,6 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 	}
 
 	/**
-	 * <h2>Returns payment page data for the legacy-embedded card form.</h2>
-	 *
-	 * @throws EcpGatewaySignatureException
-	 * @throws Exception
-	 * @since 3.2.0
-	 */
-	private function get_legacy_data_for_payment_form() {
-		$data = $this->get_base_embedded_data();
-
-		// Add legacy-specific parameters.
-		$data['frame_mode']              = self::FRAME_MODE_IFRAME;
-		$data['payment_methods_options'] = wp_json_encode(
-			array(
-				'additional_data' => array(
-					'embedded_mode' => true,
-				),
-			)
-		);
-		$data                            = $this->append_operation_type( $data );
-
-		$order = $this->resolveOrderFromPaymentPage();
-		if ( $order ) {
-			$data = apply_filters( EcpAppendsFilters::ECP_APPEND_OPERATION_TYPE, $data, $order );
-		} else {
-			$data = apply_filters( EcpAppendsFilters::ECP_APPEND_OPERATION_TYPE, $data );
-		}
-
-		ecp_debug( 'Payment page data (legacy): ', $data );
-
-		$data = EcpSigner::get_instance()->sign( $data );
-		wp_send_json( $data );
-	}
-
-	/**
 	 * <h2>Returns payment page data for the embedded card form.</h2>
 	 *
 	 * @throws EcpGatewaySignatureException
@@ -341,22 +295,22 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 	/**
 	 * <h2>Append operation_type parameter for embedded mode.</h2>
 	 *
-	 * Supported by both embedded widget variants.
-	 *
 	 * @param array $data Payment data array.
 	 *
 	 * @return array Modified payment data.
 	 * @since 3.2.0
 	 */
 	private function append_operation_type( array $data ): array {
-		$purchase_type = ecommpay()->get_general_option(
+		$operation_type = ecommpay()->get_general_option(
 			EcpSettingsGeneral::PURCHASE_TYPE,
 			EcpSettingsGeneral::PURCHASE_TYPE_SALE
 		);
 
-		$data['operation_type'] = $purchase_type === EcpSettingsGeneral::PURCHASE_TYPE_AUTH
-			? EcpSettingsGeneral::PURCHASE_TYPE_AUTH
-			: EcpSettingsGeneral::PURCHASE_TYPE_SALE;
+		if ( $operation_type === EcpSettingsGeneral::PURCHASE_TYPE_AUTH && EcpModuleCapture::is_auto_capture_needed( null ) ) {
+			$operation_type = EcpSettingsGeneral::PURCHASE_TYPE_SALE;
+		}
+
+		$data['operation_type'] = $operation_type;
 
 		return $data;
 	}

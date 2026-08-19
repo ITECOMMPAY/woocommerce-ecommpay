@@ -20,10 +20,9 @@ function WidgetEmbedded(props: PaymentMethodInterface) {
 	const checkoutSuccessResolveRef = useRef<CheckoutSuccessResolve | null>(null)
 	const [isWidgetError, setIsWidgetError] = useState(false)
 
-	const { isOverlayLoading, isClarificationRunning, isWidgetLoading, showOverlayLoader, hideOverlayLoader, runIframe } =
+	const { isOverlayLoading, isWidgetLoading, showOverlayLoader, hideOverlayLoader, runIframe } =
 		useWidgetEmbeddedBase(props, (params) => {
 			Object.assign(params, widgetParamsRef.current)
-			window.ECP.isEmbeddedMode = true
 			try {
 				widgetInstanceRef.current = window.EPayWidget.runEmbedded(params, 'POST')
 			} catch (e) {
@@ -50,7 +49,6 @@ function WidgetEmbedded(props: PaymentMethodInterface) {
 		checkSubmitResolveRef,
 		checkSubmitRejectRef,
 		checkoutSuccessResolveRef,
-		isClarificationRunning,
 	})
 
 	return (

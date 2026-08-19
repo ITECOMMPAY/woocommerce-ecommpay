@@ -31,7 +31,6 @@ export function buildEmbeddedWidgetParams({
 	clearRedirectResult,
 }: BuildEmbeddedWidgetParamsOptions): Record<string, unknown> {
 	return {
-		onEnterKeyPressed: () => props.onSubmit(),
 		onValidationError: (errors: unknown) => {
 			ecpDebug('embedded: onValidationError', errors)
 			if (!errors || typeof errors !== 'object') return
@@ -85,7 +84,6 @@ export function buildEmbeddedWidgetParams({
 		},
 		onPaymentSuccess: () => {
 			ecpDebug('embedded: onPaymentSuccess')
-			hideOverlayLoader()
 			const result = window.ECP.redirectResult ?? loadRedirectResult()
 			clearRedirectResult()
 			if (checkoutSuccessResolveRef.current) {
@@ -98,7 +96,6 @@ export function buildEmbeddedWidgetParams({
 		},
 		onPaymentFail: () => {
 			ecpDebug('embedded: onPaymentFail')
-			hideOverlayLoader()
 			const result = window.ECP.redirectResult ?? loadRedirectResult()
 			clearRedirectResult()
 			if (checkoutSuccessResolveRef.current) {

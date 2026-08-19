@@ -7,7 +7,6 @@ import {
 	CheckoutSuccessResolve,
 } from '../helpers/buildEmbeddedWidgetParams'
 import { ecpDebug } from '../helpers/ecpDebug'
-import { postSubmitClarification } from '../helpers/postSafeMessage'
 import { parseCheckoutSuccessData, CheckoutSuccessData } from '../helpers/parseCheckoutSuccessData'
 import { saveRedirectResult } from '../helpers/redirectResultSession'
 import ECPService from '../services/ECPService'
@@ -19,7 +18,6 @@ interface UseEmbeddedCheckoutEventsOptions {
 	checkSubmitResolveRef: MutableRefObject<CheckSubmitResolve | null>
 	checkSubmitRejectRef: MutableRefObject<CheckSubmitReject | null>
 	checkoutSuccessResolveRef: MutableRefObject<CheckoutSuccessResolve | null>
-	isClarificationRunning: boolean
 }
 
 export function useEmbeddedCheckoutEvents({
@@ -28,25 +26,11 @@ export function useEmbeddedCheckoutEvents({
 	checkSubmitResolveRef,
 	checkSubmitRejectRef,
 	checkoutSuccessResolveRef,
-	isClarificationRunning,
 }: UseEmbeddedCheckoutEventsOptions): void {
 	const { eventRegistration, emitResponse, billing } = props
 
-	const isClarificationRunningRef = useRef(isClarificationRunning)
-	useEffect(() => {
-		isClarificationRunningRef.current = isClarificationRunning
-	}, [isClarificationRunning])
-
 	useEffect(() => {
 		const unsubscribePaymentSetup = eventRegistration.onPaymentSetup(async () => {
-			ecpDebug('embedded: onPaymentSetup fired', { clarification: isClarificationRunningRef.current })
-
-			if (isClarificationRunningRef.current) {
-				postSubmitClarification()
-				isClarificationRunningRef.current = false
-				return { type: emitResponse.responseTypes.SUCCESS }
-			}
-
 			return new Promise((resolve) => {
 				window.ECP.paymentSetupResolve = resolve
 				if (widgetInstanceRef.current && typeof widgetInstanceRef.current.trySubmit === 'function') {
@@ -116,6 +100,5 @@ export function useEmbeddedCheckoutEvents({
 		emitResponse.noticeContexts.PAYMENTS,
 		emitResponse.noticeContexts.CHECKOUT,
 		billing,
-		isClarificationRunning,
 	])
 }

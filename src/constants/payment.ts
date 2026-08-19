@@ -7,13 +7,6 @@ export enum FrameMode {
 	POPUP = 'popup',
 }
 
-/**
- * Payment page versions.
- */
-export enum PaymentPageVersion {
-	MODERN = 'v5',
-}
-
 export const PM_EMBEDDED_SUBMIT = 'epframe.embedded_mode.submit'
 export const PM_EMBEDDED_CHECK_VALIDATION = 'epframe.embedded_mode.check_validation'
 

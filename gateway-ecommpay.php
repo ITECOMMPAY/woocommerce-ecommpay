@@ -4,7 +4,7 @@
  * Plugin URI:        https://ecommpay.com
  * GitHub Plugin URI:
  * Description:       Easy payment from WooCommerce by different methods in single Payment Page.
- * Version:           5.0.4
+ * Version:           5.0.5
  * License:           GPL2
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       woo-ecommpay
@@ -22,6 +22,8 @@ use common\WCDependencies;
 use common\helpers\EcpLoader;
 
 defined( 'ABSPATH' ) || exit;
+
+define( 'ECP_PLUGIN_VERSION', '5.0.5' );
 
 if ( ! defined( 'ECP_PLUGIN_PATH' ) ) {
 	define( 'ECP_PLUGIN_PATH', __FILE__ );
@@ -49,7 +51,12 @@ add_action(
 							$class    = 'notice notice-error';
 							$headline = __( 'ECOMMPAY requires WooCommerce to be active.', 'woo-ecommpay' );
 							$message  = __( 'Go to the plugins page to activate WooCommerce', 'woo-ecommpay' );
-							printf( '<div class="%1$s"><h2>%2$s</h2><p>%3$s</p></div>', $class, $headline, $message );
+							printf(
+								'<div class="%1$s"><h2>%2$s</h2><p>%3$s</p></div>',
+								esc_attr( $class ),
+								esc_html( $headline ),
+								esc_html( $message )
+							);
 				}
 			);
 
@@ -77,18 +84,18 @@ add_action(
 			}
 		);
 
-			// Include wp-admin styles.
-			add_action(
-				'admin_enqueue_scripts',
-				function () {
-							wp_enqueue_style(
-								'woocommerce-ecommpay-admin-style',
-								ecp_css_url( 'woocommerce-ecommpay-admin.css' ),
-								array(),
-								ecp_version()
-							);
-				}
-			);
+		// Include wp-admin styles.
+		add_action(
+			'admin_enqueue_scripts',
+			function () {
+						wp_enqueue_style(
+							'woocommerce-ecommpay-admin-style',
+							ecp_css_url( 'woocommerce-ecommpay-admin.css' ),
+							array(),
+							ecp_version()
+						);
+			}
+		);
 
 		// Include wp-frontend styles.
 		add_action(
@@ -100,7 +107,7 @@ add_action(
 					'woocommerce-ecommpay-frontend-style',
 					ecp_css_url( 'woocommerce-ecommpay-frontend.css' ),
 					array(),
-					ecp_version()
+					ecp_version(),
 				);
 
 				$is_checkout_scripts_needed = ( is_checkout() && ! is_wc_endpoint_url( 'order-received' ) )
@@ -111,37 +118,32 @@ add_action(
 				if ( $is_checkout_scripts_needed ) {
 
 					$url = ecp_payment_page()->get_url();
+					// number changes every 15 min for renew script in browser cache
+					$ecp_bundle_version = floor( time() / 900 );
 
 					// Ecommpay merchant bundle.
 					wp_enqueue_script(
 						'ecommpay_merchant_js',
 						sprintf( '%s/shared/merchant.js', $url ),
 						array(),
-						null
+						$ecp_bundle_version,
+						false
 					);
 					wp_enqueue_style(
 						'ecommpay_merchant_css',
 						sprintf( '%s/shared/merchant.css', $url ),
 						array(),
-						null
+						$ecp_bundle_version,
+						false
 					);
 
 					// Enqueue common checkout functions (must be before version-specific script).
 					wp_enqueue_script(
-						'ecommpay_checkout_common_script',
-						ecp_js_url( 'checkout-common.js' ),
-						array( 'jquery' ),
-						ecp_version()
-					);
-
-					// Choose a checkout script based on the version.
-					$checkout_script = EcpModulePaymentPage::is_modern_embedded_mode() ? 'checkout.js' : 'checkout-legacy.js';
-
-					wp_enqueue_script(
 						'ecommpay_checkout_script',
-						ecp_js_url( $checkout_script ),
-						array( 'jquery', 'ecommpay_checkout_common_script' ),
-						ecp_version()
+						ecp_js_url( 'checkout.js' ),
+						array( 'jquery' ),
+						ecp_version(),
+						false
 					);
 
 					try {
@@ -159,17 +161,20 @@ add_action(
 						'ecommpay_frontend_helpers_script',
 						ecp_js_url( 'frontend-helpers.js' ),
 						array( 'jquery' ),
-						ecp_version()
+						ecp_version(),
+						false
 					);
 
 					wp_localize_script(
-						'ecommpay_checkout_common_script',
+						'ecommpay_checkout_script',
 						'ECP',
 						array(
 							'ajax_url'   => admin_url( 'admin-ajax.php' ),
 							'origin_url' => $url,
 							'order_id'   => $order_id,
-						)
+						),
+						ecp_version(),
+						false
 					);
 
 					$loader = new EcpLoader();

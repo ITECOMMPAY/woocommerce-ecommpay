@@ -4,7 +4,6 @@ namespace common\includes;
 
 use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType;
 use common\settings\EcpSettings;
-use common\settings\EcpSettingsGeneral;
 
 class EcpGatewayBlocksSupport extends AbstractPaymentMethodType {
 
@@ -40,11 +39,6 @@ class EcpGatewayBlocksSupport extends AbstractPaymentMethodType {
 		if ( isset( $this->gateway_instance->settings['pp_close_on_miss_click'] ) ) {
 			$this->data['pp_close_on_miss_click'] = $this->gateway_instance->settings['pp_close_on_miss_click'];
 		}
-
-		$this->data['pp_version'] = ecommpay()->get_general_option(
-			EcpSettingsGeneral::OPTION_PAYMENT_PAGE_VERSION,
-			EcpSettingsGeneral::PP_VERSION_LEGACY
-		);
 	}
 
 	public function is_active(): bool {
