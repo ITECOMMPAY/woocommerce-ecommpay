@@ -386,12 +386,14 @@ jQuery( document ).ready(
         'customer_address',
         'customer_city',
         'customer_country',
+        'customer_state',
         'customer_email',
         'billing_address',
         'billing_city',
         'billing_country',
         'billing_postal',
         'billing_region',
+        'billing_region_code',
       ]
       const params = fields.reduce(function (acc, field) {
         acc[field] = options[field] || ''
@@ -402,6 +404,22 @@ jQuery( document ).ready(
         params.avs_post_code = options.avs_post_code
         params.avs_street_address = options.avs_street_address
       }
+
+      if (options.customer_shipping) {
+        try {
+          const decodedJson = decodeURIComponent(
+            atob(options.customer_shipping)
+              .split('')
+              .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+              .join('')
+          )
+
+          params.customer_shipping = JSON.parse(decodedJson)?.customer?.shipping
+        } catch (e) {
+          console.error('Failed to parse customer_shipping:', e)
+        }
+      }
+
 
       return params
     }

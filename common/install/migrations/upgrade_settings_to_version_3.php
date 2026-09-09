@@ -2,9 +2,9 @@
 
 use common\install\EcpGatewayInstall;
 use common\settings\EcpSettings;
-use common\settings\EcpSettingsCard;
 use common\settings\EcpSettingsGeneral;
 use common\settings\forms\EcpForm;
+use common\enums\EcpWcPaymentMethods;
 
 ecp_get_log()->emergency( 'Run update settings to version 3.0.0' );
 
@@ -19,7 +19,7 @@ $all_fields  = array_column(
 );
 
 $migration_map = array(
-	EcpSettingsGeneral::ID => array(
+	EcpSettingsGeneral::ID    => array(
 		'test'                    => 'test',
 		'language'                => EcpSettingsGeneral::OPTION_LANGUAGE,
 		'caching_enabled'         => EcpSettingsGeneral::OPTION_CACHING_ENABLED,
@@ -30,7 +30,7 @@ $migration_map = array(
 		'salt'                    => EcpSettingsGeneral::OPTION_SECRET_KEY,
 		'custom_variables'        => EcpSettingsGeneral::OPTION_CUSTOM_VARIABLES,
 	),
-	EcpSettingsCard::ID    => array(
+	EcpWcPaymentMethods::CARD => array(
 		'enabled'             => EcpSettings::OPTION_ENABLED,
 		'mode'                => EcpSettings::OPTION_MODE,
 		'close_on_miss_click' => EcpSettings::OPTION_POPUP_MISS_CLICK,

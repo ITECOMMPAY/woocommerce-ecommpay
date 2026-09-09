@@ -4,12 +4,10 @@ namespace common\modules;
 
 defined( 'ABSPATH' ) || exit;
 
+use common\enums\EcpWcPaymentMethods;
 use common\helpers\EcpGatewayRegistry;
 use common\includes\filters\EcpWCFilters;
-use common\settings\EcpSettingsApplepay;
-use common\settings\EcpSettingsCard;
 use common\settings\EcpSettingsGeneral;
-use common\settings\EcpSettingsGooglepay;
 
 
 class EcpModuleAuth extends EcpGatewayRegistry {
@@ -22,9 +20,9 @@ class EcpModuleAuth extends EcpGatewayRegistry {
 
 		if ( $auth_mode_enabled ) {
 			$supported_gateways = array(
-				EcpSettingsCard::ID,
-				EcpSettingsGooglepay::ID,
-				EcpSettingsApplepay::ID
+				EcpWcPaymentMethods::CARD,
+				EcpWcPaymentMethods::GOOGLE_PAY,
+				EcpWcPaymentMethods::APPLE_PAY
 			);
 
 			$ecp_methods = ecp_payment_methods();

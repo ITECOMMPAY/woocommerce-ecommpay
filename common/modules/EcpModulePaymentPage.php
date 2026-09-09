@@ -2,6 +2,7 @@
 
 namespace common\modules;
 
+use common\enums\EcpWcPaymentMethods;
 use common\exceptions\EcpGatewayInvalidArgumentException;
 use common\exceptions\EcpGatewaySignatureException;
 use common\gateways\EcpGateway;
@@ -18,7 +19,6 @@ use common\includes\filters\EcpFilters;
 use common\includes\filters\EcpWCFilters;
 use common\includes\filters\EcpWPFilters;
 use common\settings\EcpSettings;
-use common\settings\EcpSettingsCard;
 use common\settings\EcpSettingsGeneral;
 use Exception;
 use WC_Log_Levels;
@@ -186,7 +186,7 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 	 * @since 3.2.0
 	 */
 	public static function is_embedded_mode(): bool {
-		$card_settings     = ecommpay()->get_option( EcpSettingsCard::ID );
+		$card_settings     = ecommpay()->get_option( EcpWcPaymentMethods::CARD );
 		$card_display_mode = $card_settings[ EcpSettings::OPTION_MODE ] ?? EcpSettings::MODE_EMBEDDED;
 
 		return $card_display_mode === EcpSettings::MODE_EMBEDDED;

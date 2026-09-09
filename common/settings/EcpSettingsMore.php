@@ -2,6 +2,7 @@
 
 namespace common\settings;
 
+use common\enums\EcpWcPaymentMethods;
 use common\includes\filters\EcpFilters;
 
 defined( 'ABSPATH' ) || exit;
@@ -17,11 +18,6 @@ defined( 'ABSPATH' ) || exit;
 class EcpSettingsMore extends EcpSettings {
 
 	/**
-	 * Internal identifier
-	 */
-	const ID = 'ecommpay-more';
-
-	/**
 	 * Shop section identifier
 	 */
 	const MORE_SETTINGS = 'more_settings';
@@ -31,7 +27,7 @@ class EcpSettingsMore extends EcpSettings {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->id        = self::ID;
+		$this->id        = EcpWcPaymentMethods::MORE;
 		$this->label_key = 'More methods';
 
 		parent::__construct();

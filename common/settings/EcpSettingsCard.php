@@ -2,6 +2,7 @@
 
 namespace common\settings;
 
+use common\enums\EcpWcPaymentMethods;
 use common\includes\filters\EcpFilters;
 
 defined( 'ABSPATH' ) || exit;
@@ -17,11 +18,6 @@ defined( 'ABSPATH' ) || exit;
 class EcpSettingsCard extends EcpSettings {
 
 	/**
-	 * Internal identifier
-	 */
-	public const ID = 'ecommpay-card';
-
-	/**
 	 * Card settings section identifier
 	 */
 	const CARD_SETTINGS = 'card_settings';
@@ -30,7 +26,7 @@ class EcpSettingsCard extends EcpSettings {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->id        = self::ID;
+		$this->id        = EcpWcPaymentMethods::CARD;
 		$this->label_key = 'Card settings';
 		$this->icon      = 'card.svg';
 

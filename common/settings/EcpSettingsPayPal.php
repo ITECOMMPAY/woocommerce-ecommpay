@@ -2,6 +2,7 @@
 
 namespace common\settings;
 
+use common\enums\EcpWcPaymentMethods;
 use common\includes\filters\EcpFilters;
 
 defined( 'ABSPATH' ) || exit;
@@ -17,11 +18,6 @@ defined( 'ABSPATH' ) || exit;
 class EcpSettingsPayPal extends EcpSettings {
 
 	/**
-	 * Internal identifier
-	 */
-	const ID = 'ecommpay-paypal';
-
-	/**
 	 * Shop section identifier
 	 */
 	const PAYPAL_SETTINGS = 'paypal_settings';
@@ -31,7 +27,7 @@ class EcpSettingsPayPal extends EcpSettings {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->id        = self::ID;
+		$this->id        = EcpWcPaymentMethods::PAYPAL;
 		$this->label_key = 'PayPal';
 		$this->icon      = 'paypal-wallet.svg';
 

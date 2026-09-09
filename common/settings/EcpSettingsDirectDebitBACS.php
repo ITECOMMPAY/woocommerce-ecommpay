@@ -2,6 +2,7 @@
 
 namespace common\settings;
 
+use common\enums\EcpWcPaymentMethods;
 use common\includes\filters\EcpFilters;
 
 defined( 'ABSPATH' ) || exit;
@@ -17,11 +18,6 @@ defined( 'ABSPATH' ) || exit;
 class EcpSettingsDirectDebitBACS extends EcpSettings {
 
 	/**
-	 * Internal identifier
-	 */
-	const ID = 'ecommpay-directdebit-bacs';
-
-	/**
 	 * Direct Debit BACS settings section identifier
 	 */
 	const DIRECTDEBIT_BACS_SETTINGS = 'directdebit_bacs_settings';
@@ -31,7 +27,7 @@ class EcpSettingsDirectDebitBACS extends EcpSettings {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->id        = self::ID;
+		$this->id        = EcpWcPaymentMethods::DIRECTDEBIT_BACS;
 		$this->label_key = 'Direct Debit BACS';
 		$this->icon      = 'directdebit-bacs.svg';
 

@@ -2,11 +2,11 @@
 
 namespace common\gateways;
 
+use common\enums\EcpWcPaymentMethods;
 use common\exceptions\EcpGatewayLogicException;
 use common\includes\EcpGatewayOrder;
 use common\includes\filters\EcpAppendsFilters;
 use common\modules\EcpModuleRefund;
-use common\settings\EcpSettingsPayPalPayLater;
 use WC_Order;
 
 defined( 'ABSPATH' ) || exit;
@@ -80,7 +80,7 @@ class EcpPayPalPayLater extends EcpGateway {
 	}
 
 	public function __construct() {
-		$this->id                     = EcpSettingsPayPalPayLater::ID;
+		$this->id                     = EcpWcPaymentMethods::PAYPAL_PAYLATER;
 		$this->method_title_key       = 'ECOMMPAY PayPal PayLater';
 		$this->method_description_key = 'Accept payments via PayPal Buy Now Pay Later.';
 

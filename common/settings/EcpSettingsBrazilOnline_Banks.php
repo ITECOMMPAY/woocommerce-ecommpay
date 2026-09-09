@@ -2,6 +2,7 @@
 
 namespace common\settings;
 
+use common\enums\EcpWcPaymentMethods;
 use common\includes\filters\EcpFilters;
 
 defined( 'ABSPATH' ) || exit;
@@ -17,11 +18,6 @@ defined( 'ABSPATH' ) || exit;
 class EcpSettingsBrazilOnline_Banks extends EcpSettings {
 
 	/**
-	 * Internal identifier
-	 */
-	const ID = 'ecommpay-brazil';
-
-	/**
 	 * Shop section identifier
 	 */
 	const BRAZIL_SETTINGS = 'brazil_settings';
@@ -31,7 +27,7 @@ class EcpSettingsBrazilOnline_Banks extends EcpSettings {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->id        = self::ID;
+		$this->id        = EcpWcPaymentMethods::BRAZIL_ONLINE_BANKS;
 		$this->label_key = 'Brazil';
 		$this->icon      = 'online-brazil-banks.svg';
 

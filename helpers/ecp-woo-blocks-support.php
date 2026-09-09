@@ -5,6 +5,7 @@ defined( 'ABSPATH' ) || exit;
 
 // Declare Support For Cart+Checkout Blocks
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
+use common\enums\EcpWcPaymentMethods;
 use common\gateways\EcpApplepay;
 use common\gateways\EcpBanks;
 use common\gateways\EcpBlik;
@@ -20,20 +21,6 @@ use common\gateways\EcpMore;
 use common\gateways\EcpPayPal;
 use common\gateways\EcpPayPalPayLater;
 use common\includes\EcpGatewayBlocksSupport;
-use common\settings\EcpSettingsApplepay;
-use common\settings\EcpSettingsBanks;
-use common\settings\EcpSettingsBlik;
-use common\settings\EcpSettingsBrazilOnline_Banks;
-use common\settings\EcpSettingsCard;
-use common\settings\EcpSettingsDirectDebitBACS;
-use common\settings\EcpSettingsDirectDebitSEPA;
-use common\settings\EcpSettingsGooglepay;
-use common\settings\EcpSettingsHumm;
-use common\settings\EcpSettingsIdeal;
-use common\settings\EcpSettingsKlarna;
-use common\settings\EcpSettingsMore;
-use common\settings\EcpSettingsPayPal;
-use common\settings\EcpSettingsPayPalPayLater;
 
 add_action(
 	'before_woocommerce_init',
@@ -59,20 +46,20 @@ add_action(
 				function ( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
 
 					$gateway_classes = array(
-						EcpSettingsCard::ID               => EcpCard::class,
-						EcpSettingsPayPal::ID             => EcpPayPal::class,
-						EcpSettingsPayPalPayLater::ID     => EcpPayPalPayLater::class,
-						EcpSettingsKlarna::ID             => EcpKlarna::class,
-						EcpSettingsBlik::ID               => EcpBlik::class,
-						EcpSettingsIdeal::ID              => EcpIdeal::class,
-						EcpSettingsBanks::ID              => EcpBanks::class,
-						EcpSettingsHumm::ID               => EcpHumm::class,
-						EcpSettingsBrazilOnline_Banks::ID => EcpBrazilOnlineBanks::class,
-						EcpSettingsGooglepay::ID          => EcpGooglepay::class,
-						EcpSettingsApplepay::ID           => EcpApplepay::class,
-						EcpSettingsDirectDebitBACS::ID    => EcpDirectDebitBACS::class,
-						EcpSettingsDirectDebitSEPA::ID    => EcpDirectDebitSEPA::class,
-						EcpSettingsMore::ID               => EcpMore::class,
+						EcpWcPaymentMethods::CARD                => EcpCard::class,
+						EcpWcPaymentMethods::PAYPAL              => EcpPayPal::class,
+						EcpWcPaymentMethods::PAYPAL_PAYLATER     => EcpPayPalPayLater::class,
+						EcpWcPaymentMethods::KLARNA              => EcpKlarna::class,
+						EcpWcPaymentMethods::BLIK                => EcpBlik::class,
+						EcpWcPaymentMethods::IDEAL               => EcpIdeal::class,
+						EcpWcPaymentMethods::BANKS               => EcpBanks::class,
+						EcpWcPaymentMethods::HUMM                => EcpHumm::class,
+						EcpWcPaymentMethods::BRAZIL_ONLINE_BANKS => EcpBrazilOnlineBanks::class,
+						EcpWcPaymentMethods::GOOGLE_PAY          => EcpGooglepay::class,
+						EcpWcPaymentMethods::APPLE_PAY           => EcpApplepay::class,
+						EcpWcPaymentMethods::DIRECTDEBIT_BACS    => EcpDirectDebitBACS::class,
+						EcpWcPaymentMethods::DIRECTDEBIT_SEPA    => EcpDirectDebitSEPA::class,
+						EcpWcPaymentMethods::MORE                => EcpMore::class,
 					);
 
 					foreach ( $gateway_classes as $id => $gateway_class ) {

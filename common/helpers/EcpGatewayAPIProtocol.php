@@ -3,6 +3,7 @@
 namespace common\helpers;
 
 use common\EcpCore;
+use common\enums\EcpWcPaymentMethods;
 use common\exceptions\EcpGatewaySignatureException;
 use common\includes\EcpGatewayOrder;
 use common\includes\filters\EcpAppendsFilters;
@@ -88,7 +89,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	public function append_interface_type( array $data, bool $encode = false ): array {
 		$this->append_argument(
 			'interface_type',
-			$encode ? json_encode( ecommpay()->get_interface_type() ) : ecommpay()->get_interface_type(),
+			$encode ? wp_json_encode( ecommpay()->get_interface_type() ) : ecommpay()->get_interface_type(),
 			$data
 		);
 
@@ -310,11 +311,71 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	 * @since 2.0.0
 	 */
 	public function append_billing_data( array $values, EcpGatewayOrder $order ): array {
+		$billing_state = $order->get_billing_state();
+
+		if ( ! empty( $billing_state ) ) {
+			$values['billing_region'] = $billing_state;
+		}
+
+		$normalized_code = EcpAddressHelper::normalizeRegionCode( $billing_state, $order->get_billing_country() );
+		if ( null !== $normalized_code ) {
+			$values['billing_region_code'] = $normalized_code;
+		}
+
 		$values = apply_filters( EcpFilters::ECP_APPEND_BILLING_ADDRESS, $values, $order );
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_BILLING_CITY, $values, $order );
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_BILLING_COUNTRY, $values, $order );
 
 		return apply_filters( EcpAppendsFilters::ECP_APPEND_BILLING_POSTAL, $values, $order );
+	}
+
+	public function append_shipping_data( array $values, EcpGatewayOrder $order ): array {
+		if ( ! $order->needs_shipping() ) {
+			return $values;
+		}
+
+		$region       = $order->get_shipping_state();
+		$country_code = $order->get_shipping_country();
+
+		$address = EcpAddressHelper::extractShippingAddressFromOrder( $order );
+
+		$shipping_info = array(
+			'address'     => $address,
+			'city'        => $order->get_shipping_city(),
+			'country'     => $order->get_shipping_country(),
+			'postal'      => $order->get_shipping_postcode(),
+			'region'      => $region,
+			'region_code' => EcpAddressHelper::normalizeRegionCode( $region, $country_code ),
+		);
+
+		$shipping_info = array_filter(
+			$shipping_info,
+			static function ( ?string $val ): bool {
+				return null !== $val && '' !== $val;
+			}
+		);
+
+		$is_card_payment  = $order->get_payment_method() === EcpWcPaymentMethods::CARD;
+		$is_embedded_mode = ecommpay()->get_option( EcpSettings::OPTION_MODE, EcpSettings::MODE_REDIRECT ) === EcpSettings::MODE_EMBEDDED;
+
+		if ( ! empty( $shipping_info ) ) {
+			if ( $is_card_payment && $is_embedded_mode ) {
+				$values['shipping'] = $shipping_info;
+			} else {
+				// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- required for customer_shipping payload.
+				$values['customer_shipping'] = base64_encode(
+					wp_json_encode(
+						array(
+							'customer' => array(
+								'shipping' => $shipping_info,
+							),
+						)
+					)
+				);
+			}
+		}
+
+		return $values;
 	}
 
 	/**
@@ -570,6 +631,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_LAST_NAME, $values, $order );
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_DATA, $values, $order );
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_BILLING_DATA, $values, $order );
+		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_SHIPPING_DATA, $values, $order );
 		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_RECEIPT_DATA, $values, $order, true );
 
 		return apply_filters( EcpAppendsFilters::ECP_APPEND_AVS_DATA, $values, $order );
@@ -618,7 +680,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 
 		$this->filter_clean( $recurring );
 
-		$this->append_argument( 'recurring', json_encode( $recurring ), $values );
+		$this->append_argument( 'recurring', wp_json_encode( $recurring ), $values );
 		$this->append_argument( 'recurring_register', 1, $values );
 
 		return $values;
@@ -681,7 +743,8 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 		}
 
 		$receipt['receipt_data'] = $encode
-			? base64_encode( json_encode( $data ) )
+			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+			? base64_encode( wp_json_encode( $data ) )
 			: $data;
 
 		return array_merge( $values, $receipt );
@@ -776,23 +839,23 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 	/**
 	 * <h2>Crops and returns string.</h2>
 	 *
-	 * @param string $string <p>Original string.</p>
+	 * @param string $str <p>Original string.</p>
 	 * @param integer $limit <p>Limit size in characters.</p>
 	 *
 	 * @return string <p>Cropped string.</p>
 	 */
-	private function limit_length( string $string, int $limit = 127 ): string {
+	private function limit_length( string $str, int $limit = 127 ): string {
 		$str_limit = $limit - 3;
 
 		if ( function_exists( 'mb_strimwidth' ) ) {
-			return mb_strlen( $string ) > $limit
-				? mb_strimwidth( $string, 0, $str_limit ) . '...'
-				: $string;
+			return mb_strlen( $str ) > $limit
+				? mb_strimwidth( $str, 0, $str_limit ) . '...'
+				: $str;
 		}
 
-		return strlen( $string ) > $limit
-			? substr( $string, 0, $str_limit ) . '...'
-			: $string;
+		return strlen( $str ) > $limit
+			? substr( $str, 0, $str_limit ) . '...'
+			: $str;
 	}
 
 	/**
@@ -884,6 +947,7 @@ class EcpGatewayAPIProtocol extends EcpGatewayRegistry {
 		add_filter( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ZIP, array( $this, 'append_customer_zip' ), 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_AVS_DATA, array( $this, 'append_avs_data' ), 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_DATA, array( $this, 'append_billing_data' ), 10, 2 );
+		add_filter( EcpAppendsFilters::ECP_APPEND_SHIPPING_DATA, array( $this, 'append_shipping_data' ), 10, 2 );
 		add_filter( EcpFilters::ECP_APPEND_BILLING_ADDRESS, array( $this, 'append_billing_address' ), 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_CITY, array( $this, 'append_billing_city' ), 10, 2 );
 		add_filter( EcpAppendsFilters::ECP_APPEND_BILLING_COUNTRY, array( $this, 'append_billing_country' ), 10, 2 );

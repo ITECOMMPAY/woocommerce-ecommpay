@@ -3,7 +3,7 @@
         'name' => 'ecommpay/wordpress-plugin',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'febe9d3670a01b0ab72b393212820e3acde21e2d',
+        'reference' => 'ae495b1a24982ec56741250d356e92147d46f64a',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'ecommpay/wordpress-plugin' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'febe9d3670a01b0ab72b393212820e3acde21e2d',
+            'reference' => 'ae495b1a24982ec56741250d356e92147d46f64a',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

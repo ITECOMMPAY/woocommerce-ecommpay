@@ -2,6 +2,7 @@
 
 namespace common\settings;
 
+use common\enums\EcpWcPaymentMethods;
 use common\includes\filters\EcpFilters;
 
 defined( 'ABSPATH' ) || exit;
@@ -17,11 +18,6 @@ defined( 'ABSPATH' ) || exit;
 class EcpSettingsGooglepay extends EcpSettings {
 
 	/**
-	 * Internal identifier
-	 */
-	public const ID = 'ecommpay-google-pay';
-
-	/**
 	 * Shop section identifier
 	 */
 	const GOOGLE_PAY_SETTINGS = 'google-pay_settings';
@@ -31,7 +27,7 @@ class EcpSettingsGooglepay extends EcpSettings {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->id        = self::ID;
+		$this->id        = EcpWcPaymentMethods::GOOGLE_PAY;
 		$this->label_key = 'GooglePay';
 		$this->icon      = 'google_pay_host.svg';
 

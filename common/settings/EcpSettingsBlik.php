@@ -2,6 +2,7 @@
 
 namespace common\settings;
 
+use common\enums\EcpWcPaymentMethods;
 use common\includes\filters\EcpFilters;
 
 defined( 'ABSPATH' ) || exit;
@@ -17,11 +18,6 @@ defined( 'ABSPATH' ) || exit;
 class EcpSettingsBlik extends EcpSettings {
 
 	/**
-	 * Internal identifier
-	 */
-	const ID = 'ecommpay-blik';
-
-	/**
 	 * Shop section identifier
 	 */
 	const BLIK_SETTINGS = 'blik_settings';
@@ -31,7 +27,7 @@ class EcpSettingsBlik extends EcpSettings {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->id        = self::ID;
+		$this->id        = EcpWcPaymentMethods::BLIK;
 		$this->label_key = 'Blik';
 		$this->icon      = 'blik.svg';
 

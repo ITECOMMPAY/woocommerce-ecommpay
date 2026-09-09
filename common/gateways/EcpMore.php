@@ -2,10 +2,10 @@
 
 namespace common\gateways;
 
+use common\enums\EcpWcPaymentMethods;
 use common\includes\EcpGatewayOrder;
 use common\includes\filters\EcpAppendsFilters;
 use common\settings\EcpSettings;
-use common\settings\EcpSettingsMore;
 use WC_Order;
 
 defined( 'ABSPATH' ) || exit;
@@ -35,7 +35,7 @@ class EcpMore extends EcpGateway {
 	 * <h2>ECOMMPAY Gateway constructor.</h2>
 	 */
 	public function __construct() {
-		$this->id                     = EcpSettingsMore::ID;
+		$this->id                     = EcpWcPaymentMethods::MORE;
 		$this->method_title_key       = 'ECOMMPAY More payment methods';
 		$this->method_description_key = 'Open the payment page with all payment methods or select an additional alternative payment method.';
 		$this->has_fields             = false;

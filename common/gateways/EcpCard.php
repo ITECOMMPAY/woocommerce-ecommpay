@@ -2,6 +2,7 @@
 
 namespace common\gateways;
 
+use common\enums\EcpWcPaymentMethods;
 use common\exceptions\EcpGatewayErrorException;
 use common\exceptions\EcpGatewayLogicException;
 use common\helpers\EcpGatewayPaymentMethods;
@@ -9,7 +10,6 @@ use common\includes\EcpGatewayOrder;
 use common\includes\filters\EcpAppendsFilters;
 use common\modules\EcpModuleRefund;
 use common\settings\EcpSettings;
-use common\settings\EcpSettingsCard;
 use WC_Order;
 
 defined( 'ABSPATH' ) || exit;
@@ -63,7 +63,7 @@ class EcpCard extends EcpGateway {
 	 * @throws EcpGatewayLogicException
 	 */
 	public function __construct() {
-		$this->id                     = EcpSettingsCard::ID;
+		$this->id                     = EcpWcPaymentMethods::CARD;
 		$this->method_title_key       = 'ECOMMPAY Cards';
 		$this->method_description_key = 'Accept card payments via ECOMMPAY.';
 

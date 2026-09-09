@@ -2,6 +2,7 @@
 
 namespace common\settings;
 
+use common\enums\EcpWcPaymentMethods;
 use common\includes\filters\EcpFilters;
 
 defined( 'ABSPATH' ) || exit;
@@ -17,11 +18,6 @@ defined( 'ABSPATH' ) || exit;
 class EcpSettingsDirectDebitSEPA extends EcpSettings {
 
 	/**
-	 * Internal identifier
-	 */
-	const ID = 'ecommpay-directdebit-sepa';
-
-	/**
 	 * Direct Debit SEPA settings section identifier
 	 */
 	const DIRECTDEBIT_SEPA_SETTINGS = 'directdebit_sepa_settings';
@@ -31,7 +27,7 @@ class EcpSettingsDirectDebitSEPA extends EcpSettings {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->id        = self::ID;
+		$this->id        = EcpWcPaymentMethods::DIRECTDEBIT_SEPA;
 		$this->label_key = 'Direct Debit SEPA';
 		$this->icon      = 'directdebit-sepa.svg';
 

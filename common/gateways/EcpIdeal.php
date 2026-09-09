@@ -2,11 +2,11 @@
 
 namespace common\gateways;
 
+use common\enums\EcpWcPaymentMethods;
 use common\exceptions\EcpGatewayLogicException;
 use common\includes\EcpGatewayOrder;
 use common\includes\filters\EcpAppendsFilters;
 use common\modules\EcpModuleRefund;
-use common\settings\EcpSettingsIdeal;
 use WC_Order;
 
 defined( 'ABSPATH' ) || exit;
@@ -68,7 +68,7 @@ class EcpIdeal extends EcpGateway {
 	 * <h2>ECOMMPAY iDEAL Gateway constructor.</h2>
 	 */
 	public function __construct() {
-		$this->id                     = EcpSettingsIdeal::ID;
+		$this->id                     = EcpWcPaymentMethods::IDEAL;
 		$this->method_title_key       = 'ECOMMPAY iDEAL';
 		$this->method_description_key = 'Accept payments via iDEAL.';
 

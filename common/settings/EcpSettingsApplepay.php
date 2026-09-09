@@ -2,6 +2,7 @@
 
 namespace common\settings;
 
+use common\enums\EcpWcPaymentMethods;
 use common\includes\filters\EcpFilters;
 
 defined( 'ABSPATH' ) || exit;
@@ -17,11 +18,6 @@ defined( 'ABSPATH' ) || exit;
 class EcpSettingsApplepay extends EcpSettings {
 
 	/**
-	 * Internal identifier
-	 */
-	public const ID = 'ecommpay-apple-pay';
-
-	/**
 	 * Shop section identifier
 	 */
 	const APPLE_PAY_SETTINGS = 'apple-pay_settings';
@@ -31,7 +27,7 @@ class EcpSettingsApplepay extends EcpSettings {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->id        = self::ID;
+		$this->id        = EcpWcPaymentMethods::APPLE_PAY;
 		$this->label_key = 'Apple pay';
 		$this->icon      = 'apple_pay_core.svg';
 

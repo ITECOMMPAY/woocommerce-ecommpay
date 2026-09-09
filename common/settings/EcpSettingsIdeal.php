@@ -2,6 +2,7 @@
 
 namespace common\settings;
 
+use common\enums\EcpWcPaymentMethods;
 use common\includes\filters\EcpFilters;
 
 defined( 'ABSPATH' ) || exit;
@@ -17,11 +18,6 @@ defined( 'ABSPATH' ) || exit;
 class EcpSettingsIdeal extends EcpSettings {
 
 	/**
-	 * Internal identifier
-	 */
-	const ID = 'ecommpay-ideal';
-
-	/**
 	 * Shop section identifier
 	 */
 	const IDEAL_SETTINGS = 'ideal_settings';
@@ -31,7 +27,7 @@ class EcpSettingsIdeal extends EcpSettings {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->id        = self::ID;
+		$this->id        = EcpWcPaymentMethods::IDEAL;
 		$this->label_key = 'iDEAL';
 		$this->icon      = 'ideal.svg';
 

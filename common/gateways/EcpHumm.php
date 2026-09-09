@@ -2,9 +2,9 @@
 
 namespace common\gateways;
 
+use common\enums\EcpWcPaymentMethods;
 use common\includes\EcpGatewayOrder;
 use common\includes\filters\EcpAppendsFilters;
-use common\settings\EcpSettingsHumm;
 use WC_Order;
 
 defined( 'ABSPATH' ) || exit;
@@ -63,7 +63,7 @@ class EcpHumm extends EcpGateway {
 	 * <h2>ECOMMPAY Humm Gateway constructor.</h2>
 	 */
 	public function __construct() {
-		$this->id                     = EcpSettingsHumm::ID;
+		$this->id                     = EcpWcPaymentMethods::HUMM;
 		$this->method_title_key       = 'ECOMMPAY Humm';
 		$this->method_description_key = 'Accept payments via Humm.';
 

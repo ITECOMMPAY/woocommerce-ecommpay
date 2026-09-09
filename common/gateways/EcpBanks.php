@@ -2,8 +2,8 @@
 
 namespace common\gateways;
 
+use common\enums\EcpWcPaymentMethods;
 use common\includes\EcpGatewayOrder;
-use common\settings\EcpSettingsBanks;
 use WC_Order;
 
 defined( 'ABSPATH' ) || exit;
@@ -53,7 +53,7 @@ class EcpBanks extends EcpGateway {
 	 * <h2>ECOMMPAY Banks Gateway constructor.</h2>
 	 */
 	public function __construct() {
-		$this->id                     = EcpSettingsBanks::ID;
+		$this->id                     = EcpWcPaymentMethods::BANKS;
 		$this->method_title_key       = 'ECOMMPAY Open banking';
 		$this->method_description_key = 'Accept payments via Open Banking.';
 

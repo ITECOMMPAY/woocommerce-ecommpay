@@ -2,6 +2,7 @@
 
 namespace common\settings;
 
+use common\enums\EcpWcPaymentMethods;
 use common\includes\filters\EcpFilters;
 
 defined( 'ABSPATH' ) || exit;
@@ -17,17 +18,12 @@ defined( 'ABSPATH' ) || exit;
 class EcpSettingsPayPalPayLater extends EcpSettings {
 
 	/**
-	 * Internal identifier
-	 */
-	const ID = 'ecommpay-paypal-paylater';
-
-	/**
 	 * Shop section identifier
 	 */
 	const PAYPAL_PAYLATER_SETTINGS = 'paypal_paylater_settings';
 
 	public function __construct() {
-		$this->id        = self::ID;
+		$this->id        = EcpWcPaymentMethods::PAYPAL_PAYLATER;
 		$this->label_key = 'PayPal PayLater';
 		$this->icon      = 'paypal-paylater.svg';
 

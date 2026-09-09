@@ -8,6 +8,7 @@
 
 namespace common\api;
 
+use common\enums\EcpWcPaymentMethods;
 use common\helpers\EcpGatewayOperationType;
 use common\helpers\EcpGatewayPaymentStatus;
 use common\includes\EcpGatewayOrder;
@@ -16,9 +17,6 @@ use common\includes\filters\EcpApiFilters;
 use common\includes\filters\EcpAppendsFilters;
 use common\models\EcpGatewayInfoResponse;
 use common\models\EcpGatewayInfoStatus;
-use common\settings\EcpSettingsApplepay;
-use common\settings\EcpSettingsCard;
-use common\settings\EcpSettingsGooglepay;
 use function ecp_debug;
 use function ecp_get_log;
 use function ecp_info;
@@ -167,9 +165,9 @@ class EcpGatewayAPIPayment extends EcpGatewayAPI {
 	 */
 	private function get_method_endpoint( string $payment_method, string $operation ): string {
 		$pm_endpoints_map = array(
-			EcpSettingsCard::ID      => self::CARD_ENDPOINT_PART,
-			EcpSettingsApplepay::ID  => self::APPLE_PAY_ENDPOINT_PART,
-			EcpSettingsGooglepay::ID => self::GOOGLE_PAY_ENDPOINT_PART,
+			EcpWcPaymentMethods::CARD       => self::CARD_ENDPOINT_PART,
+			EcpWcPaymentMethods::APPLE_PAY  => self::APPLE_PAY_ENDPOINT_PART,
+			EcpWcPaymentMethods::GOOGLE_PAY => self::GOOGLE_PAY_ENDPOINT_PART,
 		);
 
 		$mapped_method = $pm_endpoints_map[ $payment_method ] ?? $payment_method;

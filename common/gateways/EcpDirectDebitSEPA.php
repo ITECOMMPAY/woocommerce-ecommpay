@@ -2,12 +2,12 @@
 
 namespace common\gateways;
 
+use common\enums\EcpWcPaymentMethods;
 use common\exceptions\EcpGatewayLogicException;
 use common\helpers\EcpGatewayPaymentMethods;
 use common\includes\EcpGatewayOrder;
 use common\includes\filters\EcpAppendsFilters;
 use common\modules\EcpModuleRefund;
-use common\settings\EcpSettingsDirectDebitSEPA;
 use WC_Order;
 
 defined( 'ABSPATH' ) || exit;
@@ -61,7 +61,7 @@ class EcpDirectDebitSEPA extends EcpGateway {
 	 * @throws EcpGatewayLogicException
 	 */
 	public function __construct() {
-		$this->id                     = EcpSettingsDirectDebitSEPA::ID;
+		$this->id                     = EcpWcPaymentMethods::DIRECTDEBIT_SEPA;
 		$this->method_title_key       = 'ECOMMPAY Direct debit SEPA';
 		$this->method_description_key = 'Accept payments via Direct Debit Sepa.';
 

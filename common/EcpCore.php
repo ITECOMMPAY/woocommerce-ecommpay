@@ -4,6 +4,7 @@ namespace common;
 
 defined( 'ABSPATH' ) || exit;
 
+use common\enums\EcpWcPaymentMethods;
 use common\exceptions\EcpGatewayLogicException;
 use common\gateways\EcpApplepay;
 use common\gateways\EcpBanks;
@@ -36,21 +37,7 @@ use common\modules\EcpModulePaymentPage;
 use common\modules\EcpModuleRefund;
 use common\modules\EcpModuleSubscription;
 use common\settings\EcpSettings;
-use common\settings\EcpSettingsApplepay;
-use common\settings\EcpSettingsBanks;
-use common\settings\EcpSettingsBlik;
-use common\settings\EcpSettingsBrazilOnline_Banks;
-use common\settings\EcpSettingsCard;
-use common\settings\EcpSettingsDirectDebitBACS;
-use common\settings\EcpSettingsDirectDebitSEPA;
 use common\settings\EcpSettingsGeneral;
-use common\settings\EcpSettingsGooglepay;
-use common\settings\EcpSettingsHumm;
-use common\settings\EcpSettingsIdeal;
-use common\settings\EcpSettingsKlarna;
-use common\settings\EcpSettingsMore;
-use common\settings\EcpSettingsPayPal;
-use common\settings\EcpSettingsPayPalPayLater;
 use common\settings\forms\EcpForm;
 use WC_Settings_API;
 
@@ -63,7 +50,7 @@ final class EcpCore extends WC_Settings_API {
 	 * @var string
 	 * @since 2.0.0
 	 */
-	public const WC_ECP_VERSION = '5.0.5';
+	public const WC_ECP_VERSION = '5.1.0';
 
 	public const ECOMMPAY_PAYMENT_METHOD = 'ecommpay';
 
@@ -217,20 +204,20 @@ final class EcpCore extends WC_Settings_API {
 
 	private function set_payment_methods(): void {
 		$this->methods = array(
-			EcpSettingsCard::ID               => EcpCard::get_instance(),
-			EcpSettingsPayPal::ID             => EcpPayPal::get_instance(),
-			EcpSettingsPayPalPayLater::ID     => EcpPayPalPayLater::get_instance(),
-			EcpSettingsKlarna::ID             => EcpKlarna::get_instance(),
-			EcpSettingsBlik::ID               => EcpBlik::get_instance(),
-			EcpSettingsIdeal::ID              => EcpIdeal::get_instance(),
-			EcpSettingsBanks::ID              => EcpBanks::get_instance(),
-			EcpSettingsHumm::ID               => EcpHumm::get_instance(),
-			EcpSettingsBrazilOnline_Banks::ID => EcpBrazilOnlineBanks::get_instance(),
-			EcpSettingsGooglepay::ID          => EcpGooglepay::get_instance(),
-			EcpSettingsApplepay::ID           => EcpApplepay::get_instance(),
-			EcpSettingsDirectDebitBACS::ID    => EcpDirectDebitBACS::get_instance(),
-			EcpSettingsDirectDebitSEPA::ID    => EcpDirectDebitSEPA::get_instance(),
-			EcpSettingsMore::ID               => EcpMore::get_instance(),
+			EcpWcPaymentMethods::CARD                => EcpCard::get_instance(),
+			EcpWcPaymentMethods::PAYPAL              => EcpPayPal::get_instance(),
+			EcpWcPaymentMethods::PAYPAL_PAYLATER     => EcpPayPalPayLater::get_instance(),
+			EcpWcPaymentMethods::KLARNA              => EcpKlarna::get_instance(),
+			EcpWcPaymentMethods::BLIK                => EcpBlik::get_instance(),
+			EcpWcPaymentMethods::IDEAL               => EcpIdeal::get_instance(),
+			EcpWcPaymentMethods::BANKS               => EcpBanks::get_instance(),
+			EcpWcPaymentMethods::HUMM                => EcpHumm::get_instance(),
+			EcpWcPaymentMethods::BRAZIL_ONLINE_BANKS => EcpBrazilOnlineBanks::get_instance(),
+			EcpWcPaymentMethods::GOOGLE_PAY          => EcpGooglepay::get_instance(),
+			EcpWcPaymentMethods::APPLE_PAY           => EcpApplepay::get_instance(),
+			EcpWcPaymentMethods::DIRECTDEBIT_BACS    => EcpDirectDebitBACS::get_instance(),
+			EcpWcPaymentMethods::DIRECTDEBIT_SEPA    => EcpDirectDebitSEPA::get_instance(),
+			EcpWcPaymentMethods::MORE                => EcpMore::get_instance(),
 		);
 	}
 

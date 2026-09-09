@@ -8,11 +8,11 @@
 
 namespace common\gateways;
 
+use common\enums\EcpWcPaymentMethods;
 use common\exceptions\EcpGatewayLogicException;
 use common\includes\EcpGatewayOrder;
 use common\includes\filters\EcpAppendsFilters;
 use common\modules\EcpModuleRefund;
-use common\settings\EcpSettingsBlik;
 use WC_Order;
 
 defined( 'ABSPATH' ) || exit;
@@ -82,7 +82,7 @@ class EcpBlik extends EcpGateway {
 	 * <h2>ECOMMPAY Blik Gateway constructor.</h2>
 	 */
 	public function __construct() {
-		$this->id                     = EcpSettingsBlik::ID;
+		$this->id                     = EcpWcPaymentMethods::BLIK;
 		$this->method_title_key       = 'ECOMMPAY Blik';
 		$this->method_description_key = 'Accept payments via Blik.';
 

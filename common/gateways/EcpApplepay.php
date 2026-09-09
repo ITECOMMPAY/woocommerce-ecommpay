@@ -2,11 +2,11 @@
 
 namespace common\gateways;
 
+use common\enums\EcpWcPaymentMethods;
 use common\exceptions\EcpGatewayLogicException;
 use common\helpers\EcpGatewayPaymentMethods;
 use common\includes\EcpGatewayOrder;
 use common\modules\EcpModuleRefund;
-use common\settings\EcpSettingsApplepay;
 use WC_Order;
 
 defined( 'ABSPATH' ) || exit;
@@ -61,7 +61,7 @@ class EcpApplepay extends EcpGateway {
 	 * @throws EcpGatewayLogicException
 	 */
 	public function __construct() {
-		$this->id                     = EcpSettingsApplepay::ID;
+		$this->id                     = EcpWcPaymentMethods::APPLE_PAY;
 		$this->method_title_key       = 'ECOMMPAY ApplePay';
 		$this->method_description_key = 'Accept payments via ApplePay.';
 

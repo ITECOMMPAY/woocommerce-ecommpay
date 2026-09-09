@@ -2,11 +2,11 @@
 
 namespace common\gateways;
 
+use common\enums\EcpWcPaymentMethods;
 use common\exceptions\EcpGatewayLogicException;
 use common\helpers\EcpGatewayPaymentMethods;
 use common\includes\EcpGatewayOrder;
 use common\modules\EcpModuleRefund;
-use common\settings\EcpSettingsGooglepay;
 use WC_Order;
 
 defined( 'ABSPATH' ) || exit;
@@ -61,7 +61,7 @@ class EcpGooglepay extends EcpGateway {
 	 * @throws EcpGatewayLogicException
 	 */
 	public function __construct() {
-		$this->id                     = EcpSettingsGooglepay::ID;
+		$this->id                     = EcpWcPaymentMethods::GOOGLE_PAY;
 		$this->method_title_key       = 'ECOMMPAY GooglePay';
 		$this->method_description_key = 'Accept payments via GooglePay.';
 

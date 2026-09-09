@@ -2,6 +2,7 @@
 
 namespace common\settings;
 
+use common\enums\EcpWcPaymentMethods;
 use common\includes\filters\EcpFilters;
 
 defined( 'ABSPATH' ) || exit;
@@ -17,11 +18,6 @@ defined( 'ABSPATH' ) || exit;
 class EcpSettingsHumm extends EcpSettings {
 
 	/**
-	 * Internal identifier
-	 */
-	const ID = 'ecommpay-humm';
-
-	/**
 	 * Shop section identifier
 	 */
 	const HUMM_SETTINGS = 'humm_settings';
@@ -30,7 +26,7 @@ class EcpSettingsHumm extends EcpSettings {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->id        = self::ID;
+		$this->id        = EcpWcPaymentMethods::HUMM;
 		$this->label_key = 'Humm';
 		$this->icon      = 'humm.svg';
 
