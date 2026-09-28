@@ -4,8 +4,8 @@ namespace common\gateways;
 
 use common\enums\EcpWcPaymentMethods;
 use common\exceptions\EcpGatewayLogicException;
+use common\helpers\EcpRequestBuildHelper;
 use common\includes\EcpGatewayOrder;
-use common\includes\filters\EcpAppendsFilters;
 use common\modules\EcpModuleRefund;
 use WC_Order;
 
@@ -82,10 +82,10 @@ class EcpKlarna extends EcpGateway {
 	 * @since 3.0.0
 	 */
 	public function apply_payment_args( array $values, EcpGatewayOrder $order ): array {
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_COUNTRY, $values, $order );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_BILLING_COUNTRY, $values, $order );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_RECEIPT_DATA, $values, $order, true );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, $this->get_payment_method_code() );
+		$values = EcpRequestBuildHelper::append_customer_country( $values, $order );
+		$values = EcpRequestBuildHelper::append_billing_country( $values, $order );
+		$values = EcpRequestBuildHelper::append_receipt_data( $values, $order, true );
+		$values = EcpRequestBuildHelper::append_force_mode( $values, $this->get_payment_method_code() );
 
 		return parent::apply_payment_args( $values, $order );
 	}

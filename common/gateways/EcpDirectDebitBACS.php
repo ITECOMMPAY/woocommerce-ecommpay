@@ -5,8 +5,8 @@ namespace common\gateways;
 use common\enums\EcpWcPaymentMethods;
 use common\exceptions\EcpGatewayLogicException;
 use common\helpers\EcpGatewayPaymentMethods;
+use common\helpers\EcpRequestBuildHelper;
 use common\includes\EcpGatewayOrder;
-use common\includes\filters\EcpAppendsFilters;
 use common\modules\EcpModuleRefund;
 use WC_Order;
 
@@ -77,7 +77,6 @@ class EcpDirectDebitBACS extends EcpGateway {
 	 * @since 3.4.3
 	 */
 	public function apply_payment_args( array $values, EcpGatewayOrder $order ): array {
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CARD_OPERATION_TYPE, $values, $order );
 		$values = $this->apply_standard_payment_args( $values, $order );
 
 		return parent::apply_payment_args( $values, $order );

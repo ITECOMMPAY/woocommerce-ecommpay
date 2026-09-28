@@ -3,9 +3,9 @@
 namespace common\gateways;
 
 use common\exceptions\EcpGatewayLogicException;
+use common\helpers\EcpRequestBuildHelper;
 use common\includes\EcpGatewayOrder;
 use common\includes\filters\EcpApiFilters;
-use common\includes\filters\EcpAppendsFilters;
 use common\includes\filters\EcpWCFilters;
 use common\modules\EcpModuleSubscription;
 use common\settings\EcpSettings;
@@ -189,15 +189,6 @@ abstract class EcpGateway extends WC_Payment_Gateway {
 				'save',
 			)
 		);
-		add_filter(
-			EcpAppendsFilters::ECP_APPEND_GATEWAY_ARGUMENTS . $this->id,
-			array(
-				$this,
-				'apply_payment_args',
-			),
-			10,
-			2
-		);
 
 		add_filter( EcpApiFilters::ECP_API_REFUND_ENDPOINT_PREFIX . $this->id, array( $this, 'get_refund_endpoint' ) );
 	}
@@ -272,9 +263,10 @@ abstract class EcpGateway extends WC_Payment_Gateway {
 	protected function apply_standard_payment_args( array $values, EcpGatewayOrder $order ): array {
 		$amount = ecp_price_multiply( $order->get_total(), $order->get_currency() );
 
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_OPERATION_MODE, $values, $amount > 0 ? self::MODE_PURCHASE : self::MODE_CARD_VERIFY );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_FORCE_MODE, $values, $this->get_payment_method_code() );
-		return apply_filters( EcpAppendsFilters::ECP_APPEND_RECURRING, $values, $order );
+		$operation_mode = $amount > 0 ? self::MODE_PURCHASE : self::MODE_CARD_VERIFY;
+		$values         = EcpRequestBuildHelper::append_operation_mode( $values, $operation_mode );
+		$values         = EcpRequestBuildHelper::append_force_mode( $values, $this->get_payment_method_code() );
+		return EcpRequestBuildHelper::append_recurring( $values, $order );
 	}
 
 	/**

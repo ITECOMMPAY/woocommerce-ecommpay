@@ -6,8 +6,8 @@ use common\enums\EcpWcPaymentMethods;
 use common\exceptions\EcpGatewayErrorException;
 use common\exceptions\EcpGatewayLogicException;
 use common\helpers\EcpGatewayPaymentMethods;
+use common\helpers\EcpRequestBuildHelper;
 use common\includes\EcpGatewayOrder;
-use common\includes\filters\EcpAppendsFilters;
 use common\modules\EcpModuleRefund;
 use common\settings\EcpSettings;
 use WC_Order;
@@ -85,11 +85,10 @@ class EcpCard extends EcpGateway {
 	public function apply_payment_args( array $values, EcpGatewayOrder $order ): array {
 		$display_mode = $this->get_option( EcpSettings::OPTION_MODE, EcpSettings::MODE_REDIRECT );
 
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_CARD_OPERATION_TYPE, $values, $order );
+		$values = EcpRequestBuildHelper::append_operation_type( $values, $order );
 		$values = $this->apply_standard_payment_args( $values, $order );
 		// Setup Payment Page Display Mode
-		$values = apply_filters(
-			EcpAppendsFilters::ECP_APPEND_DISPLAY_MODE,
+		$values = EcpRequestBuildHelper::append_display_mode(
 			$values,
 			$display_mode,
 			ecp_is_enabled( EcpSettings::OPTION_POPUP_MISS_CLICK, $this->id )

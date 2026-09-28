@@ -11,10 +11,10 @@ namespace common\api;
 use common\enums\EcpWcPaymentMethods;
 use common\helpers\EcpGatewayOperationType;
 use common\helpers\EcpGatewayPaymentStatus;
+use common\helpers\EcpRequestBuildHelper;
 use common\includes\EcpGatewayOrder;
 use common\includes\EcpGatewayRefund;
 use common\includes\filters\EcpApiFilters;
-use common\includes\filters\EcpAppendsFilters;
 use common\models\EcpGatewayInfoResponse;
 use common\models\EcpGatewayInfoStatus;
 use function ecp_debug;
@@ -72,8 +72,7 @@ class EcpGatewayAPIPayment extends EcpGatewayAPI {
 		$response = new EcpGatewayInfoStatus(
 			$this->post(
 				self::STATUS_API_ENDPOINT,
-				apply_filters(
-					EcpAppendsFilters::ECP_APPEND_SIGNATURE,
+				EcpRequestBuildHelper::append_signature(
 					$this->build_general_api_block( $order->get_payment_id() )
 				)
 			)
@@ -103,8 +102,7 @@ class EcpGatewayAPIPayment extends EcpGatewayAPI {
 				apply_filters( EcpApiFilters::ECP_API_REFUND_ENDPOINT_PREFIX . $order->get_payment_method(), $order->get_payment_system() ),
 				'refund'
 			),
-			apply_filters(
-				EcpAppendsFilters::ECP_APPEND_SIGNATURE,
+			EcpRequestBuildHelper::append_signature(
 				$this->create_refund_request_form_data( $refund )
 			)
 		);
@@ -146,7 +144,7 @@ class EcpGatewayAPIPayment extends EcpGatewayAPI {
 		ecp_debug( 'Order ID: ', $order->get_id() );
 		$data     = $this->build_general_api_block_with_payment( $order->get_payment_id(), $order );
 		$url      = $this->get_method_endpoint( $order->get_payment_method(), EcpGatewayAPI::CANCEL_ENDPOINT );
-		$response = $this->post( $url, apply_filters( EcpAppendsFilters::ECP_APPEND_SIGNATURE, $data ) );
+		$response = $this->post( $url, EcpRequestBuildHelper::append_signature( $data ) );
 		$response = new EcpGatewayInfoResponse( $response );
 		$order->set_transaction_order_id( $response->get_request_id(), EcpGatewayOperationType::CANCEL );
 		ecp_info( 'Cancel payment process completed.' );
@@ -188,7 +186,7 @@ class EcpGatewayAPIPayment extends EcpGatewayAPI {
 		ecp_debug( 'Order ID: ' . $order->get_id() );
 		$data     = $this->build_general_api_block_with_payment( $order->get_payment_id(), $order );
 		$url      = $this->get_method_endpoint( $order->get_payment_method(), EcpGatewayAPI::CAPTURE_ENDPOINT );
-		$response = $this->post( $url, apply_filters( EcpAppendsFilters::ECP_APPEND_SIGNATURE, $data ) );
+		$response = $this->post( $url, EcpRequestBuildHelper::append_signature($data ) );
 		$response = new EcpGatewayInfoResponse( $response );
 		$order->set_transaction_order_id( $response->get_request_id(), self::CAPTURE_OPERATION );
 		ecp_info( 'Capture payment process completed.' );

@@ -10,12 +10,11 @@ use common\helpers\EcpGatewayOperationStatus;
 use common\helpers\EcpGatewayPaymentStatus;
 use common\helpers\EcpGatewayRegistry;
 use common\helpers\EcpLoader;
+use common\helpers\EcpRequestBuildHelper;
 use common\helpers\WCOrderStatus;
 use common\includes\EcpGatewayFormHandler;
 use common\includes\EcpGatewayOrder;
 use common\includes\filters\EcpApiFilters;
-use common\includes\filters\EcpAppendsFilters;
-use common\includes\filters\EcpFilters;
 use common\includes\filters\EcpWCFilters;
 use common\includes\filters\EcpWPFilters;
 use common\settings\EcpSettings;
@@ -225,13 +224,13 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 			// Note: _referrer is not needed here — merchant.js sets it automatically via config._referrer.
 		);
 
-		$data = apply_filters( EcpAppendsFilters::ECP_APPEND_INTERFACE_TYPE, $data, true );
+		$data = EcpRequestBuildHelper::append_interface_type( $data, true );
 		$data = $this->append_recurring_total_form_cart( $data );
 
 		if ( isset( $order ) ) {
-			$data = apply_filters( EcpAppendsFilters::ECP_APPEND_CARD_OPERATION_TYPE, $data, $order );
-			$data = apply_filters( EcpAppendsFilters::ECP_APPEND_RECEIPT_DATA, $data, $order, true );
-			$data = apply_filters( EcpAppendsFilters::ECP_APPEND_CUSTOMER_ID, $data, $order );
+			$data = EcpRequestBuildHelper::append_operation_type( $data, $order );
+			$data = EcpRequestBuildHelper::append_receipt_data( $data, $order, true );
+			$data = EcpRequestBuildHelper::append_customer_id( $data, $order );
 		} else {
 			$data     = $this->append_receipt_data_from_cart( $data );
 			$customer = WC()->cart->get_customer();
@@ -240,7 +239,7 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 			}
 		}
 
-		return apply_filters( EcpAppendsFilters::ECP_APPEND_LANGUAGE_CODE, $data );
+		return EcpRequestBuildHelper::append_language( $data );
 	}
 
 	/**
@@ -259,7 +258,7 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 		$data['merchant_domain'] = $this->get_merchant_domain();
 		$data                    = $this->append_operation_type( $data );
 
-		$data = apply_filters( EcpAppendsFilters::ECP_APPEND_VERSIONS, $data );
+		$data = EcpRequestBuildHelper::append_versions( $data );
 
 		ecp_debug( 'Payment page data (embedded): ', $data );
 
@@ -337,6 +336,7 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 		return $data;
 	}
 
+	// TODO move to receipt data extractor
 	private function append_receipt_data_from_cart( $data ) {
 		$cart       = WC()->cart;
 		$totalTax   = abs( $cart->get_totals()['total_tax'] );
@@ -560,7 +560,7 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 	 * @since 2.0.0
 	 */
 	public function get_request_url( EcpGatewayOrder $order, $gateway ): array {
-		return apply_filters( EcpAppendsFilters::ECP_APPEND_SIGNATURE, $this->get_form_data( $order, $gateway ) );
+		return EcpRequestBuildHelper::append_signature( $this->get_form_data( $order, $gateway ) );
 	}
 
 	/**
@@ -594,24 +594,24 @@ class EcpModulePaymentPage extends EcpGatewayRegistry {
 		$return_url = esc_url_raw( add_query_arg( 'utm_nooverride', '1', $gateway->get_return_url( $order ) ) );
 		$fail_url   = home_url( self::FAILED_URI );
 
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_PROJECT_ID, $values );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_LANGUAGE_CODE, $values );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_ADDITIONAL_VARIABLES, $values, $order );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_MERCHANT_SUCCESS_URL, $values, $return_url );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_MERCHANT_FAIL_URL, $values, $fail_url );
+		$values = EcpRequestBuildHelper::append_project_id( $values );
+		$values = EcpRequestBuildHelper::append_language( $values );
+		$values = EcpRequestBuildHelper::append_custom_variables( $values, $order );
+		$values = EcpRequestBuildHelper::append_merchant_success_url( $values, $return_url );
+		$values = EcpRequestBuildHelper::append_merchant_fail_url( $values, $fail_url );
 		// todo: uncomment after Humm is fixed
-		// $values = apply_filters( EcpAppendsFilters::ECP_APPEND_REDIRECT_RETURN_URL, $values, home_url( '/checkout' ) );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_MERCHANT_RETURN_URL, $values, esc_url_raw( $order->get_checkout_payment_url() ) );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_MERCHANT_CALLBACK_URL, $values );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_REDIRECT_SUCCESS_URL, $values, $return_url );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_REDIRECT_FAIL_URL, $values, $fail_url );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_GATEWAY_ARGUMENTS . $gateway->id, $values, $order );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_VERSIONS, $values );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_INTERFACE_TYPE, $values, true );
-		$values = apply_filters( EcpAppendsFilters::ECP_APPEND_OPERATION_TYPE, $values, $order );
+		// $values = EcpRequestBuildHelper::append_redirect_return_url( $values, home_url( '/checkout' ) );
+		$values = EcpRequestBuildHelper::append_merchant_return_url( $values, esc_url_raw( $order->get_checkout_payment_url() ) );
+		$values = EcpRequestBuildHelper::append_merchant_callback_url( $values );
+		$values = EcpRequestBuildHelper::append_redirect_success_url( $values, $return_url );
+		$values = EcpRequestBuildHelper::append_redirect_fail_url( $values, $fail_url );
+		$values = $gateway->apply_payment_args( $values, $order );
+		$values = EcpRequestBuildHelper::append_versions( $values );
+		$values = EcpRequestBuildHelper::append_interface_type( $values, true );
+		$values = EcpRequestBuildHelper::append_operation_type( $values, $order );
 
 		// Clean arguments and return
-		return apply_filters( EcpFilters::ECP_PAYMENT_PAGE_CLEAN_PARAMETERS, $values );
+		return EcpRequestBuildHelper::filter_clean( $values );
 	}
 
 	public function wc_custom_redirect_after_purchase() {

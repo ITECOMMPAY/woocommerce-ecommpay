@@ -11,8 +11,8 @@ namespace common\api;
 use common\exceptions\EcpGatewayAPIException;
 use common\exceptions\EcpGatewayError;
 use common\helpers\EcpGatewayPaymentMethods;
+use common\helpers\EcpRequestBuildHelper;
 use common\includes\EcpGatewayOrder;
-use common\includes\filters\EcpAppendsFilters;
 use common\models\EcpGatewayInfoResponse;
 use WC_Subscriptions_Order;
 
@@ -86,7 +86,7 @@ class EcpGatewayAPISubscription extends EcpGatewayAPI {
 		$response = new EcpGatewayInfoResponse(
 			$this->post(
 				sprintf( '%s/%s', $payment_method, 'recurring' ),
-				apply_filters( EcpAppendsFilters::ECP_APPEND_SIGNATURE, $data )
+				EcpRequestBuildHelper::append_signature( $data )
 			)
 		);
 
@@ -107,13 +107,9 @@ class EcpGatewayAPISubscription extends EcpGatewayAPI {
 		ecp_get_log()->info( __( 'Run check transaction status API process.', 'woo-ecommpay' ) );
 		ecp_get_log()->debug( __( 'Request ID:', 'woo-ecommpay' ), $request_id );
 
-		$data = apply_filters(
-			EcpAppendsFilters::ECP_APPEND_SIGNATURE,
-			apply_filters(
-				EcpAppendsFilters::ECP_APPEND_PROJECT_ID,
-				array( 'request_id' => $request_id )
-			)
-		);
+		$data = EcpRequestBuildHelper::append_project_id( array( 'request_id' => $request_id ) );
+
+		$data = EcpRequestBuildHelper::append_signature( $data );
 
 		$response = new EcpGatewayInfoResponse( $this->post( self::STATUS_REQUEST_API_ENDPOINT, $data ) );
 

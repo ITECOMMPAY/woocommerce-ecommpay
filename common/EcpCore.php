@@ -21,7 +21,6 @@ use common\gateways\EcpKlarna;
 use common\gateways\EcpMore;
 use common\gateways\EcpPayPal;
 use common\gateways\EcpPayPalPayLater;
-use common\helpers\EcpGatewayAPIProtocol;
 use common\includes\EcpCallbacksHandler;
 use common\includes\EcpGatewayOrder;
 use common\includes\EcpGatewayRefund;
@@ -50,7 +49,7 @@ final class EcpCore extends WC_Settings_API {
 	 * @var string
 	 * @since 2.0.0
 	 */
-	public const WC_ECP_VERSION = '5.1.0';
+	public const WC_ECP_VERSION = '5.1.1';
 
 	public const ECOMMPAY_PAYMENT_METHOD = 'ecommpay';
 
@@ -136,7 +135,6 @@ final class EcpCore extends WC_Settings_API {
 		EcpModuleAuth::get_instance();
 		EcpModuleCapture::get_instance();
 		EcpModuleCancel::get_instance();
-		EcpGatewayAPIProtocol::get_instance();
 
 		$this->set_payment_methods();
 
